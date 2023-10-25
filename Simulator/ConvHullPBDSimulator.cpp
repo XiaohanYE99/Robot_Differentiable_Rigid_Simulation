@@ -52,14 +52,14 @@ void ConvHullPBDSimulator::step() {
       DDE=DDE2;
       iter++;
       if(_output)
-        std::cout << "Iter=" << iter << " E=" << e << " gNorm=" << DE.cwiseAbs().maxCoeff() << " alpha=" << _alpha << std::endl;
+        std::cout << "Iter=" << iter << " E=" << e  << " alpha=" << _alpha << " gNorm=" << DE.cwiseAbs().maxCoeff()<<std::endl;
       //termination: gradient tolerance
       if(DE2.cwiseAbs().maxCoeff()<_gTol)
         break;
     } else {
       _alpha=std::min<T>(_alpha*1.5f,alphaMax);
       if(_output)
-        std::cout << "Iter=" << iter << " E=" << e << " E2=" << e2 << " alpha=" << _alpha << " gNorm=" << DE2.cwiseAbs().maxCoeff()<<std::endl;
+        std::cout << "Iter=" << iter << " E=" << e <<  " alpha=" << _alpha << " gNorm=" << DE2.cwiseAbs().maxCoeff()<<std::endl;
       //termination: numerical issue
       if(_alpha>=alphaMax)
         break;
@@ -286,27 +286,29 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(CollisionGradInfo<T>& grad,
   _ispenetrated=false;
   //bool hasCollisionEnergy=false;
   //std::cout<<"E: "<<E<<std::endl;
-  //bool over=false;
+  bool over=false;
   T DIST=10.0;
   for(int k1=0; k1<nrJ; k1++) {
     //if(over==true) break;
     GJKPolytope<T> m1(k1,*_body,grad);
-    /*for(int k2=k1+1;k2<nrJ;k2++){
+    for(int k2=k1+1;k2<nrJ;k2++){
       //if(over==true) break;
       GJKPolytope<T> m2(k2,*_body,grad);
       T dist=GJKPolytope<T>::distance(m1,m2,NULL,NULL);
-      if(dist<=_barrier._x0 && dist>_d0){
+      if(dist<=2*_barrier._x0 && dist>_d0){
         CCBarrierConvexEnergy<T,Px> cc(m1,m2,_barrier,_d0,&grad,5e-4);
-        
-        if(!cc.eval(&_E,_body.get(),&grad,&DE,&DDE)){
+        //std::cout<<k2<<" "<<dist<<std::endl;
+        //cc.initialize(NULL,_body.get());
+        if(!cc.eval(&_E,_body.get(),&grad,&_DE,&_DDE)){
           _ispenetrated=true;
         }
         E+=_E;
+        DE+=_DE;
         //std::cout<<"distself: "<<dist<<" e: "<<E<<std::endl;
         //over=true;
       }
-    }*/
-    for(auto& m:_shapes){
+    }
+    /*for(auto& m:_shapes){
       std::vector<Eigen::Matrix<double,3,1>> vss;
       std::vector<Eigen::Matrix<int,3,1>> iss;
       m->getMesh(vss,iss);
@@ -314,29 +316,27 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(CollisionGradInfo<T>& grad,
       GJKPolytope<T> m2(mesh);
       T dist=GJKPolytope<T>::distance(m1,m2,NULL,NULL);
       DIST=std::min(DIST,dist);
-      if(dist<=2*_barrier._x0){
+      if(dist<=2*_barrier._x0 && dist>_d0){
         //std::cout<<k1<<" "<<dist<<std::endl;
-        CCBarrierConvexEnergy<T,Px> cc(m1,m2,_barrier,_d0,&grad,5e-4,false);
+        CCBarrierConvexEnergy<T,Px> cc(m1,m2,_barrier,_d0,&grad,5e-4);
         //T Q=_E;
-        cc.initialize(NULL,_body.get());
-        if(!cc.eval(&_E,_body.get(),&grad,NULL,NULL)){
+        //cc.initialize(NULL,_body.get());
+        if(!cc.eval(&_E,_body.get(),&grad,&DE,&DDE)){
           _ispenetrated=true;
         }
-        
         E+=_E;
-        //over=true;
       }
-    }
+    }*/
   }
   //std::cout<<DIST<<std::endl;
-  DE.setZero(_body->nrDOF());
+  /*DE.setZero(_body->nrDOF());
   grad._info.DTG(*_body,mapM(grad._DTG),mapV(DE));
 
 
   DDE=grad._HTheta;
   grad._info.toolB(*_body,mapM(grad._DTG),[&](int r,int c,T val) {
     (DDE)(r,c)+=val;
-  });
+  });*/
     
   for(int k=0; k<nrJ; k++) {
     //dynamic

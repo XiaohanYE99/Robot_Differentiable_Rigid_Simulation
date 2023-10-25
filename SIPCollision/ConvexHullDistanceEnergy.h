@@ -11,7 +11,7 @@ namespace PHYSICSMOTION {
 template <typename T>
 struct HigherPrecisionTraits {
 #ifdef QUADMATH_SUPPORT
-  typedef double TH;
+  typedef float128 TH;
 #else
   typedef double TH;
 #endif
