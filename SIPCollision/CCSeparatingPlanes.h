@@ -33,8 +33,8 @@ struct EntityIdHash {
     //int _tid=-1;
     hash_combine(seed,std::hash<std::shared_ptr<GJKPolytope<T>>>()(key._obs));
     hash_combine(seed,std::hash<std::shared_ptr<MeshExact>>()(key._link));
-    hash_combine(seed,std::hash<T>()(key._timeFrom));
-    hash_combine(seed,std::hash<T>()(key._timeTo));
+    hash_combine(seed,std::hash<rational>()(key._timeFrom));
+    hash_combine(seed,std::hash<rational>()(key._timeTo));
     hash_combine(seed,std::hash<int>()(key._jid));
     hash_combine(seed,std::hash<int>()(key._tid));
     return seed;

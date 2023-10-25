@@ -10,7 +10,7 @@ CollisionBarrierEnergy<T,PFunc>::CollisionBarrierEnergy
 (const ArticulatedBody& body,
  const Vec& controlPoints,const ThetaTrajectory<T>& tt,
  std::vector<std::pair<EntityId<T>,EntityId<T>>>& triPairs,CCSeparatingPlanes<T>& CCPlanes,
- std::unordered_map<T,GradInfo>& gradInfo,T d0,T x0,T coef,bool JTJApprox,bool implicit)
+ std::unordered_map<rational,GradInfo>& gradInfo,T d0,T x0,T coef,bool JTJApprox,bool implicit)
   :TrajectorySIPEnergy<T>(body,controlPoints,tt,coef),
    _TTPairs(triPairs),_CCPlanes(CCPlanes),_gradInfo(gradInfo),
    _JTJApprox(JTJApprox),_constructGradInfo(false),
@@ -47,9 +47,9 @@ bool CollisionBarrierEnergy<T,PFunc>::eval(EFunc* E,GFunc* G,HFunc* H) {
     if(!succ)
       continue;
     //make sure time stamp is the same
-    T timeAvg=_TTPairs[i].first.getTimeAvg();
+    rational timeAvg=_TTPairs[i].first.getTimeAvg();
     if(!_TTPairs[i].second.isObstacle()) {
-      T timeAvgSecond=_TTPairs[i].second.getTimeAvg();
+      rational timeAvgSecond=_TTPairs[i].second.getTimeAvg();
       if(timeAvg!=timeAvgSecond) {
         _TTPairs[i].first.print();
         _TTPairs[i].second.print();
@@ -59,7 +59,7 @@ bool CollisionBarrierEnergy<T,PFunc>::eval(EFunc* E,GFunc* G,HFunc* H) {
     //make sure gradInfo is computed
     OMP_CRITICAL_
     if(_constructGradInfo && _gradInfo.find(timeAvg)==_gradInfo.end()) {
-      _gradInfo[timeAvg]=GradInfo(_body,_thetaTrajectory.getPoint(_controlPoints,timeAvg));
+      _gradInfo[timeAvg]=GradInfo(_body,_thetaTrajectory.getPoint(_controlPoints,(T)timeAvg));
     }
     ASSERT_MSG(_gradInfo.find(timeAvg)!=_gradInfo.end(),"Cannot find gradInfo at timeAvg!")
     //evaluate energy in parallel
@@ -80,9 +80,9 @@ bool CollisionBarrierEnergy<T,PFunc>::eval(EFunc* E,GFunc* G,HFunc* H) {
     if(!succ)
       continue;
     //make sure time stamp is the same
-    T timeAvg=_CCPairs[i].first.getTimeAvg();
+    rational timeAvg=_CCPairs[i].first.getTimeAvg();
     if(!_CCPairs[i].second.isObstacle()) {
-      T timeAvgSecond=_CCPairs[i].second.getTimeAvg();
+      rational timeAvgSecond=_CCPairs[i].second.getTimeAvg();
       if(timeAvg!=timeAvgSecond) {
         _CCPairs[i].first.print();
         _CCPairs[i].second.print();
@@ -92,7 +92,7 @@ bool CollisionBarrierEnergy<T,PFunc>::eval(EFunc* E,GFunc* G,HFunc* H) {
     //make sure gradInfo is computed
     OMP_CRITICAL_
     if(_constructGradInfo && _gradInfo.find(timeAvg)==_gradInfo.end()) {
-      _gradInfo[timeAvg]=GradInfo(_body,_thetaTrajectory.getPoint(_controlPoints,timeAvg));
+      _gradInfo[timeAvg]=GradInfo(_body,_thetaTrajectory.getPoint(_controlPoints,(T)timeAvg));
     }
     ASSERT_MSG(_gradInfo.find(timeAvg)!=_gradInfo.end(),"Cannot find gradInfo at timeAvg!")
     //evaluate energy in parallel
@@ -118,13 +118,13 @@ bool CollisionBarrierEnergy<T,PFunc>::eval(EFunc* E,GFunc* G,HFunc* H) {
         SIPEnergy<T>::parallelAdd(infoPair.second._HTheta(row,col),val);
       });
     }
-    _thetaTrajectory.assembleEnergy(infoPair.first,G,H,&GTheta,&(infoPair.second._HTheta));
+    _thetaTrajectory.assembleEnergy((T)infoPair.first,G,H,&GTheta,&(infoPair.second._HTheta));
   }
   return succ;
 }
 template <typename T,typename PFunc>
 bool CollisionBarrierEnergy<T,PFunc>::evalCC(const std::pair<EntityId<T>,EntityId<T>>& pair,CCSeparatingPlane<T>& plane,EFunc* E,bool DG,bool DH,GradInfo& gradInfo) {
-  T energyVal,timeDiff=pair.first.getTimeDiff();
+  T energyVal,timeDiff=(T)pair.first.getTimeDiff();
   if(timeDiff==0)
     timeDiff=1; //this implies you are optimizing a static pose, we do not use timeDiff here
   ASSERT_MSG(pair.second.isRobotConvexHull() || pair.second.isObstacleConvexHull(),
@@ -158,7 +158,7 @@ bool CollisionBarrierEnergy<T,PFunc>::evalTT(const std::pair<EntityId<T>,EntityI
   Vec12T Grad;
   Mat12T Hessian;
   bool isObs=pair.second.isObstacle();
-  T timeDiff=pair.first.getTimeDiff(),mollifierCoef;
+  T timeDiff=(T)pair.first.getTimeDiff(),mollifierCoef;
   if(timeDiff==0) {
     timeDiff=1; //this implies you are optimizing a static pose, we do not use timeDiff here
     //if user optimizes a static pose, we need discrete collision check for an entire triangle
@@ -437,9 +437,9 @@ bool CollisionBarrierEnergy<T,PFunc>::updateCCPlanes() {
     if(!succ)
       continue;
     //make sure time stamp is the same
-    T timeAvg=_CCPairs[i].first.getTimeAvg();
+    rational timeAvg=_CCPairs[i].first.getTimeAvg();
     if(!_CCPairs[i].second.isObstacle()) {
-      T timeAvgSecond=_CCPairs[i].second.getTimeAvg();
+      rational timeAvgSecond=_CCPairs[i].second.getTimeAvg();
       if(timeAvg!=timeAvgSecond) {
         _CCPairs[i].first.print();
         _CCPairs[i].second.print();
@@ -452,15 +452,15 @@ bool CollisionBarrierEnergy<T,PFunc>::updateCCPlanes() {
     //make sure gradInfo is computed
     OMP_CRITICAL_
     if(_constructGradInfo && _gradInfo.find(timeAvg)==_gradInfo.end())
-      _gradInfo[timeAvg]=GradInfo(_body,_thetaTrajectory.getPoint(_controlPoints,timeAvg));
+      _gradInfo[timeAvg]=GradInfo(_body,_thetaTrajectory.getPoint(_controlPoints,(T)timeAvg));
     ASSERT_MSG(_gradInfo.find(timeAvg)!=_gradInfo.end(),"Cannot find gradInfo at timeAvg!")
     //construct CCBarrierEnergy
-    T timeDiff=pair.first.getTimeDiff();
+    rational timeDiff=pair.first.getTimeDiff();
     ASSERT_MSG(pair.second.isRobotConvexHull() || pair.second.isObstacleConvexHull(),
                "Collision between convex hull and triangle not supported!")
     const GJKPolytope<T>& p1=pair.first.getPolytope(_gradInfo[timeAvg]);
     const GJKPolytope<T>& p2=pair.second.getPolytope(_gradInfo[timeAvg]);
-    CCBarrierEnergyType cc(p1,p2,_pCC,_d0,&_gradInfo[timeAvg],_coef*timeDiff*2,_implicit);
+    CCBarrierEnergyType cc(p1,p2,_pCC,_d0,&_gradInfo[timeAvg],_coef*(T)timeDiff*2,_implicit);
     //initialize
     if(!_planeHandles[i]->_initialized) {
       if(!cc.initialize(&(_planeHandles[i]->_x),&_body))

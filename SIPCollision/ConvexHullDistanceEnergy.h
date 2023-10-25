@@ -10,14 +10,12 @@
 namespace PHYSICSMOTION {
 template <typename T>
 struct HigherPrecisionTraits {
-  typedef double TH;
-};
 #ifdef QUADMATH_SUPPORT
-template <>
-struct HigherPrecisionTraits<float128> {
-  typedef float128 TH;
-};
+  typedef double TH;
+#else
+  typedef double TH;
 #endif
+};
 template <>
 struct HigherPrecisionTraits<mpfr_float> {
   typedef mpfr_float TH;

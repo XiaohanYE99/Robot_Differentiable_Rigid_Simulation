@@ -6,7 +6,7 @@
 using namespace PHYSICSMOTION;
 
 int main(int argc,char** argv) {
-  typedef double T;
+  typedef FLOAT T;
   DECL_MAT_VEC_MAP_TYPES_T
   //create body
   tinyxml2::XMLDocument pt;
@@ -25,7 +25,7 @@ int main(int argc,char** argv) {
     sim.addShape(floor);
     sim.setJTJ(false);
     sim.setCrossTerm(true);
-    sim.debugEnergy(10.7);
+    sim.debugEnergy(8.7);
   }
   {
     //XPBDSimulator

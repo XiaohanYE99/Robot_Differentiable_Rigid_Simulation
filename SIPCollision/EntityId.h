@@ -57,8 +57,8 @@ struct EntityId : public SerializableBase {
   bool isRobotTriangle() const;
   bool isObstacle() const;
   void print() const;
-  T getTimeAvg() const;
-  T getTimeDiff() const;
+  rational getTimeAvg() const;
+  rational getTimeDiff() const;
   bool checkBss(int cnt) const;
   //Joint:
   //  Case 1: _jid=-1,_tid=-1,_obs==NULL means internal node
@@ -68,8 +68,8 @@ struct EntityId : public SerializableBase {
   //  Case 4: _jid=-1,_tid>=0,_obs!=NULL means leaf of obstacle
   std::shared_ptr<GJKPolytope<T>> _obs;
   std::shared_ptr<MeshExact> _link;
-  T _timeFrom=-1;
-  T _timeTo=-1;
+  rational _timeFrom=-1;
+  rational _timeTo=-1;
   int _jid=-1;
   int _tid=-1;
   //temporary variables, these are not serialized

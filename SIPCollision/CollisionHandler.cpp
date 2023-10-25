@@ -977,7 +977,7 @@ template <typename T>
 void CollisionHandler<T>::update() {
   //pass-1 gradient info computation
   _infoLookup.clear();
-  std::vector<T> timeAvgs;
+  std::vector<rational> timeAvgs;
   for(int i=0; i<(int)_bvhBody.size(); i++) {
     EntityId<T>& id=_bvhBody[i]._cell;
     if(_bvhBody[i]._l!=-1)
@@ -992,7 +992,7 @@ void CollisionHandler<T>::update() {
   //set gradient information
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)timeAvgs.size(); i++)
-    _infoLookup.find(timeAvgs[i])->second.reset(*_body,_thetaTrajectory.getPoint(_controlPoints,timeAvgs[i]));
+    _infoLookup.find(timeAvgs[i])->second.reset(*_body,_thetaTrajectory.getPoint(_controlPoints,(T)timeAvgs[i]));
   //pass-2 leaf node variable computation
   OMP_PARALLEL_FOR_
   for(int i=0; i<(int)_bvhBody.size(); i++) {
@@ -1010,7 +1010,7 @@ void CollisionHandler<T>::update() {
         id._vertexPhi[d]=getVertexPhi(i,d);
     }
     //BBox
-    _bvhBody[i]._bb=computeBB(id,id._timeFrom,id._timeTo);
+    _bvhBody[i]._bb=computeBB(id,(T)id._timeFrom,(T)id._timeTo);
   }
   //pass-3 merge bounding boxes
   for(int i=0; i<(int)_bvhBody.size(); i++) {
@@ -1067,11 +1067,11 @@ CCSeparatingPlanes<T>& CollisionHandler<T>::getSelfCCPlanes() {
   return _selfCCPlanes;
 }
 template <typename T>
-const std::unordered_map<T,typename CollisionHandler<T>::GradInfo>& CollisionHandler<T>::getInfoLookup() const {
+const std::unordered_map<rational,typename CollisionHandler<T>::GradInfo>& CollisionHandler<T>::getInfoLookup() const {
   return _infoLookup;
 }
 template <typename T>
-std::unordered_map<T,typename CollisionHandler<T>::GradInfo>& CollisionHandler<T>::getInfoLookup() {
+std::unordered_map<rational,typename CollisionHandler<T>::GradInfo>& CollisionHandler<T>::getInfoLookup() {
   return _infoLookup;
 }
 template <typename T>
@@ -1194,39 +1194,39 @@ T CollisionHandler<T>::getFaceL1(int jointId,int tid,T t0,T t1) const {
 //get Phi
 template <typename T>
 T CollisionHandler<T>::getConvexHullPhi(int bvhBodyOffset) const {
-  T timeDiff=_bvhBody[bvhBodyOffset]._cell.getTimeDiff();
+  T timeDiff=(T)_bvhBody[bvhBodyOffset]._cell.getTimeDiff();
   int jointId=_bvhBody[bvhBodyOffset]._cell._jid;
   std::shared_ptr<MeshExact> mesh=std::dynamic_pointer_cast<MeshExact>(_body->joint(jointId)._mesh);
   return getConvexHullL1(jointId,
-                         _bvhBody[bvhBodyOffset]._cell._timeFrom,
-                         _bvhBody[bvhBodyOffset]._cell._timeTo)*timeDiff+_l2*pow(timeDiff,_eta);
+                         (T)_bvhBody[bvhBodyOffset]._cell._timeFrom,
+                         (T)_bvhBody[bvhBodyOffset]._cell._timeTo)*timeDiff+_l2*pow(timeDiff,_eta);
 }
 template <typename T>
 T CollisionHandler<T>::getVertexPhi(int bvhBodyOffset,int vertexId) const {
-  T timeDiff=_bvhBody[bvhBodyOffset]._cell.getTimeDiff();
+  T timeDiff=(T)_bvhBody[bvhBodyOffset]._cell.getTimeDiff();
   int jointId=_bvhBody[bvhBodyOffset]._cell._jid;
   int triangleId=_bvhBody[bvhBodyOffset]._cell._tid;
   std::shared_ptr<MeshExact> mesh=std::dynamic_pointer_cast<MeshExact>(_body->joint(jointId)._mesh);
   return getVertexL1(jointId,mesh->iss()[triangleId][vertexId],
-                     _bvhBody[bvhBodyOffset]._cell._timeFrom,
-                     _bvhBody[bvhBodyOffset]._cell._timeTo)*timeDiff+_l2*pow(timeDiff,_eta);
+                     (T)_bvhBody[bvhBodyOffset]._cell._timeFrom,
+                     (T)_bvhBody[bvhBodyOffset]._cell._timeTo)*timeDiff+_l2*pow(timeDiff,_eta);
 }
 template <typename T>
 T CollisionHandler<T>::getEdgePhi(int bvhBodyOffset,int startVertexId) const {
-  T timeDiff=_bvhBody[bvhBodyOffset]._cell.getTimeDiff();
+  T timeDiff=(T)_bvhBody[bvhBodyOffset]._cell.getTimeDiff();
   return getEdgeL1(_bvhBody[bvhBodyOffset]._cell._jid,
                    _bvhBody[bvhBodyOffset]._cell._tid,
                    startVertexId,
-                   _bvhBody[bvhBodyOffset]._cell._timeFrom,
-                   _bvhBody[bvhBodyOffset]._cell._timeTo)*timeDiff+_l2*pow(timeDiff,_eta);
+                   (T)_bvhBody[bvhBodyOffset]._cell._timeFrom,
+                   (T)_bvhBody[bvhBodyOffset]._cell._timeTo)*timeDiff+_l2*pow(timeDiff,_eta);
 }
 template <typename T>
 T CollisionHandler<T>::getFacePhi(int bvhBodyOffset) const {
-  T timeDiff=_bvhBody[bvhBodyOffset]._cell.getTimeDiff();
+  T timeDiff=(T)_bvhBody[bvhBodyOffset]._cell.getTimeDiff();
   return getFaceL1(_bvhBody[bvhBodyOffset]._cell._jid,
                    _bvhBody[bvhBodyOffset]._cell._tid,
-                   _bvhBody[bvhBodyOffset]._cell._timeFrom,
-                   _bvhBody[bvhBodyOffset]._cell._timeTo)*timeDiff+_l2*pow(timeDiff,_eta);
+                   (T)_bvhBody[bvhBodyOffset]._cell._timeFrom,
+                   (T)_bvhBody[bvhBodyOffset]._cell._timeTo)*timeDiff+_l2*pow(timeDiff,_eta);
 }
 template <typename T>
 bool CollisionHandler<T>::penetrated() const {
@@ -1239,17 +1239,17 @@ BBoxExact CollisionHandler<T>::computeBB(const EntityId<T>& id,T t0,T t1) {
   if(id._tid>=0)
     L1=getFaceL1(id._jid,id._tid,t0,t1);
   else L1=getConvexHullL1(id._jid,t0,t1);
-  phi=_d0+std::max<T>(_x0,L1*id.getTimeDiff()+_l2*pow(id.getTimeDiff(),_eta));
+  phi=_d0+std::max<T>(_x0,L1*(T)id.getTimeDiff()+_l2*pow((T)id.getTimeDiff(),_eta));
   return bb.enlarged(BBoxExact::Vec3T::Constant((BBoxExact::T)phi));
 }
 //helper
 template <typename T>
-const typename CollisionHandler<T>::GradInfo& CollisionHandler<T>::getInfo(T timeAvg,bool mustExist) const {
+const typename CollisionHandler<T>::GradInfo& CollisionHandler<T>::getInfo(rational timeAvg,bool mustExist) const {
   auto it=_infoLookup.find(timeAvg);
   OMP_CRITICAL_
   if(it==_infoLookup.end()) {
     ASSERT_MSGV(!mustExist,"User requires info at time=%f must exist, but it does not!",(double)timeAvg)
-    const_cast<std::unordered_map<T,GradInfo>&>(_infoLookup)[timeAvg].reset(*_body,_thetaTrajectory.getPoint(_controlPoints,timeAvg));
+    const_cast<std::unordered_map<rational,GradInfo>&>(_infoLookup)[timeAvg].reset(*_body,_thetaTrajectory.getPoint(_controlPoints,(T)timeAvg));
     it=_infoLookup.find(timeAvg);
   }
   return it->second;

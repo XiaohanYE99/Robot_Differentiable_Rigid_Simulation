@@ -107,6 +107,8 @@ void CCBarrierConvexEnergy<T,PFunc,TH>::debugGradient(bool implicit,const Articu
     //p2.writeVTK("poly2.vtk",&body);
     CCBarrierConvexEnergy<T,PFunc,TH> e(p,p2,barrier,d0,&info,coef,implicit);
     e.setOutput(output);
+    T dist=GJKPolytope<T>::distance(p,p2,NULL,NULL);
+    std::cout<<dist<<std::endl;
     if(!implicit)
       e.initialize(NULL,&body);
     if(!e.eval(&E,&body,&info,&GTheta,&HTheta))

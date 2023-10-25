@@ -119,7 +119,7 @@ bool CCBarrierEnergy<T,PFunc,TH>::eval(T* E,const ArticulatedBody* body,Collisio
     bool hessian=grad && grad->_HTheta.size()>0;
     computeDTGH(*body,*grad,_x.template cast<T>(),
                 hessian? &G: NULL,hessian? &H: NULL);
-    /*if(GTheta) {
+    if(GTheta) {
       GTheta->setZero(body->nrDOF());
       grad->_info.DTG(*body,mapM(DTG=grad->_DTG),mapV(*GTheta));
     }
@@ -128,7 +128,7 @@ bool CCBarrierEnergy<T,PFunc,TH>::eval(T* E,const ArticulatedBody* body,Collisio
       grad->_info.toolB(*body,mapM(DTG=grad->_DTG),[&](int r,int c,T val) {
         (*HTheta)(r,c)+=val;
       });
-    }*/
+    }
   }
   return true;
 }
@@ -474,11 +474,8 @@ void CCBarrierEnergy<T,PFunc,TH>::computeDTGH(const ArticulatedBody& body,Collis
       energyPDTGH(_globalVss1->col(c),local->vss()[c].template cast<T>(),x,&DTG,
                   R*local->vss()[c].template cast<T>(),(G && H && _implicit)? &tDDEDXDTheta1: NULL,&wDDEDXDTheta1,
                   (G && H)? &Mww: NULL,&Mtw,&Mwt,&Mtt);
-    //TRANSI(info._DTG,_p1.jid())+=DTG;
     for(int r=0; r<3; r++)
-
       for(int c=0; c<4; c++)
-
         SIPEnergy<T>::parallelAdd(info._DTG(r,c+_p1.jid()*4),DTG(r,c));
     //stage 2
     if(G && H) {
@@ -503,20 +500,16 @@ void CCBarrierEnergy<T,PFunc,TH>::computeDTGH(const ArticulatedBody& body,Collis
     DTG.setZero();
     std::vector<Eigen::Matrix<double,3,1>> vss;
     std::vector<Eigen::Matrix<int,3,1>> iss;
-    body.joint(_p2.jid())._mesh->getMesh(vss,iss);
+    body.joint(_p1.jid())._mesh->getMesh(vss,iss);
     std::shared_ptr<MeshExact> local;
     local.reset(new MeshExact(vss,iss,false));
-    
     //std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(body.joint(_p2.jid())._mesh);
     for(int c=0; c<_globalVss2->cols(); c++)
       energyNDTGH(_globalVss2->col(c),local->vss()[c].template cast<T>(),x,&DTG,
                   R*local->vss()[c].template cast<T>(),(G && H && _implicit)? &tDDEDXDTheta2: NULL,&wDDEDXDTheta2,
                   (G && H)? &Mww: NULL,&Mtw,&Mwt,&Mtt);
-    //TRANSI(info._DTG,_p2.jid())+=DTG;
     for(int r=0; r<3; r++)
-
       for(int c=0; c<4; c++)
-
         SIPEnergy<T>::parallelAdd(info._DTG(r,c+_p2.jid()*4),DTG(r,c));
     //stage 2
     if(G && H) {

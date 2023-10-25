@@ -259,11 +259,11 @@ void EntityId<T>::print() const {
   std::cout << std::endl;
 }
 template <typename T>
-T EntityId<T>::getTimeAvg() const {
+rational EntityId<T>::getTimeAvg() const {
   return (_timeFrom+_timeTo)/2.;
 }
 template <typename T>
-T EntityId<T>::getTimeDiff() const {
+rational EntityId<T>::getTimeDiff() const {
   return (_timeTo-_timeFrom)/2.;
 }
 template <typename T>

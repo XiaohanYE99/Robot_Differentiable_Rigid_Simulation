@@ -6,7 +6,7 @@
 using namespace PHYSICSMOTION;
 
 int main(int argc,char** argv) {
-  typedef FLOAT T;
+  typedef double T;
   DECL_MAT_VEC_MAP_TYPES_T
   //create body
   tinyxml2::XMLDocument pt;

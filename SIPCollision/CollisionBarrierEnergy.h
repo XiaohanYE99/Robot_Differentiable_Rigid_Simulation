@@ -33,7 +33,7 @@ class CollisionBarrierEnergy : public TrajectorySIPEnergy<T> {
   CollisionBarrierEnergy(const ArticulatedBody& body,
                          const Vec& controlPoints,const ThetaTrajectory<T>& tt,
                          std::vector<std::pair<EntityId<T>,EntityId<T>>>& TTPairs,CCSeparatingPlanes<T>& CCPlanes,
-                         std::unordered_map<T,GradInfo>& gradInfo,T d0,T x0,T coef=1,bool JTJApprox=false,bool implicit=true);
+                         std::unordered_map<rational,GradInfo>& gradInfo,T d0,T x0,T coef=1,bool JTJApprox=false,bool implicit=true);
   const std::vector<std::pair<EntityId<T>,EntityId<T>>>& getTriPairs() const;
   const std::vector<std::pair<EntityId<T>,EntityId<T>>>& getFailedTT() const;
   const std::vector<std::pair<EntityId<T>,EntityId<T>>>& getFailedCC() const;
@@ -50,7 +50,7 @@ class CollisionBarrierEnergy : public TrajectorySIPEnergy<T> {
   bool evalTT(const std::pair<EntityId<T>,EntityId<T>>& pair,EFunc* E,bool DG,bool DH,GradInfo& gradInfo) const;
   std::vector<std::pair<EntityId<T>,EntityId<T>>>& _TTPairs;
   CCSeparatingPlanes<T>& _CCPlanes;
-  std::unordered_map<T,GradInfo>& _gradInfo;
+  std::unordered_map<rational,GradInfo>& _gradInfo;
   bool _JTJApprox,_constructGradInfo,_implicit,_output;
   PFunc _pTT,_pCC;
   T _d0;

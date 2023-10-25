@@ -97,8 +97,8 @@ class CollisionHandler : public SerializableBase {
   std::vector<std::pair<EntityId<T>,EntityId<T>>>& getSelfTTPairs();
   const CCSeparatingPlanes<T>& getSelfCCPlanes() const;
   CCSeparatingPlanes<T>& getSelfCCPlanes();
-  const std::unordered_map<T,GradInfo>& getInfoLookup() const;
-  std::unordered_map<T,GradInfo>& getInfoLookup();
+  const std::unordered_map<rational,GradInfo>& getInfoLookup() const;
+  std::unordered_map<rational,GradInfo>& getInfoLookup();
   const ThetaTrajectory<T>& getThetaTrajectory() const;
   const Vec& getControlPoints() const;
   void setControlPoints(const Vec& x);
@@ -125,7 +125,7 @@ class CollisionHandler : public SerializableBase {
   bool penetrated() const;
  protected:
   BBoxExact computeBB(const EntityId<T>& id,T t0,T t1);
-  const GradInfo& getInfo(T timeAvg,bool mustExist=false) const;
+  const GradInfo& getInfo(rational timeAvg,bool mustExist=false) const;
   bool excludedFromCCDSelf(int jid1,int jid2) const;
   //data
   std::shared_ptr<ArticulatedBody> _body;
@@ -142,7 +142,7 @@ class CollisionHandler : public SerializableBase {
   //temporary data, not serialized
   CCSeparatingPlanes<T> _obsCCPlanes;
   CCSeparatingPlanes<T> _selfCCPlanes;
-  std::unordered_map<T,GradInfo> _infoLookup;
+  std::unordered_map<rational,GradInfo> _infoLookup;
   std::unordered_set<int> _penetratedOffsets;
   std::unordered_set<int> _subdivideOffsets;
   std::unordered_set<int> _evaluateSubdivisionOffsets;

@@ -5,7 +5,7 @@
 
 namespace PHYSICSMOTION {
 #define USE_CRBA 0
-ConvHullPBDSimulator::ConvHullPBDSimulator(T dt):Simulator(dt),_gTol(1e-7f),_alpha(1e-6f),_epsV(1e-1f),_output(true),_JTJ(true),_crossTerm(false),_maxIt(1e4) {}
+ConvHullPBDSimulator::ConvHullPBDSimulator(T dt):Simulator(dt),_gTol(1e-1f),_alpha(1e-6f),_epsV(1e-1f),_output(true),_JTJ(true),_crossTerm(false),_maxIt(1e4) {}
 void ConvHullPBDSimulator::setArticulatedBody(std::shared_ptr<ArticulatedBody> body) {
   Simulator::setArticulatedBody(body);
   _JRCF.setZero(3,4*_body->nrJ());
@@ -316,10 +316,10 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(CollisionGradInfo<T>& grad,
       DIST=std::min(DIST,dist);
       if(dist<=2*_barrier._x0){
         //std::cout<<k1<<" "<<dist<<std::endl;
-        CCBarrierConvexEnergy<T,Px> cc(m1,m2,_barrier,_d0,&grad,5e-6,false);
+        CCBarrierConvexEnergy<T,Px> cc(m1,m2,_barrier,_d0,&grad,5e-4,false);
         //T Q=_E;
         cc.initialize(NULL,_body.get());
-        if(!cc.eval(&_E,_body.get(),&grad,&DE,&DDE)){
+        if(!cc.eval(&_E,_body.get(),&grad,NULL,NULL)){
           _ispenetrated=true;
         }
         
@@ -328,15 +328,15 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(CollisionGradInfo<T>& grad,
       }
     }
   }
-  std::cout<<DIST<<std::endl;
+  //std::cout<<DIST<<std::endl;
   DE.setZero(_body->nrDOF());
   grad._info.DTG(*_body,mapM(grad._DTG),mapV(DE));
 
 
-  /*DDE=grad._HTheta;
+  DDE=grad._HTheta;
   grad._info.toolB(*_body,mapM(grad._DTG),[&](int r,int c,T val) {
     (DDE)(r,c)+=val;
-  });*/
+  });
     
   for(int k=0; k<nrJ; k++) {
     //dynamic
@@ -552,3 +552,4 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::tangentEnergy(const GradInfo& newP
 }
 }
 //ATBBFTWcVCbNWZdRmAH8BxchGeqgE185B444
+//git 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
