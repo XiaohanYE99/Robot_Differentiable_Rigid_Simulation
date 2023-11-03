@@ -19,6 +19,7 @@ class GJKPolytope : public SerializableBase {
   virtual std::shared_ptr<SerializableBase> copy() const override;
   std::string type() const override;
   int jid() const;
+  BBoxExact getBB() const;
   std::shared_ptr<MeshExact> mesh() const;
   void writeVTK(const std::string& path,const ArticulatedBody* body) const;
   void writeVTK(VTKWriter<T>& os,const ArticulatedBody* body) const;

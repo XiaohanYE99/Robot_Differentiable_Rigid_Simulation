@@ -24,7 +24,7 @@ void visualizeSimulator(int argc,char** argv,Simulator& sim,int nSub,float maxSt
   Eigen::Matrix<GLfloat,6,1> ray;
   bool doSim=false,wire=false,lastWire=true,recording=false;
   std::shared_ptr<CameraExportPlugin> exporter(new CameraExportPlugin(GLFW_KEY_2,GLFW_KEY_3,"camera.dat"));
-  std::shared_ptr<CaptureGIFPlugin> recorder(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",drawer.FPS()));
+  std::shared_ptr<CaptureGIFPlugin> recorder(new CaptureGIFPlugin(GLFW_KEY_1,"record.gif",24));//drawer.FPS()
   drawer.addPlugin(exporter);
   drawer.addPlugin(recorder);
 

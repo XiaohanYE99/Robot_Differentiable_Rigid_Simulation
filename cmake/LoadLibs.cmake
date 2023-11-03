@@ -13,11 +13,11 @@ ENDIF(EIGEN3_FOUND)
 FIND_PACKAGE(TinyVisualizer QUIET)
 IF(TinyVisualizer_FOUND)
   MESSAGE(STATUS "Found TinyVisualizer @ ${TinyVisualizer_INCLUDE_DIRS}")
+  MESSAGE(STATUS "Found TinyVisualizer lib @ ${TinyVisualizer_LIBRARIES}")
   INCLUDE_DIRECTORIES(${TinyVisualizer_INCLUDE_DIRS})
   LIST(APPEND ALL_LIBRARIES ${TinyVisualizer_LIBRARIES})
-  ADD_DEFINITIONS(-DWITH_VISUALIZER)
 ELSE(TinyVisualizer_FOUND)
-  MESSAGE(WARNING "Cannot find TinyVisualizer, compiling without it!")
+  MESSAGE(SEND_ERROR "Cannot find TinyVisualizer!")
 ENDIF(TinyVisualizer_FOUND)
 
 #QUADMATH

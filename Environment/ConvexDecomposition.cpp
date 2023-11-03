@@ -1,7 +1,9 @@
 #include "ConvexDecomposition.h"
 #include "MeshExact.h"
-#include <Utils/IO.h>
+#include <Articulated/ArticulatedUtils.h>
+#include <Articulated/ArticulatedLoader.h>
 #include <Utils/Pragma.h>
+#include <Utils/IO.h>
 
 #include <utility>
 #define ENABLE_VHACD_IMPLEMENTATION 1
@@ -9,24 +11,19 @@
 
 namespace PHYSICSMOTION {
 ConvexDecomposition::ConvexDecomposition() {}
+ConvexDecomposition::ConvexDecomposition(const MeshExact& mesh,ConvexDecomposition::T scale,const Vec3T& pos,const Mat3T& rot,int maxConvexHulls) {
+  decompose(mesh,scale,pos,rot,maxConvexHulls);
+}
 ConvexDecomposition::ConvexDecomposition(const std::string& inputFile,ConvexDecomposition::T scale,const Vec3T& pos,const Mat3T& rot,int maxConvexHulls) {
   MeshExact mesh(inputFile,false);
-  _points.resize(mesh.vss().size()*3);
-  for(int i=0; i<(int)mesh.vss().size(); i++)
-    for(int d=0; d<3; d++)
-      _points[i*3+d]=(float)mesh.vss()[i][d];
-  _triangles.resize(mesh.iss().size()*3);
-  for(int i=0; i<(int)mesh.iss().size(); i++)
-    for(int d=0; d<3; d++)
-      _triangles[i*3+d]=mesh.iss()[i][d];
-  convexDecomposition(scale,pos,rot,maxConvexHulls);
+  decompose(mesh,scale,pos,rot,maxConvexHulls);
 }
 void ConvexDecomposition::convexDecomposition(T scale,const Vec3T& pos,const Mat3T& rot,int maxConvexHulls) {
   VHACD::IVHACD::Parameters p;
   p.m_maxConvexHulls=maxConvexHulls;
   p.m_asyncACD=false;
   VHACD::IVHACD* iface=p.m_asyncACD?VHACD::CreateVHACD_ASYNC():VHACD::CreateVHACD();
-  iface->Compute(_points.data(),(int)_points.size()/3,_triangles.data(),(int)_triangles.size()/3,p);
+  iface->Compute(_points.data(),_points.size()/3,_triangles.data(),_triangles.size()/3,p);
   while(!iface->IsReady())
     std::this_thread::sleep_for(std::chrono::nanoseconds(10000)); //s
   if(iface->GetNConvexHulls()) {
@@ -75,5 +72,17 @@ int ConvexDecomposition::getNumConvexHull() {
 }
 const std::vector<std::shared_ptr<MeshExact>>& ConvexDecomposition::getConvexHulls() const {
   return _convexHulls;
+}
+//helper
+void ConvexDecomposition::decompose(const MeshExact& mesh,T scale,const Vec3T& pos,const Mat3T& rot,int maxConvexHulls) {
+  _points.resize(mesh.vss().size()*3);
+  for(int i=0; i<(int)mesh.vss().size(); i++)
+    for(int d=0; d<3; d++)
+      _points[i*3+d]=(float)mesh.vss()[i][d];
+  _triangles.resize(mesh.iss().size()*3);
+  for(int i=0; i<(int)mesh.iss().size(); i++)
+    for(int d=0; d<3; d++)
+      _triangles[i*3+d]=mesh.iss()[i][d];
+  convexDecomposition(scale,pos,rot,maxConvexHulls);
 }
 }

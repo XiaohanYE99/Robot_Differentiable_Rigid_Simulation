@@ -33,6 +33,7 @@ class ArticulatedUtils {
   Vec simplify(std::function<bool(int,const Joint&)> canSimplify,const Vec& DOF,int nrDebug);
   Vec simplify(const Vec& DOF,int nrDebug);
   Vec replaceJoint(const Vec& DOF,int jid,Mat3XT axes);
+  void convexDecompose(T rho=1);
   void addBody(ArticulatedBody& body);
   //mesh operation
   void tessellate(bool rebuildBVH=false);

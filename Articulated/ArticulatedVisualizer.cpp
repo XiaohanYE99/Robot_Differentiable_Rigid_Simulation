@@ -4,6 +4,7 @@
 #include <TinyVisualizer/Bullet3DShape.h>
 #include <TinyVisualizer/CellShape.h>
 #include <TinyVisualizer/MakeMesh.h>
+#include <TinyVisualizer/MakeTexture.h>
 
 namespace PHYSICSMOTION {
 std::shared_ptr<DRAWER::Shape> visualizeArticulated
@@ -13,6 +14,7 @@ std::shared_ptr<DRAWER::Shape> visualizeArticulated
  const Eigen::Matrix<GLfloat,3,1>& colorIDX,
  bool wire) {
   using namespace DRAWER;
+  std::shared_ptr<Texture> checker=drawChecker();
   std::shared_ptr<CompositeShape> shape(new CompositeShape);
   for(int i=0; i<b->nrJ(); i++)
     if(b->joint(i)._mesh) {
@@ -24,6 +26,7 @@ std::shared_ptr<DRAWER::Shape> visualizeArticulated
         st->setLocalTranslate(CTR(b->joint(i)._transMesh).template cast<GLfloat>());
         st->addShape(s);
         stJ->addShape(st);
+        if(!wire) st->setTextureDiffuse(checker);
         st->setColorDiffuse(GL_TRIANGLES,colorBody[0],colorBody[1],colorBody[2]);
         st->setColorDiffuse(GL_LINES,colorBody[0],colorBody[1],colorBody[2]);
       }

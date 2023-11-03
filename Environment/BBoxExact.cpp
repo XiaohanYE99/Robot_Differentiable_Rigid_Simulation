@@ -130,6 +130,12 @@ void BBoxExact::setUnion(const Vec3T& other) {
     _maxC[d]=std::max<T>(_maxC[d],other[d]);
   }
 }
+void BBoxExact::extendUnion(const T x0){
+  for(int d=0;d<3;d++){
+    _minC[d]-=x0/2.0;
+    _maxC[d]+=x0/2.0;
+  }
+}
 const BBoxExact::Vec3T& BBoxExact::minCorner() const {
   return _minC;
 }

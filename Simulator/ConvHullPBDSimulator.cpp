@@ -5,7 +5,9 @@
 
 namespace PHYSICSMOTION {
 #define USE_CRBA 0
-ConvHullPBDSimulator::ConvHullPBDSimulator(T dt):Simulator(dt),_gTol(1e-1f),_alpha(1e-6f),_epsV(1e-1f),_output(true),_JTJ(true),_crossTerm(false),_maxIt(1e4) {}
+ConvHullPBDSimulator::ConvHullPBDSimulator(T dt):Simulator(dt),_gTol(1e-4f),_alpha(1e-6f),_epsV(1e-1f),_output(true),_JTJ(true),_crossTerm(false),_maxIt(1e4) {
+  _barrier._x0=0.2;
+}
 void ConvHullPBDSimulator::setArticulatedBody(std::shared_ptr<ArticulatedBody> body) {
   Simulator::setArticulatedBody(body);
   _JRCF.setZero(3,4*_body->nrJ());
@@ -16,15 +18,12 @@ void ConvHullPBDSimulator::setArticulatedBody(std::shared_ptr<ArticulatedBody> b
 void ConvHullPBDSimulator::step() {
   if(_body->nrDOF()==0)
     return;
-  //generate contacts
-  
-  //detectCurrentContact();
   //update kinematic state
   GradInfo newPos(*_body,setKinematic(_pos._xM,_t+_dt)),newPos2;
   //normal solve
   Vec D,DE,DE2;
   MatT DDE,DDE2;
-  T alphaMax=1e6f,alphaMin=1e-6f;
+  T alphaMax=1e8f,alphaMin=1e-8f;
   CollisionGradInfo<T> grad,grad2;//(*_body,setKinematic(_pos._xM,_t+_dt));
   grad.reset(*_body,newPos._xM);
   //std::cout<<"e:"<<std::endl;
@@ -33,18 +32,17 @@ void ConvHullPBDSimulator::step() {
   //_alpha=alphaMin;
   for(int iter=0; iter<_maxIt;) {
     //update configuration
-    
+
     update(newPos,newPos2,D,DE,DDE,_alpha);
     //CollisionGradInfo<T> grad2(*_body,setKinematic(newPos2._xM,_t+_dt));
     grad2.reset(*_body,newPos2._xM);
     //detectCurrentContact();
-    
     e2=energy(grad2,DE2,DDE2);
     //std::cout<<"e:"<<e<<"e2:"<<e2<<std::endl;
     mask(_diag,DE2,DDE2);
     //iteration update
     //std::cout<<"ispenetrated: "<<_ispenetrated<<std::endl;
-    if((e2<e || DE2.cwiseAbs().maxCoeff()<_gTol)){//
+    if((e2<e || DE2.cwiseAbs().maxCoeff()<_gTol) && (isfinite(e2))) { //
       _alpha=std::max<T>(_alpha*.8f,alphaMin);
       newPos=newPos2;
       e=e2;
@@ -70,6 +68,32 @@ void ConvHullPBDSimulator::step() {
   _pos=newPos;
   _t+=_dt;
 }
+void ConvHullPBDSimulator::addShape(std::shared_ptr<ShapeExact> shape) {
+  _shapes.push_back(shape);
+  std::shared_ptr<MeshExact> mesh;
+  for(auto& m:_shapes) {
+    std::vector<Eigen::Matrix<T,3,1>> vss;
+    std::vector<Eigen::Matrix<int,3,1>> iss;
+    m->getMesh(vss,iss);
+    mesh.reset(new MeshExact(vss,iss,false));
+    _obs.push_back(std::shared_ptr<GJKPolytope<T>>(new GJKPolytope<T>(mesh)));
+    auto m2=_obs.back();
+    //std::cout << "- " << m2->getBB().minCorner().transpose() << " " << m2->getBB().maxCorner().transpose() << std::endl;
+  }
+}
+void ConvHullPBDSimulator::detectCurrentContact(){
+
+}
+void ConvHullPBDSimulator::detectCCDContact(const Mat3XT& t){
+  _manifolds.clear();
+  detectContact(t);
+}
+void ConvHullPBDSimulator::detectContact(const Mat3XT& t) {
+  if(!_contact)
+    _contact.reset(new ContactGenerator(_body,_shapes));
+  T x0=(2*_barrier._x0)/(1-_barrier._x0);
+  _contact->generateManifolds(_manifolds,t.template cast<GEOMETRY_SCALAR>(),x0);
+}
 ConvHullPBDSimulator::Vec ConvHullPBDSimulator::pos() const {
   return _pos._xM;
 }
@@ -90,21 +114,7 @@ void ConvHullPBDSimulator::setGravity(const Vec3T& g) {
       CTRI(_JRCF,i)=-_body->joint(i)._M*g;
     }
 }
-void ConvHullPBDSimulator::detectCurrentContact() {
-  _manifolds.clear();
-  detectContact(_pos._TM);
-}
-void ConvHullPBDSimulator::simpleCollisionHandle(){
-  int nrJ=_body->nrJ();
-  CollisionGradInfo<T> grad(*_body,setKinematic(_pos._xM,_t+_dt));
-  for(int k1=0; k1<nrJ; k1++) {
-    for(int k2=k1+1;k2<nrJ;k2++){
-      GJKPolytope<T>p1(k1,*_body,grad);
-      GJKPolytope<T>p2(k2,*_body,grad);
-      T dist=GJKPolytope<T>::distance(p1,p2,NULL,NULL);
-    }
-  }
-}
+
 void ConvHullPBDSimulator::debugEnergy(T scale) {
   DEFINE_NUMERIC_DELTA_T(T)
   //generate random pose
@@ -112,33 +122,8 @@ void ConvHullPBDSimulator::debugEnergy(T scale) {
   _pos.reset(*_body,Vec::Random(_body->nrDOF())*scale);
   _lastPos.reset(*_body,Vec::Random(_body->nrDOF())*scale);
 
-  //generate random contact
-  _manifolds.clear();
+
   int nrJ=_body->nrJ();
-  for(int k=0; k<nrJ; k++) {
-    ContactPoint p;
-    p._ptA=Vec3T::Random().template cast<GEOMETRY_SCALAR>();
-    p._ptB=Vec3T::Random().template cast<GEOMETRY_SCALAR>();
-    p._nA2B=Vec3T::Random().normalized().template cast<GEOMETRY_SCALAR>();
-    if(p.depth()<0)
-      p._nA2B*=-1;
-    ContactManifold m;
-    m._points.push_back(p);
-    //add dynamic-static contact
-    m._jidA=k;
-    m._jidB=-1;
-    _manifolds.push_back(m);
-    //add static-dynamic contact
-    m._jidA=-1;
-    m._jidB=k;
-    _manifolds.push_back(m);
-    //add dynamic-dynamic contact
-    m._jidA=rand()%nrJ;
-    m._jidB=k;
-    if(m._jidA!=m._jidB)
-      _manifolds.push_back(m);
-  }
-  computeLocalContactPos(newPos._TM);
 
   //generate random drag
   _drags.clear();
@@ -183,7 +168,7 @@ void ConvHullPBDSimulator::debugEnergy(T scale) {
   DEBUG_GRADIENT("DDE",(DDE*dx).norm(),(DDE*dx-(DE2-DE)/DELTA).norm())
 
   //matrix solver
-  MatT HInvH;
+  /*MatT HInvH;
   setJTJ(false);
   setCrossTerm(false);
   energy(grad,DE,DDE,true);
@@ -198,7 +183,7 @@ void ConvHullPBDSimulator::debugEnergy(T scale) {
   PBDMatrixSolverABA solABA(_body);
   solABA.compute(Vec(newPos._xM),_MRR,_MRt,_MtR,_Mtt,_diag);
   HInvH=solABA.solve(DDE);
-  DEBUG_GRADIENT("HInvH-ABA",HInvH.norm(),(HInvH-MatT::Identity(DDE.rows(),DDE.cols())).norm())
+  DEBUG_GRADIENT("HInvH-ABA",HInvH.norm(),(HInvH-MatT::Identity(DDE.rows(),DDE.cols())).norm())*/
 }
 void ConvHullPBDSimulator::setOutput(bool output) {
   _output=output;
@@ -229,19 +214,6 @@ void ConvHullPBDSimulator::update(const GradInfo& newPos,GradInfo& newPos2,Vec& 
   //D=-_sol->solve(MatT(DE));
   //newPos2.reset(*_body,newPos._xM-(1.0/_alpha)*DE);
 }
-void ConvHullPBDSimulator::computeLocalContactPos(const Mat3XT& t) {
-  Simulator::computeLocalContactPos(t);
-  for(auto& m:_manifolds)
-    for(auto& p:m._points) {
-      p._tangentBound=0;
-      if(m._jidA>=0)
-        p._ptALast=ROTI(_pos._TM,m._jidA).template cast<GEOMETRY_SCALAR>()*p._ptAL+CTRI(_pos._TM,m._jidA).template cast<GEOMETRY_SCALAR>();
-      else p._ptALast=p._ptA;
-      if(m._jidB>=0)
-        p._ptBLast=ROTI(_pos._TM,m._jidB).template cast<GEOMETRY_SCALAR>()*p._ptBL+CTRI(_pos._TM,m._jidB).template cast<GEOMETRY_SCALAR>();
-      else p._ptBLast=p._ptB;
-    }
-}
 void ConvHullPBDSimulator::mask(Vec& diag,Vec& DE,MatT& DDE) const {
   int nrJ=_body->nrJ();
   for(int k=0; k<nrJ; k++) {
@@ -257,7 +229,9 @@ void ConvHullPBDSimulator::mask(Vec& diag,Vec& DE,MatT& DDE) const {
   }
 }
 ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(CollisionGradInfo<T>& grad,Vec& DE,MatT& DDE,bool updateTangentBound) {
+  //debugBVHenergy(grad,updateTangentBound);
   const GradInfo newPos=grad._info;
+  detectCCDContact(newPos._TM);
   Vec tmp;
   Mat3X4T A;
   Vec3T P,ptA;
@@ -268,10 +242,6 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(CollisionGradInfo<T>& grad,
   int nrD=_body->nrDOF();
   DE.setZero(nrD);
   G.setZero(3,4*nrJ);
-  Vec _DE;
-  MatT _DDE;
-  _DE.setZero(nrD);
-  _DDE.setZero(nrD,nrD);
   _MRR.setZero(3,3*nrJ);
   _MRt.setZero(3,3*nrJ);
   _MtR.setZero(3,3*nrJ);
@@ -280,64 +250,73 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(CollisionGradInfo<T>& grad,
   DDE.setZero(nrD,nrD);
   //contact
   //GJKPolytope<T> m1,m2;
-  std::shared_ptr<MeshExact> mesh;
-
-  _barrier._x0=0.1;
-  _ispenetrated=false;
-  //bool hasCollisionEnergy=false;
-  //std::cout<<"E: "<<E<<std::endl;
-  bool over=false;
-  T DIST=10.0;
-  for(int k1=0; k1<nrJ; k1++) {
-    //if(over==true) break;
-    GJKPolytope<T> m1(k1,*_body,grad);
-    for(int k2=k1+1;k2<nrJ;k2++){
-      //if(over==true) break;
-      GJKPolytope<T> m2(k2,*_body,grad);
-      T dist=GJKPolytope<T>::distance(m1,m2,NULL,NULL);
-      if(dist<=2*_barrier._x0 && dist>_d0){
-        CCBarrierConvexEnergy<T,Px> cc(m1,m2,_barrier,_d0,&grad,5e-4);
-        //std::cout<<k2<<" "<<dist<<std::endl;
-        //cc.initialize(NULL,_body.get());
-        if(!cc.eval(&_E,_body.get(),&grad,&_DE,&_DDE)){
-          _ispenetrated=true;
-        }
-        E+=_E;
-        DE+=_DE;
-        //std::cout<<"distself: "<<dist<<" e: "<<E<<std::endl;
-        //over=true;
+  T coefBarrier=1e-2;
+  std::shared_ptr<MeshExact> m1,m2;
+  std::cout<<_manifolds.size()<<std::endl;
+  for(auto& m:_manifolds){
+    //std::cout<<m._jidA<<"  "<<m._jidB<<std::endl;
+    std::vector<Eigen::Matrix<double,3,1>> vss1,vss2;
+    std::vector<Eigen::Matrix<int,3,1>> iss1,iss2;
+    if(m._sA){
+      if(m._jidA<0){
+        m._sA->getMesh(vss1,iss1);
+        m1.reset(new MeshExact(vss1,iss1,false));
+        m._pA.reset(new GJKPolytope<T>(m1));
       }
+      else m._pA.reset(new GJKPolytope<T>(m._jidA,*_body,grad));
     }
-    /*for(auto& m:_shapes){
-      std::vector<Eigen::Matrix<double,3,1>> vss;
-      std::vector<Eigen::Matrix<int,3,1>> iss;
-      m->getMesh(vss,iss);
-      mesh.reset(new MeshExact(vss,iss,false));
-      GJKPolytope<T> m2(mesh);
-      T dist=GJKPolytope<T>::distance(m1,m2,NULL,NULL);
-      DIST=std::min(DIST,dist);
-      if(dist<=2*_barrier._x0 && dist>_d0){
-        //std::cout<<k1<<" "<<dist<<std::endl;
-        CCBarrierConvexEnergy<T,Px> cc(m1,m2,_barrier,_d0,&grad,5e-4);
-        //T Q=_E;
-        //cc.initialize(NULL,_body.get());
-        if(!cc.eval(&_E,_body.get(),&grad,&DE,&DDE)){
-          _ispenetrated=true;
-        }
-        E+=_E;
+    if(m._sB){
+      if(m._jidB<0){
+        m._sB->getMesh(vss2,iss2);
+        m2.reset(new MeshExact(vss2,iss2,false));
+        m._pB.reset(new GJKPolytope<T>(m2));
       }
-    }*/
+      else m._pB.reset(new GJKPolytope<T>(m._jidB,*_body,grad));
+    }
+    if(!m._pA || !m._pB) continue;
+    CCBarrierConvexEnergy<T,CLogx> cc(*m._pA,*m._pB,_barrier,0,&grad,coefBarrier);
+    //cc.initialize(NULL,_body.get());
+    if(!cc.eval(&_E,_body.get(),&grad,NULL,NULL))
+      return std::numeric_limits<T>::infinity();
+    E+=_E;
   }
-  //std::cout<<DIST<<std::endl;
-  /*DE.setZero(_body->nrDOF());
-  grad._info.DTG(*_body,mapM(grad._DTG),mapV(DE));
 
+  /*for(int k1=0; k1<nrJ; k1++) {
+    std::shared_ptr<GJKPolytope<T>> m1=grad._polytopes[k1];
+    if(!m1) continue;
+    //std::cout << k1 << " " << m1->getBB().minCorner().transpose() << " " << m1->getBB().maxCorner().transpose();
+    //m1->writeVTK("shape"+std::to_string(k1)+".vtk",NULL);
+    for(int k2=k1+1; k2<nrJ; k2++) {
+      if(_body->joint(k2)._parent==-1) continue;
+      if(k2==_body->joint(k1)._parent || k1==_body->joint(k2)._parent) continue;
+      std::shared_ptr<GJKPolytope<T>> m2=grad._polytopes[k2];
+      //T dist=GJKPolytope<T>::distance(*m1,*m2,NULL,NULL);
+      if(!m2) continue;
+      CCBarrierConvexEnergy<T,CLogx> cc(*m1,*m2,_barrier,0,&grad,coefBarrier);
+      //cc.initialize(NULL,_body.get());
+      if(!cc.eval(&_E,_body.get(),&grad,NULL,NULL))
+        return std::numeric_limits<T>::infinity();
+      E+=_E;
+    }
+    for(auto& m2:_obs) {
+      //T dist=GJKPolytope<T>::distance(*m1,*m2,NULL,NULL);
+      //std::cout << " " << dist;
+      CCBarrierConvexEnergy<T,CLogx> cc(*m1,*m2,_barrier,0,&grad,coefBarrier);
+      //cc.initialize(NULL,_body.get());
+      if(!cc.eval(&_E,_body.get(),&grad,NULL,NULL))
+        return std::numeric_limits<T>::infinity();
+      E+=_E;
+    }
+  }*/
+  Mat3XT tmpDTG;
+  DE.setZero(_body->nrDOF());
+  grad._info.DTG(*_body,mapM(tmpDTG=grad._DTG),mapV(DE));
 
   DDE=grad._HTheta;
-  grad._info.toolB(*_body,mapM(grad._DTG),[&](int r,int c,T val) {
+  grad._info.toolB(*_body,mapM(tmpDTG=grad._DTG),[&](int r,int c,T val) {
     (DDE)(r,c)+=val;
-  });*/
-    
+  });
+
   for(int k=0; k<nrJ; k++) {
     //dynamic
     const Joint& J=_body->joint(k);
@@ -388,8 +367,8 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(CollisionGradInfo<T>& grad,
         }
       }
   }
-  
-  
+
+
   //drags
   for(const auto& d:_drags) {
     ptA=ROTI(newPos._TM,d._jid)*d._ptL+CTRI(newPos._TM,d._jid);
@@ -401,7 +380,7 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(CollisionGradInfo<T>& grad,
     _Mtt.template block<3,3>(0,d._jid*3)+=Mat3T::Identity()*d._k;
     E+=(ptA-d._pt).squaredNorm()*d._k/2;
   }
-  
+
   //gradient
   newPos.DTG(*_body,mapM(GB=G),mapV(DE));
   //hessian
@@ -417,138 +396,97 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(CollisionGradInfo<T>& grad,
   DDE.diagonal()+=_diag;
 
   return E;
+
 }
-ConvHullPBDSimulator::T ConvHullPBDSimulator::contactEnergy
-(const ContactManifold& m,ContactPoint& p,
- const GradInfo& newPos,Vec& DE,MatT& DDE,Mat3XT& G,
- Mat3XT& MRR,Mat3XT& MRt,Mat3XT& MtR,Mat3XT& Mtt,bool updateTangentBound) const {
-  T E=0,val;
-  Mat3T ptARC,ptBRC,HRR,HRt,HtR,H;
-  //energy = kc/2*|max(p.depth(),0)|^2
-  H.setZero();
-  p._fA.setZero();
-  p._fB.setZero();
-  //compute energy/gradient/hessian: normal
-  E+=normalEnergy(newPos,m,p,G,H);
-  //compute energy/gradient/hessian: friction
-  E+=tangentEnergy(newPos,m,p,G,H,updateTangentBound);
-  //fill-in non-zero gradient/hessian
-  if(!H.isZero()) {
-    if(m._jidA>=0) {
-      ptARC=cross<T>(ROTI(newPos._TM,m._jidA)*p._ptAL.template cast<T>());
-      MRR.template block<3,3>(0,m._jidA*3)+=ptARC*H*ptARC.transpose();
-      MRt.template block<3,3>(0,m._jidA*3)+=HRt=ptARC*H;
-      MtR.template block<3,3>(0,m._jidA*3)+=HRt.transpose();
-      Mtt.template block<3,3>(0,m._jidA*3)+=H;
+void ConvHullPBDSimulator::debugBVHenergy(CollisionGradInfo<T>& grad,bool updateTangentBound){
+  const GradInfo newPos=grad._info;
+  CollisionGradInfo<T>grad1;
+  grad1.reset(*_body,newPos._xM);
+  Vec DE,DE1;
+  MatT DDE,DDE1;
+  detectCCDContact(newPos._TM);
+  T E1=0,E=0,_E=0;
+  int nrJ=_body->nrJ();
+  int nrD=_body->nrDOF();
+  DE.setZero(nrD);
+  DDE.setZero(nrD,nrD);
+  DE1.setZero(nrD);
+  DDE1.setZero(nrD,nrD);
+  //contact
+  //GJKPolytope<T> m1,m2;
+  T coefBarrier=1e-2;
+  std::shared_ptr<MeshExact> m1,m2;
+  for(auto& m:_manifolds){
+    //std::cout<<m._jidA<<"  "<<m._jidB<<std::endl;
+    std::vector<Eigen::Matrix<double,3,1>> vss1,vss2;
+    std::vector<Eigen::Matrix<int,3,1>> iss1,iss2;
+    if(m._sA){
+      if(m._jidA<0){
+        m._sA->getMesh(vss1,iss1);
+        m1.reset(new MeshExact(vss1,iss1,false));
+        m._pA.reset(new GJKPolytope<T>(m1));
+      }
+      else m._pA.reset(new GJKPolytope<T>(m._jidA,*_body,grad1));
     }
-    if(m._jidB>=0) {
-      ptBRC=cross<T>(ROTI(newPos._TM,m._jidB)*p._ptBL.template cast<T>());
-      MRR.template block<3,3>(0,m._jidB*3)+=ptBRC*H*ptBRC.transpose();
-      MtR.template block<3,3>(0,m._jidB*3)+=HtR=H*ptBRC.transpose();
-      MRt.template block<3,3>(0,m._jidB*3)+=HtR.transpose();
-      Mtt.template block<3,3>(0,m._jidB*3)+=H;
+    if(m._sB){
+      if(m._jidB<0){
+        m._sB->getMesh(vss2,iss2);
+        m2.reset(new MeshExact(vss2,iss2,false));
+        m._pB.reset(new GJKPolytope<T>(m2));
+      }
+      else m._pB.reset(new GJKPolytope<T>(m._jidB,*_body,grad1));
     }
-    if(m._jidA>=0 && m._jidB>=0 && _crossTerm) {
-      HRR=ptARC*H*ptBRC.transpose();
-      newPos.JRCSparse(*_body,m._jidA,[&](int r,const Vec3T& JRA) {
-        newPos.JRCSparse(*_body,m._jidB,[&](int c,const Vec3T& JRB) {
-          DDE(r,c)-=val=JRA.dot(HRR*JRB);
-          DDE(c,r)-=val;
-        },[&](int c,const Vec3T& JtB) {
-          DDE(r,c)-=val=JRA.dot(HRt*JtB);
-          DDE(c,r)-=val;
-        });
-      },[&](int r,const Vec3T& JtA) {
-        newPos.JRCSparse(*_body,m._jidB,[&](int c,const Vec3T& JRB) {
-          DDE(r,c)-=val=JtA.dot(HtR*JRB);
-          DDE(c,r)-=val;
-        },[&](int c,const Vec3T& JtB) {
-          DDE(r,c)-=val=JtA.dot(H*JtB);
-          DDE(c,r)-=val;
-        });
-      });
+    if(!m._pA || !m._pB) continue;
+    CCBarrierConvexEnergy<T,CLogx> cc(*m._pA,*m._pB,_barrier,0,&grad1,coefBarrier);
+    //cc.initialize(NULL,_body.get());
+    cc.eval(&_E,_body.get(),&grad1,NULL,NULL);
+    E1+=_E;
+  }
+  Mat3XT tmpDTG1;
+  DE1.setZero(_body->nrDOF());
+  grad1._info.DTG(*_body,mapM(tmpDTG1=grad1._DTG),mapV(DE1));
+
+  DDE1=grad1._HTheta;
+  grad1._info.toolB(*_body,mapM(tmpDTG1=grad1._DTG),[&](int r,int c,T val) {
+    (DDE1)(r,c)+=val;
+  });
+
+  for(int k1=0; k1<nrJ; k1++) {
+    std::shared_ptr<GJKPolytope<T>> m1=grad._polytopes[k1];
+    if(!m1) continue;
+    //std::cout << k1 << " " << m1->getBB().minCorner().transpose() << " " << m1->getBB().maxCorner().transpose();
+    //m1->writeVTK("shape"+std::to_string(k1)+".vtk",NULL);
+    for(int k2=k1+1; k2<nrJ; k2++) {
+      if(_body->joint(k2)._parent==-1) continue;
+      if(k2==_body->joint(k1)._parent || k1==_body->joint(k2)._parent) continue;
+      std::shared_ptr<GJKPolytope<T>> m2=grad._polytopes[k2];
+      //T dist=GJKPolytope<T>::distance(*m1,*m2,NULL,NULL);
+      if(!m2) continue;
+      CCBarrierConvexEnergy<T,CLogx> cc(*m1,*m2,_barrier,0,&grad,coefBarrier);
+      //cc.initialize(NULL,_body.get());
+      cc.eval(&_E,_body.get(),&grad,NULL,NULL);
+      E+=_E;
+    }
+    for(auto& m2:_obs) {
+      //T dist=GJKPolytope<T>::distance(*m1,*m2,NULL,NULL);
+      //std::cout << " " << dist;
+      CCBarrierConvexEnergy<T,CLogx> cc(*m1,*m2,_barrier,0,&grad,coefBarrier);
+      //cc.initialize(NULL,_body.get());
+      !cc.eval(&_E,_body.get(),&grad,NULL,NULL);
+      E+=_E;
     }
   }
-  return E;
-}
-ConvHullPBDSimulator::T ConvHullPBDSimulator::normalEnergy(const GradInfo& newPos,const ContactManifold& m,ContactPoint& p,Mat3XT& G,Mat3T& H) const {
-  Vec3T nA2B=p._nA2B.template cast<T>();
-  Vec3T ptA=p._ptA.template cast<T>();
-  Vec3T ptB=p._ptB.template cast<T>();
-  if(m._jidA>=0)
-    ptA=ROTI(newPos._TM,m._jidA)*p._ptAL.template cast<T>()+CTRI(newPos._TM,m._jidA);
-  if(m._jidB>=0)
-    ptB=ROTI(newPos._TM,m._jidB)*p._ptBL.template cast<T>()+CTRI(newPos._TM,m._jidB);
-  T kc=std::max<T>(m._jidA>=0?_params[m._jidA]._kc:0,m._jidB>=0?_params[m._jidB]._kc:0);
-  T depth=std::max<T>((ptA-ptB).dot(nA2B),0);
-  if(depth>0 && kc>0) {
-    H+=nA2B*nA2B.transpose()*kc;
-    if(m._jidA>=0) {
-      TRANSI(G,m._jidA)+=kc*depth*nA2B*Vec4T((T)p._ptAL[0],(T)p._ptAL[1],(T)p._ptAL[2],1).transpose();
-      p._fA-=(kc*depth*nA2B).template cast<GEOMETRY_SCALAR>();
-    }
-    if(m._jidB>=0) {
-      TRANSI(G,m._jidB)-=kc*depth*nA2B*Vec4T((T)p._ptBL[0],(T)p._ptBL[1],(T)p._ptBL[2],1).transpose();
-      p._fB+=(kc*depth*nA2B).template cast<GEOMETRY_SCALAR>();
-    }
-    return kc/2*depth*depth;
-  } else return 0;
-}
-ConvHullPBDSimulator::T ConvHullPBDSimulator::tangentEnergy(const GradInfo& newPos,const ContactManifold& m,ContactPoint& p,Mat3XT& G,Mat3T& H,bool updateTangentBound) const {
-  if(updateTangentBound) {
-    T fri=std::max<T>(m._jidA>=0?_params[m._jidA]._friction:0,m._jidB>=0?_params[m._jidB]._friction:0);
-    p._tangentBound=(GEOMETRY_SCALAR)(fri*std::max<T>(p._fA.template cast<T>().norm(),p._fB.template cast<T>().norm()));
-  }
-  if(p._tangentBound>0) {
-    Mat3X2T tA2B=p._tA2B.template cast<T>();
-    Vec3T ptA=p._ptA.template cast<T>();
-    Vec3T ptB=p._ptB.template cast<T>();
-    Vec3T ptALast=p._ptALast.template cast<T>();
-    Vec3T ptBLast=p._ptBLast.template cast<T>();
-    if(m._jidA>=0)
-      ptA=ROTI(newPos._TM,m._jidA)*p._ptAL.template cast<T>()+CTRI(newPos._TM,m._jidA);
-    if(m._jidB>=0)
-      ptB=ROTI(newPos._TM,m._jidB)*p._ptBL.template cast<T>()+CTRI(newPos._TM,m._jidB);
-    //tangent velocity
-    Vec2T dPT=tA2B.transpose()*((ptA-ptALast)-(ptB-ptBLast));
-    T dPTLen=dPT.norm(),dPTLen2=dPTLen*dPTLen,dPTLen3=dPTLen2*dPTLen;
-    T epsVDt=_epsV*_dt,invEpsVDt=1/epsVDt,invEpsVDt2=invEpsVDt*invEpsVDt,f0,tb=(T)p._tangentBound;
-    Vec3T f1,dPTP=tA2B*dPT;
-    if(dPTLen<epsVDt) {
-      f0=-dPTLen3*invEpsVDt2/3+dPTLen2*invEpsVDt+epsVDt/3;
-      //gradient
-      f1=(-dPTLen*invEpsVDt2+2*invEpsVDt)*dPTP;
-      if(m._jidA>=0) {
-        TRANSI(G,m._jidA)+=f1*Vec4T((T)p._ptAL[0],(T)p._ptAL[1],(T)p._ptAL[2],1).transpose()*tb;
-        p._fA-=f1.template cast<GEOMETRY_SCALAR>()*(GEOMETRY_SCALAR)tb;
-      }
-      if(m._jidB>=0) {
-        TRANSI(G,m._jidB)-=f1*Vec4T((T)p._ptBL[0],(T)p._ptBL[1],(T)p._ptBL[2],1).transpose()*tb;
-        p._fB+=f1.template cast<GEOMETRY_SCALAR>()*(GEOMETRY_SCALAR)tb;
-      }
-      //hessian
-      H+=(-dPTLen*invEpsVDt2+2*invEpsVDt)*tA2B*tA2B.transpose()*tb;
-      if(!_JTJ)
-        H-=invEpsVDt2*dPTP*dPTP.transpose()/std::max<T>(dPTP.norm(),Epsilon<T>::defaultEps())*tb;
-    } else {
-      f0=dPTLen;
-      //gradient
-      f1=dPTP/f0;
-      if(m._jidA>=0) {
-        TRANSI(G,m._jidA)+=f1*Vec4T((T)p._ptAL[0],(T)p._ptAL[1],(T)p._ptAL[2],1).transpose()*tb;
-        p._fA-=f1.template cast<GEOMETRY_SCALAR>()*(GEOMETRY_SCALAR)tb;
-      }
-      if(m._jidB>=0) {
-        TRANSI(G,m._jidB)-=f1*Vec4T((T)p._ptBL[0],(T)p._ptBL[1],(T)p._ptBL[2],1).transpose()*tb;
-        p._fB+=f1.template cast<GEOMETRY_SCALAR>()*(GEOMETRY_SCALAR)tb;
-      }
-      //hessian
-      H+=tA2B*tA2B.transpose()/f0*tb;
-      if(!_JTJ)
-        H-=dPTP*dPTP.transpose()/(f0*f0*f0)*tb;
-    }
-    return f0*tb;
-  } else return 0;
+  Mat3XT tmpDTG;
+  DE.setZero(_body->nrDOF());
+  grad._info.DTG(*_body,mapM(tmpDTG=grad._DTG),mapV(DE));
+
+  DDE=grad._HTheta;
+  grad._info.toolB(*_body,mapM(tmpDTG=grad._DTG),[&](int r,int c,T val) {
+    (DDE)(r,c)+=val;
+  });
+  std::cout<<"E1: "<<E1<<"   "<<"error: "<<E1-E<<std::endl;
+  std::cout<<"DE1: "<<DE.cwiseAbs().maxCoeff()<<"error: "<<(DE1-DE).cwiseAbs().maxCoeff()<<std::endl;
+  std::cout<<"DDE1: "<<DDE.norm()<<"   "<<"error: "<<(DDE1-DDE).norm()<<std::endl;
 }
 }
 //ATBBFTWcVCbNWZdRmAH8BxchGeqgE185B444

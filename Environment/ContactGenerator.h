@@ -4,6 +4,7 @@
 #include "BVHNode.h"
 #include "ShapeExact.h"
 #include "Articulated/ArticulatedBody.h"
+#include "SIPCollision/ConvexHullDistanceConvexEnergy.h"
 
 namespace PHYSICSMOTION {
 class ContactGenerator {
@@ -32,14 +33,15 @@ class ContactGenerator {
     void swap();
     std::vector<ContactPoint> _points;
     std::shared_ptr<ShapeExact> _sA,_sB;
+    std::shared_ptr<GJKPolytope<T>> _pA,_pB;
     int _sidA,_sidB,_jidA,_jidB;
     Mat3X4T _tA,_tB;
   };
   typedef ShapeExact::Facet Facet;
   typedef ShapeExact::Edge Edge;
   ContactGenerator(std::shared_ptr<ArticulatedBody> body,std::vector<std::shared_ptr<ShapeExact>> shapes);
-  void generateManifolds(std::vector<ContactManifold>& manifolds,Mat3XT t,int status=STATIC_DYNAMIC|DYNAMIC_DYNAMIC);
-  void updateBVH(Mat3XT& t);
+  void generateManifolds(std::vector<ContactManifold>& manifolds,Mat3XT t,T x0=0.0,int status=STATIC_DYNAMIC|DYNAMIC_DYNAMIC, bool usingCCD=true);
+  void updateBVH(Mat3XT& t, T x0=0.0);
   BBoxExact getBB() const;
   static T epsDist();
   static T epsDir();

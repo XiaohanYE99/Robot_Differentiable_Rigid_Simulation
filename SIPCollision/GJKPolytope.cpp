@@ -34,8 +34,10 @@ GJKPolytope<T>::GJKPolytope(int JID,const ArticulatedBody& body,const CollisionG
   _trans=TRANSI(info._info._TM,JID);
   std::vector<Eigen::Matrix<double,3,1>> vss;
   std::vector<Eigen::Matrix<int,3,1>> iss;
-  body.joint(JID)._mesh->getMesh(vss,iss);
-  _mesh.reset(new MeshExact(vss,iss,false));
+  if(body.joint(JID)._mesh){
+    body.joint(JID)._mesh->getMesh(vss,iss);
+    _mesh.reset(new MeshExact(vss,iss,false));
+  }
   //_mesh=std::dynamic_pointer_cast<MeshExact>(body.joint(JID)._mesh);
   _coord.resize(_n*3);
   for(int i=0; i<_n; i++) {
@@ -86,6 +88,14 @@ std::string GJKPolytope<T>::type() const {
 template <typename T>
 int GJKPolytope<T>::jid() const {
   return _jid;
+}
+template <typename T>
+BBoxExact GJKPolytope<T>::getBB() const {
+  BBoxExact ret;
+  std::cout << _coord.size()/3 << " ";
+  for(int i=0; i<_coord.size(); i+=3)
+    ret.setUnion(BBoxExact::Vec3T(_coord[i+0],_coord[i+1],_coord[i+2]));
+  return ret;
 }
 template <typename T>
 std::shared_ptr<MeshExact> GJKPolytope<T>::mesh() const {

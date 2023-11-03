@@ -297,9 +297,9 @@ PBDSimulator::T PBDSimulator::energy(const GradInfo& newPos,Vec& DE,MatT& DDE,bo
       }
   }
   //contact
-  /*for(auto& m:_manifolds)
+  for(auto& m:_manifolds)
     for(auto& p:m._points)
-      E+=contactEnergy(m,p,newPos,DE,DDE,G,_MRR,_MRt,_MtR,_Mtt,updateTangentBound);*/
+      E+=contactEnergy(m,p,newPos,DE,DDE,G,_MRR,_MRt,_MtR,_Mtt,updateTangentBound);
   //drags
   for(const auto& d:_drags) {
     ptA=ROTI(newPos._TM,d._jid)*d._ptL+CTRI(newPos._TM,d._jid);
@@ -339,7 +339,7 @@ PBDSimulator::T PBDSimulator::contactEnergy
   //compute energy/gradient/hessian: normal
   E+=normalEnergy(newPos,m,p,G,H);
   //compute energy/gradient/hessian: friction
-  E+=tangentEnergy(newPos,m,p,G,H,updateTangentBound);
+  //E+=tangentEnergy(newPos,m,p,G,H,updateTangentBound);
   //fill-in non-zero gradient/hessian
   if(!H.isZero()) {
     if(m._jidA>=0) {

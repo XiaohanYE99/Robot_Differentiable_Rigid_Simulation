@@ -1,7 +1,7 @@
 #include <Articulated/ArticulatedUtils.h>
 #include <Articulated/ArticulatedLoader.h>
 #include <Simulator/SimulatorVisualizer.h>
-#include <Simulator/XPBDSimulator.h>
+#include <Simulator/ConvHullPBDSimulator.h>
 #include <Simulator/PBDSimulator.h>
 
 using namespace PHYSICSMOTION;
@@ -30,19 +30,19 @@ int main(int argc,char** argv) {
   ArticulatedUtils(*body).combine(bodies);
   CTR(body->joint(12)._trans)=Vec3T(0,0,1).template cast<ArticulatedBody::T>();
   //simulator
-  PBDSimulator sim(0.01f);
+  ConvHullPBDSimulator sim(0.005f);
   sim.setArticulatedBody(body);
   sim.addShape(floor);
   sim.setGravity(Vec3T(0,0,-9.81f));
   //setup kinematic
-  sim.getJointPhysicsParameter(1)._isKinematic=true;
+  /*sim.getJointPhysicsParameter(1)._isKinematic=true;
   sim.getJointPhysicsParameter(1)._kin=[&](T t,int nrDOF) {
     ASSERT_MSG(nrDOF==3,"Incorrect DOF!")
     Vec ret=Vec::Zero(3);
     ret[0]=cos(t*2.f);
     ret[1]=sin(t*2.f);
     return ret;
-  };
+  };*/
   //run app
   visualizeSimulator(argc,argv,sim);
   return 0;

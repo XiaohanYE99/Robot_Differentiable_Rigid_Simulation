@@ -60,22 +60,19 @@ MACRO(SEARCH_SOURCE NAME DIRPRJ)
 ENDMACRO(SEARCH_SOURCE)
 SEARCH_SOURCE(Articulated Articulated)
 SEARCH_SOURCE(Environment Environment)
-SEARCH_SOURCE(Simulator Simulator)
 SEARCH_SOURCE(SIPCollision SIPCollision)
-
+SEARCH_SOURCE(Simulator Simulator)
 SEARCH_SOURCE(Utils Utils)
 #BUILD LIBRARY
 ADD_LIBRARY(PhysicsMotion STATIC
     ${sourceArticulated} ${headerArticulated}
     ${sourceEnvironment} ${headerEnvironment}
-    ${sourceSimulator} ${headerSimulator}
     ${sourceSIPCollision} ${headerSIPCollision}
-    
+    ${sourceSimulator} ${headerSimulator}
     ${sourceUtils} ${headerUtils})
 TARGET_LINK_LIBRARIES(PhysicsMotion ${ALL_LIBRARIES})
 
 #EXE
-
 MACRO(ADD_EXE NAME)
   ADD_EXECUTABLE(${NAME} Main/${FOLDER}/${NAME}.cpp)
   IF(MSVC)
@@ -109,7 +106,7 @@ ENDIF()
 SET(FOLDER DebugSimulator)
 SET(BUILD_DEBUG_SIMULATOR ON)
 IF(BUILD_DEBUG_SIMULATOR)
-  ADD_EXE(mainDebugPBDMatrixSolve)
+  #ADD_EXE(mainDebugPBDMatrixSolve)
   ADD_EXE(mainDebugPBD)
   ADD_EXE(mainPBDChain)
   ADD_EXE(mainPBDTwoChain)

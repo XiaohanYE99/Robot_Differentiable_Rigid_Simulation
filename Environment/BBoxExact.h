@@ -25,6 +25,7 @@ struct BBoxExact : public ShapeExact {
   void scale(T coef) override;
   void setUnion(const BBoxExact& other);
   void setUnion(const Vec3T& other);
+  void extendUnion(const T x0);
   const Vec3T& minCorner() const;
   const Vec3T& maxCorner() const;
   Vec3T& minCorner();

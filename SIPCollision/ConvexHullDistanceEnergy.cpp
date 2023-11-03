@@ -466,9 +466,11 @@ void CCBarrierEnergy<T,PFunc,TH>::computeDTGH(const ArticulatedBody& body,Collis
     DTG.setZero();
     std::vector<Eigen::Matrix<double,3,1>> vss;
     std::vector<Eigen::Matrix<int,3,1>> iss;
-    body.joint(_p1.jid())._mesh->getMesh(vss,iss);
     std::shared_ptr<MeshExact> local;
+
+    body.joint(_p1.jid())._mesh->getMesh(vss,iss);
     local.reset(new MeshExact(vss,iss,false));
+    
     //std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(body.joint(_p1.jid())._mesh);
     for(int c=0; c<_globalVss1->cols(); c++)
       energyPDTGH(_globalVss1->col(c),local->vss()[c].template cast<T>(),x,&DTG,
@@ -500,9 +502,11 @@ void CCBarrierEnergy<T,PFunc,TH>::computeDTGH(const ArticulatedBody& body,Collis
     DTG.setZero();
     std::vector<Eigen::Matrix<double,3,1>> vss;
     std::vector<Eigen::Matrix<int,3,1>> iss;
-    body.joint(_p2.jid())._mesh->getMesh(vss,iss);
     std::shared_ptr<MeshExact> local;
+
+    body.joint(_p2.jid())._mesh->getMesh(vss,iss);
     local.reset(new MeshExact(vss,iss,false));
+
     //std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(body.joint(_p2.jid())._mesh);
     for(int c=0; c<_globalVss2->cols(); c++)
       energyNDTGH(_globalVss2->col(c),local->vss()[c].template cast<T>(),x,&DTG,

@@ -4,7 +4,7 @@
 #include "Simulator.h"
 #include <SIPCollision/Barrier.h>
 #include <Articulated/PBDArticulatedGradientInfo.h>
-#include <SIPCollision/CollisionBarrierEnergy.h>
+#include "SIPCollision/ConvexHullDistanceConvexEnergy.h"
 
 namespace PHYSICSMOTION {
 //This solver implements PBAD:
@@ -26,29 +26,26 @@ class ConvHullPBDSimulator : public Simulator {
   Vec vel() const override;
   void setVel(const Vec& vel) override;
   void setGravity(const Vec3T& g) override;
+  void detectCCDContact(const Mat3XT& t);
   void detectCurrentContact() override;
-  void simpleCollisionHandle();
+  void detectContact(const Mat3XT& t) override;
+  void addShape(std::shared_ptr<ShapeExact> shape) override;
   void debugEnergy(T scale);
+  void debugBVHenergy(CollisionGradInfo<T>& grad,bool updateTangentBound);
   void setOutput(bool output);
   void setJTJ(bool JTJ);
   void setCrossTerm(bool cross);
  protected:
   virtual void update(const GradInfo& newPos,GradInfo& newPos2,Vec& D,const Vec& DE,const MatT& DDE,T alpha) const;
-  void computeLocalContactPos(const Mat3XT& t) override;
-  void linesearch(const GradInfo& newPos,const T e,const Vec& DE,const MatT& DDE,T &alpha,const T alphaMin);
   void mask(Vec& diag,Vec& DE,MatT& DDE) const;
   virtual T energy(CollisionGradInfo<T>& grad,Vec& DE,MatT& DDE,bool updateTangentBound=false);
-  T contactEnergy(const ContactManifold& m,ContactPoint& p,
-                  const GradInfo& newPos,Vec& DE,MatT& DDE,Mat3XT& G,
-                  Mat3XT& MRR,Mat3XT& MRt,Mat3XT& MtR,Mat3XT& Mtt,bool updateTangentBound) const;
-  T normalEnergy(const GradInfo& newPos,const ContactManifold& m,ContactPoint& p,Mat3XT& G,Mat3T& H) const;
-  T tangentEnergy(const GradInfo& newPos,const ContactManifold& m,ContactPoint& p,Mat3XT& G,Mat3T& H,bool updateTangentBound) const;
   //data
   GradInfo _pos,_lastPos,_subPos;
 
   T _gTol,_alpha,_epsV;
   bool _output,_JTJ,_crossTerm;
   std::shared_ptr<PBDMatrixSolver> _sol;
+  std::vector<std::shared_ptr<GJKPolytope<T>>> _obs;
   Mat3XT _JRCF;
   int _maxIt;
   //temporary variable for ABA
@@ -56,9 +53,7 @@ class ConvHullPBDSimulator : public Simulator {
   //Rather, it uses these temporary variables to assemble online.
   Mat3XT _MRR,_MRt,_MtR,_Mtt;
   Vec _diag;
-  Px _barrier;
-  T _d0=1e-3;
-  bool _ispenetrated;
+  CLogx _barrier;
 };
 }
 

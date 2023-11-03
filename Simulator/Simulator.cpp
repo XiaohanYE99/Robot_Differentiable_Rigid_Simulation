@@ -1,4 +1,5 @@
 #include "Simulator.h"
+#include <Articulated/ArticulatedUtils.h>
 #include <Articulated/PBDArticulatedGradientInfo.h>
 
 namespace PHYSICSMOTION {
@@ -34,6 +35,7 @@ void Simulator::addShape(std::shared_ptr<ShapeExact> shape) {
 }
 void Simulator::setArticulatedBody(std::shared_ptr<ArticulatedBody> body) {
   _body=body;
+  ArticulatedUtils(*_body).tessellate(true); //tessellate the mesh
   if(_body)
     _params.assign(_body->nrJ(),PhysicsParameter());
   else _params.clear();

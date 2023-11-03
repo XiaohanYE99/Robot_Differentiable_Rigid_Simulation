@@ -1,4 +1,5 @@
 #include "ArticulatedUtils.h"
+#include "ArticulatedLoader.h"
 #include "JointFunc.h"
 #include "PBDArticulatedGradientInfo.h"
 #include <Environment/MeshExact.h>
@@ -6,6 +7,7 @@
 #include <Environment/ConvexHullExact.h>
 #include <Environment/SphericalBBoxExact.h>
 #include <Environment/CompositeShapeExact.h>
+#include <Environment/ConvexDecomposition.h>
 #include <Utils/DebugGradient.h>
 #include <Utils/Utils.h>
 #include <stack>
@@ -678,6 +680,58 @@ ArticulatedUtils::Vec ArticulatedUtils::replaceJoint(const Vec& DOF,int jid,Mat3
     offDDT+=joint.nrDDT();
   }
   return DOFRet;
+}
+void ArticulatedUtils::convexDecompose(T rho) {
+  int meshJointId=-1;
+  for(int i=0; i<_body.nrJ(); i++) {
+    std::cout << _body.joint(i)._trans << std::endl;
+    if(_body.joint(i)._typeJoint!=Joint::FIX_JOINT) {
+      ASSERT_MSG(false,"Cannot decompose ArticulatedBody with non-fixed joints!")
+    } else if(_body.joint(i)._mesh) {
+      ASSERT_MSG(meshJointId==-1,"Can only decompose ArticulatedBody with a single mesh!")
+      meshJointId=i;
+    }
+  }
+  ASSERT_MSG(meshJointId>=0,"No mesh to decompose in ArticulatedBody!")
+  //transMesh
+  PBDArticulatedGradientInfo<ArticulatedBody::T> info(_body,Vec::Zero(_body.nrDOF()));
+  Mat3X4T transMesh=TRANSI(info._TM,meshJointId);
+  APPLY_TRANS(transMesh,transMesh,_body.joint(meshJointId)._transMesh);
+  //decompose
+  std::vector<Eigen::Matrix<double,3,1>> vss;
+  std::vector<Eigen::Matrix<int,3,1>> iss;
+  _body.joint(meshJointId)._mesh->getMesh(vss,iss);
+  MeshExact mesh;
+  mesh.init(vss,iss);
+  ConvexDecomposition decompose(mesh);
+  _body=ArticulatedLoader::createDummy();
+  for(int i=0; i<(int)decompose.getConvexHulls().size(); i++) {
+    Joint joint;
+    //joint
+    joint._parent=0;
+    joint._depth=_body.joint(joint._parent)._depth+1;
+    joint._typeJoint=Joint::FIX_JOINT;
+    joint._offDOF=0;
+    joint._offDDT=0;
+    joint._limits.setZero(3,0);
+    joint._control.setZero(0);
+    joint._damping.setZero(0);
+    joint._trans.setIdentity();
+    //mimic
+    joint._mult=joint._offset=0;
+    //mesh approx.
+    joint._transMesh=transMesh;
+    joint._mesh=decompose.getConvexHulls()[i];
+    //mass
+    joint._name="Convex"+std::to_string(i);
+    joint.assemble(rho);
+    //VTKWriter<double> os(joint._name,joint._name+".vtk",true);
+    //decompose.getConvexHulls()[i]->writeVTK(os,Mat3X4T::Identity());
+    //std::cout << decompose.getConvexHulls()[i]->vss().size() << std::endl;
+    //std::cout << transMesh << std::endl;
+    _body._joints.push_back(joint);
+  }
+  std::cout << "Decomposed into " << decompose.getConvexHulls().size() << " sub-joints!" << std::endl;
 }
 void ArticulatedUtils::addBody(ArticulatedBody& body) {
   int offset=(int) _body._joints.size();

@@ -12,6 +12,7 @@ bool CCBarrierConvexEnergy<T,PFunc,TH>::initialize(Vec4T* res,const ArticulatedB
   //initial guess
   typename GJKPolytope<T>::Point p1,p2;
   T dist=GJKPolytope<T>::distance(_p1,_p2,p1,p2);
+  //std::cout<<"dist= "<<dist<<std::endl;
   if(dist<=_d0) {
     OMP_CRITICAL_{
       std::cout<<"Penetrated in CCBarrierEnergy! d="<<dist<<std::endl;

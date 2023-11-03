@@ -1,4 +1,4 @@
-#include "GJKK.h"
+#include "GJK.h"
 #include <Utils/Utils.h>
 #include <Utils/Pragma.h>
 #include <Utils/VTKWriter.h>
@@ -6,7 +6,7 @@
 
 namespace PHYSICSMOTION {
 template <int DIM>
-void updateFeat(GJKK::GJKPoint v[4],int& nrP,char* feat) {
+void updateFeat(GJK::GJKPoint v[4],int& nrP,char* feat) {
   if(feat[0]==-1)
     return;
   else if(DIM>=3 && feat[2]>=0) {
@@ -29,11 +29,11 @@ void updateFeat(GJKK::GJKPoint v[4],int& nrP,char* feat) {
   }
   ASSERT_MSG(false,"Strange error in GJK, unknown feat status!")
 }
-void GJKK::GJKPoint::calculate(const Mat3X4T& transA,const Mat3X4T& transB) {
+void GJK::GJKPoint::calculate(const Mat3X4T& transA,const Mat3X4T& transB) {
   _ptAB =ROT(transA)*_ptAL+CTR(transA);
   _ptAB-=ROT(transB)*_ptBL+CTR(transB);
 }
-GJKK::Vec3T GJKK::computeD(const GJKPoint v[4],int nrP,T* bary,
+GJK::Vec3T GJK::computeD(const GJKPoint v[4],int nrP,T* bary,
                          const Mat3X4T& transA,
                          const Mat3X4T& transB,
                          Vec3T& pAL,Vec3T& pBL) {
@@ -44,7 +44,7 @@ GJKK::Vec3T GJKK::computeD(const GJKPoint v[4],int nrP,T* bary,
   }
   return (ROT(transA)*pAL+CTR(transA))-(ROT(transB)*pBL+CTR(transB));
 }
-GJKK::T GJKK::runGJK(std::shared_ptr<ShapeExact> A,
+GJK::T GJK::runGJK(std::shared_ptr<ShapeExact> A,
                    std::shared_ptr<ShapeExact> B,
                    const Mat3X4T& transA,
                    const Mat3X4T& transB,
@@ -110,7 +110,7 @@ GJKK::T GJKK::runGJK(std::shared_ptr<ShapeExact> A,
   }
   return minDist;
 }
-void GJKK::writeVTK(const std::string& path,
+void GJK::writeVTK(const std::string& path,
                    std::shared_ptr<MeshExact> A,
                    std::shared_ptr<MeshExact> B,
                    const Mat3X4T& transA,
@@ -136,7 +136,7 @@ void GJKK::writeVTK(const std::string& path,
                  VTKWriter<double>::IteratorIndex<Eigen::Matrix<int,2,1>>(2,0,0),
                  VTKWriter<double>::POINT,true);
 }
-void GJKK::writeVTK(const std::string& path,
+void GJK::writeVTK(const std::string& path,
                    std::shared_ptr<MeshExact> A,
                    std::shared_ptr<PointCloudExact> B,
                    const Mat3X4T& transA,
