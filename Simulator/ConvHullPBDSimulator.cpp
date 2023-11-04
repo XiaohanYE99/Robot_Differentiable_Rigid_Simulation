@@ -6,7 +6,7 @@
 namespace PHYSICSMOTION {
 #define USE_CRBA 0
 ConvHullPBDSimulator::ConvHullPBDSimulator(T dt):Simulator(dt),_gTol(1e-4f),_alpha(1e-6f),_epsV(1e-1f),_output(true),_JTJ(true),_crossTerm(false),_maxIt(1e4) {
-  _barrier._x0=0.2;
+  _barrier._x0=0.1;
 }
 void ConvHullPBDSimulator::setArticulatedBody(std::shared_ptr<ArticulatedBody> body) {
   Simulator::setArticulatedBody(body);
@@ -489,5 +489,5 @@ void ConvHullPBDSimulator::debugBVHenergy(CollisionGradInfo<T>& grad,bool update
   std::cout<<"DDE1: "<<DDE.norm()<<"   "<<"error: "<<(DDE1-DDE).norm()<<std::endl;
 }
 }
-//ATBBFTWcVCbNWZdRmAH8BxchGeqgE185B444
-//git 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
+//ATBBnHDkBNsAuRvr4EUGTmyZCytYB0E4A4FC
+//git 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
