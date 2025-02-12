@@ -33,6 +33,7 @@ struct SphericalBBoxExact : public BBoxExact {
   std::vector<Edge> edges() const override;
  private:
   BBoxExact _bb;
+  Vec3T _center;
   T _rad,_radSqr;
 };
 }

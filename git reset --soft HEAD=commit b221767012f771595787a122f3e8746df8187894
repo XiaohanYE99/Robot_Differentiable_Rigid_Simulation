@@ -1,0 +1,66 @@
+[33mcommit 655fa143965e6495f281505024a7a96a33f3be3b[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m
+Author: yexiaohan <u3010417@connect.hku.hk>
+Date:   Wed Feb 12 11:05:19 2025 +0800
+
+    LRI
+
+[33mcommit b221767012f771595787a122f3e8746df8187894[m
+Author: yexiaohan <u3010417@connect.hku.hk>
+Date:   Wed Feb 12 10:58:17 2025 +0800
+
+    LRI
+
+[33mcommit bbf5583c65748b015155421e031d60f6c496afec[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: yexiaohan <u3010417@connect.hku.hk>
+Date:   Mon Nov 6 16:47:49 2023 +0800
+
+    update
+
+[33mcommit 48a3718ef2c04d68afba1a7f9adca42c370ba9d3[m
+Author: yexiaohan <u3010417@connect.hku.hk>
+Date:   Sat Nov 4 12:03:14 2023 +0800
+
+    update
+
+[33mcommit 01a69c65703567a6364b029a78b9b0c7fdb805d8[m
+Author: yexiaohan <u3010417@connect.hku.hk>
+Date:   Fri Nov 3 22:01:22 2023 +0800
+
+    add BVH collision detect
+
+[33mcommit 4dc9598a266ec073e13f618bc7aa26a0ceadca77[m
+Merge: 2fcfc71 5e86048
+Author: yexiaohan <u3010417@connect.hku.hk>
+Date:   Thu Oct 26 00:13:46 2023 +0800
+
+    Merge branch 'main' of https://github.com/XiaohanYE99/Robot_Differentiable_Rigid_Simulation
+
+[33mcommit 2fcfc713b05bc3566cd55ad2010a3abb9121d0f3[m
+Author: yexiaohan <u3010417@connect.hku.hk>
+Date:   Thu Oct 26 00:06:41 2023 +0800
+
+    update
+
+[33mcommit 5e860486850b6376847ed953852e646770fe2253[m
+Author: XiaohanYE99 <49114549+XiaohanYE99@users.noreply.github.com>
+Date:   Wed Oct 25 16:55:02 2023 +0800
+
+    Update README.md
+
+[33mcommit c685bc922db974040b05d0bb5322bae142140075[m
+Author: yexiaohan <u3010417@connect.hku.hk>
+Date:   Wed Oct 25 16:52:30 2023 +0800
+
+    contact debug
+
+[33mcommit 3c84f93dcd1385aa1148ee312d07c240c5bd3319[m
+Author: yexiaohan <u3010417@connect.hku.hk>
+Date:   Sat Oct 21 22:40:53 2023 +0800
+
+    add convexhull contact
+
+[33mcommit 1bb9f3474c760f7486ad29aef27dcf156a778226[m
+Author: XiaohanYE99 <49114549+XiaohanYE99@users.noreply.github.com>
+Date:   Sat Oct 21 22:33:40 2023 +0800
+
+    Initial commit

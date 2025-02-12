@@ -22,7 +22,7 @@ void visualizeSATFeature(std::shared_ptr<MeshShape> shape,
     shape->addIndexSingle(id++);
   }
   shape->setMode(GL_TRIANGLES);
-  shape->setColor(GL_TRIANGLES,1,0,0);
+  shape->setColorDiffuse(GL_TRIANGLES,1,0,0);
   shape->computeNormals();
 }
 void visualizeSATFeature(std::shared_ptr<MeshShape> shape,
@@ -38,7 +38,7 @@ void visualizeSATFeature(std::shared_ptr<MeshShape> shape,
   shape->addIndexSingle(2);
   shape->addIndexSingle(3);
   shape->setMode(GL_LINES);
-  shape->setColor(GL_LINES,1,0,0);
+  shape->setColorDiffuse(GL_LINES,1,0,0);
   shape->setLineWidth(5);
 }
 void mainSAT(std::shared_ptr<ShapeExact> s1,
@@ -97,8 +97,8 @@ void mainSAT(std::shared_ptr<ShapeExact> s1,
     CTR(T2)=t.template cast<SAT::T>();
     SAT::ProjRange rngP=SAT::generateManifold(s1,s2,F1,F2,E1,E2,T1,T2,m,&intersect);
     if(intersect)
-      shape2->setColor(GL_LINES,1,0,0);
-    else shape2->setColor(GL_LINES,0,1,0);
+      shape2->setColorDiffuse(GL_LINES,1,0,0);
+    else shape2->setColorDiffuse(GL_LINES,0,1,0);
     //draw contact
     visualizeContact(manifold, {m});
     for(const auto& p:m._points) {

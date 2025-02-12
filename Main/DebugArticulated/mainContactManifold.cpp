@@ -159,7 +159,7 @@ void sphereSphere(int argc,char** argv) {
 
   std::vector<ContactGenerator::ContactManifold> manifolds;
   ContactGenerator cc(std::shared_ptr<ArticulatedBody>(),shapes);
-  cc.generateManifolds(manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
+  cc.generateManifolds(0,false,manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
   for(const auto& m:manifolds) {
     ASSERT(!m._points.empty())
     for(const auto& p:m._points) {
@@ -192,7 +192,7 @@ void sphereCapsule(int argc,char** argv) {
 
   std::vector<ContactGenerator::ContactManifold> manifolds;
   ContactGenerator cc(std::shared_ptr<ArticulatedBody>(),shapes);
-  cc.generateManifolds(manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
+  cc.generateManifolds(0,false,manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
   for(const auto& m:manifolds) {
     ASSERT(!m._points.empty())
     for(const auto& p:m._points) {
@@ -230,7 +230,7 @@ void capsuleCapsule(int argc,char** argv) {
 
   std::vector<ContactGenerator::ContactManifold> manifolds;
   ContactGenerator cc(std::shared_ptr<ArticulatedBody>(),shapes);
-  cc.generateManifolds(manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
+  cc.generateManifolds(0,false,manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
   for(const auto& m:manifolds) {
     ASSERT(!m._points.empty())
     for(const auto& p:m._points) {
@@ -269,7 +269,7 @@ void sphereBox(int argc,char** argv) {
 
   std::vector<ContactGenerator::ContactManifold> manifolds;
   ContactGenerator cc(std::shared_ptr<ArticulatedBody>(),shapes);
-  cc.generateManifolds(manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
+  cc.generateManifolds(0,false,manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
   for(const auto& m:manifolds) {
     ASSERT(!m._points.empty())
     for(const auto& p:m._points) {
@@ -303,7 +303,7 @@ void capsuleBox(int argc,char** argv) {
 
   std::vector<ContactGenerator::ContactManifold> manifolds;
   ContactGenerator cc(std::shared_ptr<ArticulatedBody>(),shapes);
-  cc.generateManifolds(manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
+  cc.generateManifolds(0,false,manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
   for(const auto& m:manifolds) {
     ASSERT(!m._points.empty())
     for(const auto& p:m._points) {
@@ -333,7 +333,7 @@ void boxBox(int argc,char** argv) {
 
   std::vector<ContactGenerator::ContactManifold> manifolds;
   ContactGenerator cc(std::shared_ptr<ArticulatedBody>(),shapes);
-  cc.generateManifolds(manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
+  cc.generateManifolds(0,false,manifolds,ContactGenerator::Mat3XT(),ContactGenerator::STATIC_STATIC);
   for(const auto& m:manifolds) {
     ASSERT(!m._points.empty())
     for(const auto& p:m._points) {

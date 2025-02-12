@@ -25,7 +25,7 @@ class ArticulatedUtils {
   static void mergeMesh(Joint& joint,
                         const std::vector<std::shared_ptr<ShapeExact>>& geomsMerged,
                         const std::vector<CompositeShapeExact::Mat3X4T>& transMerged);
-  void addBase(int dim,const Vec3T& planeNormal);
+  void addBase(int dim,const Vec3T& planeNormal,bool exponential=false);
   void combine(const std::vector<ArticulatedBody>& bodies);
   Vec mergeChildren(int jid,const Vec& DOF);
   Vec fix(std::function<bool(int,const Joint&)> canFix,const Vec& DOF);
@@ -33,7 +33,9 @@ class ArticulatedUtils {
   Vec simplify(std::function<bool(int,const Joint&)> canSimplify,const Vec& DOF,int nrDebug);
   Vec simplify(const Vec& DOF,int nrDebug);
   Vec replaceJoint(const Vec& DOF,int jid,Mat3XT axes);
+  void initMesh(int k,int sz);
   void convexDecompose(T rho=1);
+  void convexDecompose(std::vector<int> jid, int maxConvexHulls, T rho=1);
   void addBody(ArticulatedBody& body);
   //mesh operation
   void tessellate(bool rebuildBVH=false);

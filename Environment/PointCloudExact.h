@@ -26,19 +26,15 @@ struct PointCloudExact : public ShapeExact {
     normal=normalR.template cast<T2>();
     return (T2)dR;
   }
-#ifndef SWIG
   const std::vector<Node<int,BBoxExact>>& getBVH() const;
-#endif
   const std::vector<Vec3T>& vss() const;
   void scale(T coef) override;
   void translate(const Vec3T& delta);
   void transform(const Mat3X4T& trans);
   //for GJK
   virtual Vec3T support(const Vec3T& D,int& id) const override;
-#ifndef SWIG
   virtual void writeVTK(VTKWriter<double>& os,const Mat3X4T& trans) const;
   void writeSDFVTK(const std::string& path) const;
-#endif
  protected:
   void init(bool buildBVH);
   void initSDF(const MeshExact& mesh,T d0,int extend=5);

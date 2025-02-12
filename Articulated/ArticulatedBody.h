@@ -10,12 +10,10 @@ struct ArticulatedBody : public SerializableBase {
   typedef double T;
   DECL_MAT_VEC_MAP_TYPES_T
   DECL_MAP_FUNCS
-#ifndef SWIG
   using SerializableBase::read;
   using SerializableBase::write;
   friend class ArticulatedLoader;
   friend class ArticulatedUtils;
-#endif
   ArticulatedBody();
   ArticulatedBody(const tinyxml2::XMLElement& pt);
   bool read(std::istream& is,IOData* dat) override;
@@ -40,11 +38,9 @@ struct ArticulatedBody : public SerializableBase {
   Mat3XT getT(const Vec& x) const;
   BBoxExact getBB(const Vec& x) const;
   BBoxExact getBB(const Mat3XT& t) const;
-#ifndef SWIG
   void writeVTK(const std::string& path,const Mat3XT& t) const;
   void writeVTK(VTKWriter<double>& os,const Mat3XT& t) const;
   void mimic(VecM xMap) const;
-#endif
   Vec mimic(Vec x) const;
   void mimic(MatT& A,Vec& b,Vec& l,Vec& u) const;
   bool movable(int id,int croot=-1) const;
@@ -65,7 +61,6 @@ struct ArticulatedBody : public SerializableBase {
   void simplify(int nrDebug);
   void scaleMass(T coef);
   T totalMass() const;
-  void clearTransMesh();
  protected:
   std::vector<Joint> _joints;
 };

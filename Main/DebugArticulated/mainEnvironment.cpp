@@ -41,7 +41,7 @@ void debugTrianglePointDist(int argc,char** argv) {
                                         Eigen::Matrix<double,3,1>::Random().template cast<T>(),
                                         Eigen::Matrix<double,3,1>::Random().template cast<T>()));
       std::shared_ptr<Shape> tri=visualizeTriangleExact(et);
-      tri->setColor(GL_TRIANGLES,.7,.7,.7);
+      tri->setColorDiffuse(GL_TRIANGLES,.7,.7,.7);
       drawer.addShape(tri);
 
       T sqrDist;
@@ -58,7 +58,7 @@ void debugTrianglePointDist(int argc,char** argv) {
         lines->addIndex(Eigen::Matrix<GLuint,2,1>(i*2+0,i*2+1));
       }
       lines->setMode(GL_LINES);
-      lines->setColor(GL_LINES,.7,0,0);
+      lines->setColorDiffuse(GL_LINES,.7,0,0);
       drawer.addShape(lines);
     }
   });
@@ -82,7 +82,7 @@ void debugMeshPointDist(int argc,char** argv,std::shared_ptr<ShapeExact> m,bool 
       if(useGetMesh)
         mShape=visualizeShapeExactGetMesh(m,true);
       else mShape=visualizeShapeExact(m,true);
-      mShape->setColor(GL_LINES,.7,.7,.7);
+      mShape->setColorDiffuse(GL_LINES,.7,.7,.7);
       drawer.addShape(mShape);
 
       DEFINE_NUMERIC_DELTA_T(T2)
@@ -123,11 +123,11 @@ void debugMeshPointDist(int argc,char** argv,std::shared_ptr<ShapeExact> m,bool 
         }
       }
       linesIn->setMode(GL_LINES);
-      linesIn->setColor(GL_LINES,.7,0,0);
+      linesIn->setColorDiffuse(GL_LINES,.7,0,0);
       if(nIn>0)
         drawer.addShape(linesIn);
       linesOut->setMode(GL_LINES);
-      linesOut->setColor(GL_LINES,0,0,.7);
+      linesOut->setColorDiffuse(GL_LINES,0,0,.7);
       if(nOut>0)
         drawer.addShape(linesOut);
     }
@@ -150,7 +150,7 @@ void debugEnvironment(int argc,char** argv,std::shared_ptr<Environment<T>> e,int
     else if(key==GLFW_KEY_R && action==GLFW_PRESS) {
       drawer.clear();
       std::shared_ptr<Shape> mShape=visualizeEnvironment(e,Eigen::Matrix<GLfloat,2,1>(.25f,.25f));
-      mShape->setTexture(tex);
+      mShape->setTextureDiffuse(tex);
       drawer.addShape(mShape);
 
       Mat3T h;
@@ -217,7 +217,7 @@ int main(int argc,char** argv) {
 #ifdef DEBUG_COMPOSITE
   CompositeShapeExact::Mat3X4T t;
   std::vector<std::shared_ptr<ShapeExact>> geoms;
-  std::vector<CompositeShapeExact::Mat3X4T,Eigen::aligned_allocator<CompositeShapeExact::Mat3X4T>> trans;
+  std::vector<CompositeShapeExact::Mat3X4T> trans;
   geoms.push_back(std::shared_ptr<ShapeExact>(new SphericalBBoxExact(0.2f,0.3f,0.4f,0.5f)));
   t.block<3,3>(0,0)=eulerX1Y3Z2<double,Eigen::Matrix<double,3,1>>(Eigen::Matrix<double,3,1>::Random()*M_PI,NULL,NULL).template cast<GEOMETRY_SCALAR>();
   t.block<3,1>(0,3).setRandom();

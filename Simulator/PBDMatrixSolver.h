@@ -37,14 +37,14 @@ class PBDMatrixSolverABA : public PBDMatrixSolver {
  public:
   typedef NEArticulatedGradientInfo<T> GradInfo;
   PBDMatrixSolverABA(std::shared_ptr<ArticulatedBody> body);
-  void compute(const Eigen::MatrixBase<Vec>& q,const Eigen::MatrixBase<Mat3XT>& MRR,const Eigen::MatrixBase<Mat3XT>& MRt,const Eigen::MatrixBase<Mat3XT>& MtR,const Eigen::MatrixBase<Mat3XT>& Mtt,const Eigen::MatrixBase<Vec>& d);
-  void compute(const Eigen::MatrixBase<Vec>& q,const Eigen::MatrixBase<Mat6XT>& I,const Eigen::MatrixBase<Vec>& d);
+  void compute(const Eigen::MatrixBase<Vec>& q,const Eigen::MatrixBase<Mat3XT>& MRR,const Eigen::MatrixBase<Mat3XT>& MRt,const Eigen::MatrixBase<Mat3XT>& MtR,const Eigen::MatrixBase<Mat3XT>& Mtt,const Eigen::MatrixBase<MatT>& d);
+  void compute(const Eigen::MatrixBase<Vec>& q,const Eigen::MatrixBase<Mat6XT>& I,const Eigen::MatrixBase<MatT>& d);
   void compute(const Eigen::MatrixBase<MatT>& h) override;
   MatT solve(const Eigen::MatrixBase<MatT>& b) const override;
  protected:
   GradInfo _info;
   Mat6XT _I;
-  Vec _d;
+  MatT _d;
 };
 }
 

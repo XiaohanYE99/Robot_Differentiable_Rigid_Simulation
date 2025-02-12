@@ -29,7 +29,7 @@ int main(int argc,char** argv) {
   std::shared_ptr<Shape> s=visualizeArticulated(body,Eigen::Matrix<GLfloat,3,1>(.7,.7,.7));
   s->setColorAmbient(GL_TRIANGLES,.5,.5,.5);
   s->setColorSpecular(GL_TRIANGLES,1,1,1);
-  s->setColor(GL_TRIANGLES,1,1,1);
+  s->setColorDiffuse(GL_TRIANGLES,1,1,1);
   updateArticulatedBody(s,body,ArticulatedBody::Vec(ArticulatedBody::Vec::Zero(body->nrDOF())));
   drawer.addShape(s);
 

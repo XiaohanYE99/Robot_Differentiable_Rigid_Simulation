@@ -53,6 +53,11 @@ const TriangleExact::Vec3T& TriangleExact::normal() const {
 BBoxExact TriangleExact::getBB() const {
   return BBoxExact(_v[0],_v[1],_v[2]);
 }
+TriangleExact::Vec4T TriangleExact::getSBB() const {
+  Vec3T center=(_v[0]+_v[1]+_v[2])/3.0;
+  T rad=std::max(std::max((center-_v[0]).norm(),(center-_v[1]).norm()),(center-_v[2]).norm());
+  return Vec4T(center[0],center[1],center[2],rad);
+}
 TriangleExact::Vec3T TriangleExact::bary(const Vec3T& p) const {
   Mat3X2T LHS;
   LHS.col(0)=_v[1]-_v[0];

@@ -77,7 +77,7 @@ bool edgeTriangleIntersect(const Eigen::Matrix<T,3,1> a[2],const Eigen::Matrix<T
   return false;
 }
 template <typename T>
-bool triangleTriangleIntersect(const Eigen::Matrix<T,3,1> a[2],const Eigen::Matrix<T,3,1> b[3]) {
+bool triangleTriangleIntersect(const Eigen::Matrix<T,3,1> a[3],const Eigen::Matrix<T,3,1> b[3]) {
   for(int d=0; d<3; d++) {
     const Eigen::Matrix<T,3,1> ea[2]= {a[d],a[(d+1)%3]};
     if(edgeTriangleIntersect(ea,b))

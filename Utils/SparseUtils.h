@@ -9,8 +9,65 @@
 #include <iostream>
 
 namespace PHYSICSMOTION {
-//sparse matrix building
+//sparse/dense matrix building
 //dense
+template <typename T>
+void parallelAdd(T& lhs,T val) {
+#ifndef FORCE_ADD_DOUBLE_PRECISION
+  OMP_ATOMIC_
+#else
+  OMP_CRITICAL_
+#endif
+  lhs+=val;
+}
+template <typename T,int R>
+void parallelAdd(Eigen::Matrix<T,R,1>& DG,int off,const Eigen::Matrix<T,-1,1>& val) {
+  for(int i=0; i<val.rows(); i++)
+    parallelAdd(DG[off+i],val[i]);
+}
+template <typename T,int R,int C>
+void parallelAdd(Eigen::Matrix<T,R,C>& DH,int offr,int offc,const Eigen::Matrix<T,-1,-1>& val) {
+  for(int r=0; r<val.rows(); r++)
+    for(int c=0; c<val.cols(); c++)
+      parallelAdd(DH(offr+r,offc+c),val(r,c));
+}
+template <typename T,int C>
+void parallelAdd(Eigen::Matrix<T,-1,C>& DH,int offr,int offc,const Eigen::Matrix<T,-1,-1>& val) {
+  for(int r=0; r<val.rows(); r++)
+    for(int c=0; c<val.cols(); c++)
+      parallelAdd(DH(offr+r,offc+c),val(r,c));
+}
+template <typename T,int R,int C>
+void parallelAdd(Eigen::Matrix<T,R,C>& DH,int offr,int offc,const Eigen::MatrixBase<Eigen::Matrix<T,3,4>>& val) {
+  for(int r=0; r<val.rows(); r++)
+    for(int c=0; c<val.cols(); c++)
+      parallelAdd(DH(offr+r,offc+c),val(r,c));
+}
+template <typename T,int R,int C>
+void parallelAdd(Eigen::Matrix<T,R,C>& DH,int offr,int offc,const Eigen::MatrixBase<Eigen::Matrix<T,3,1>>& val) {
+  for(int r=0; r<val.rows(); r++)
+    for(int c=0; c<val.cols(); c++)
+      parallelAdd(DH(offr+r,offc+c),val(r,c));
+}
+template <typename T,int R>
+void parallelAdd(Eigen::Matrix<T,R,1>& DG,int off,const Eigen::SparseVector<T,0,int>& val) {
+  for(typename Eigen::SparseVector<T,0,int>::InnerIterator it(val); it; ++it)
+    parallelAdd(DG[it.index()+off],it.value());
+}
+template <typename T,int R,int C>
+void parallelAdd(Eigen::Matrix<T,R,C>& DH,int offr,int offc,const Eigen::SparseMatrix<T,0,int>& val) {
+  for(int k=0; k<val.outerSize(); ++k)
+    for(typename Eigen::SparseMatrix<T,0,int>::InnerIterator it(val,k); it; ++it)
+      parallelAdd(DH(it.row()+offr,it.col()+offc),it.value());
+}
+template <typename T>
+Eigen::Matrix<T,3,4> computeDTG(const Eigen::Matrix<T,3,1>& G,const Eigen::Matrix<T,3,1>& vLocal) {
+  Eigen::Matrix<T,3,4> DTG;
+  for(int r=0; r<3; r++)
+    for(int c=0; c<4; c++)
+      DTG(r,c)=G[r]*(c<3?vLocal[c]:1);
+  return DTG;
+}
 template <typename MAT,typename Derived>
 void addBlock(MAT& H,int r,int c,const Eigen::MatrixBase<Derived>& coef) {
   H.block(r,c,coef.rows(),coef.cols())+=coef;

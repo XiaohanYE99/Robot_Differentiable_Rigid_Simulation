@@ -662,7 +662,7 @@ void NEArticulatedGradientInfoMap<T>::LTL() {
 }
 //-------------------------------------------------------------ABA
 template <typename T>
-void NEArticulatedGradientInfoMap<T>::ABAInner(const ArticulatedBody& body,Vec6TCM a0,Mat6XTCM fx,VecCM tau0,Mat6XTCM IMCustom,VecCM diag) {
+void NEArticulatedGradientInfoMap<T>::ABAInner(const ArticulatedBody& body,Vec6TCM a0,Mat6XTCM fx,VecCM tau0,Mat6XTCM IMCustom,MatTCM diag) {
   //reuse _ICM as IA
   if(!IMCustom.data())
     new (&IMCustom) Mat6XTCM(mapM2CM(_IM));
@@ -699,7 +699,7 @@ void NEArticulatedGradientInfoMap<T>::ABAInner(const ArticulatedBody& body,Vec6T
     Eigen::Block<MatTM> Di=_HM.block(J._offDOF,J._offDOF,nrDOF,nrDOF);
     invDi.block(0,0,nrDOF,nrDOF)=Si.transpose()*Ui;
     if(diag.data())
-      invDi.diagonal().segment(0,nrDOF)+=diag.segment(J._offDOF,nrDOF);
+      invDi.block(0,0,nrDOF,nrDOF)+=diag.block(J._offDOF,J._offDOF,nrDOF,nrDOF);
     invert(invDi.block(0,0,nrDOF,nrDOF),Di);
     Eigen::Block<VecM,-1,1> taui=_tauM.segment(J._offDOF,nrDOF);
     taui-=Si.transpose()*_fM.col(i);
@@ -737,9 +737,18 @@ void NEArticulatedGradientInfoMap<T>::ABA(const ArticulatedBody& body,Vec6TCM a0
 template <typename T>
 template <typename M,typename IM>
 void NEArticulatedGradientInfoMap<T>::invert(M in,IM inv) {
+  //detect fix dof
+  bool isFinite[3]= {true,true,true};
+  for(int d=0; d<in.rows(); d++)
+    if(in.rows()>d && !isfinite(in(d,d))) {
+      isFinite[d]=false;
+      for(int c=0; c<in.rows(); c++)
+        in(c,d)=in(d,c)=0;
+      in(d,d)=1;
+    }
+  //invert
   inv.setZero();
-  if(!in.array().isFinite().all()) {
-  } else if(in.rows()==0) {
+  if(in.rows()==0) {
   } else if(in.rows()==1) {
     inv(0,0)=1/in(0,0);
   } else if(in.rows()==2) {
@@ -749,6 +758,7 @@ void NEArticulatedGradientInfoMap<T>::invert(M in,IM inv) {
     inv(0,1)=in(0,1)*-det;
     inv(1,0)=in(1,0)*-det;
   } else {
+    ASSERT(in.rows()==3)
 #define get(I,J) in(I-1,J-1)
 #define set(I,J,v) inv(I-1,J-1)=v;
     T detA=0,buffer;
@@ -783,6 +793,10 @@ void NEArticulatedGradientInfoMap<T>::invert(M in,IM inv) {
 #undef get
 #undef set
   }
+  //clear fix dof
+  for(int d=0; d<in.rows(); d++)
+    if(!isFinite[d])
+      inv(d,d)=0;
 }
 //-------------------------------------------------------------ABADerivatives
 template <typename T>

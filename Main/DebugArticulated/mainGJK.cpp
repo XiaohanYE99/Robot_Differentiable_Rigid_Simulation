@@ -69,8 +69,8 @@ int main(int argc,char** argv) {
     contact->addIndexSingle(1);
     contact->setMode(GL_LINES);
     if(intersect)
-      contact->setColor(GL_LINES,1,0,0);
-    else contact->setColor(GL_LINES,0,1,0);
+      contact->setColorDiffuse(GL_LINES,1,0,0);
+    else contact->setColorDiffuse(GL_LINES,0,1,0);
     contact->setLineWidth(5);
   });
   drawer.mainLoop();

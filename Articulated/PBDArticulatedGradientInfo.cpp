@@ -25,40 +25,40 @@ namespace PHYSICSMOTION {
 //CPU function API
 template <typename T>
 PBDArticulatedGradientInfoMap<T>::PBDArticulatedGradientInfoMap()
-    :_xM(NULL,0),
-     _TM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _TK_1KM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _DTM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _RDTM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _DDTM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _JTransM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _DTLambdaM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _DTK_1KLambdaM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _DTILambdaM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _RDTILambdaM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _DTIILambdaM(NULL,3,0,Eigen::OuterStride<>(3)),
-     _RDTIILambdaM(NULL,3,0,Eigen::OuterStride<>(3)) {}
+  :_xM(NULL,0),
+   _TM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _TK_1KM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _DTM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _RDTM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _DDTM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _JTransM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _DTLambdaM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _DTK_1KLambdaM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _DTILambdaM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _RDTILambdaM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _DTIILambdaM(NULL,3,0,Eigen::OuterStride<>(3)),
+   _RDTIILambdaM(NULL,3,0,Eigen::OuterStride<>(3)) {}
 template <typename T>
 PBDArticulatedGradientInfoMap<T>::PBDArticulatedGradientInfoMap(const PBDArticulatedGradientInfoMap& other)
-    :_xM((VecM&) other._xM),
-     _TM((Mat3XTM&) other._TM),
-     _TK_1KM((Mat3XTM&) other._TK_1KM),
-     _DTM((Mat3XTM&) other._DTM),
-     _RDTM((Mat3XTM&) other._RDTM),
-     _DDTM((Mat3XTM&) other._DDTM),
-     _JTransM((Mat3XTM&) other._JTransM),
-     _DTLambdaM((Mat3XTM&) other._DTLambdaM),
-     _DTK_1KLambdaM((Mat3XTM&) other._DTK_1KLambdaM),
-     _DTILambdaM((Mat3XTM&) other._DTILambdaM),
-     _RDTILambdaM((Mat3XTM&) other._DTILambdaM),
-     _DTIILambdaM((Mat3XTM&) other._DTIILambdaM),
-     _RDTIILambdaM((Mat3XTM&) other._RDTIILambdaM) {}
+  :_xM((VecM&) other._xM),
+   _TM((Mat3XTM&) other._TM),
+   _TK_1KM((Mat3XTM&) other._TK_1KM),
+   _DTM((Mat3XTM&) other._DTM),
+   _RDTM((Mat3XTM&) other._RDTM),
+   _DDTM((Mat3XTM&) other._DDTM),
+   _JTransM((Mat3XTM&) other._JTransM),
+   _DTLambdaM((Mat3XTM&) other._DTLambdaM),
+   _DTK_1KLambdaM((Mat3XTM&) other._DTK_1KLambdaM),
+   _DTILambdaM((Mat3XTM&) other._DTILambdaM),
+   _RDTILambdaM((Mat3XTM&) other._DTILambdaM),
+   _DTIILambdaM((Mat3XTM&) other._DTIILambdaM),
+   _RDTIILambdaM((Mat3XTM&) other._RDTIILambdaM) {}
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::resetLambda(const ArticulatedBody& body,VecCM lambdaMap) {
   Eigen::Matrix<int,2,1> begEnd;
   Mat3X4T JTrans;
   int nrJ=body.nrJ();
-  for(int i=0; i<nrJ; i++){
+  for(int i=0; i<nrJ; i++) {
     const Joint& J=body.joint(i);
     JTrans=TRANSI(_JTransM,i);
     //compute DTLLambda
@@ -93,7 +93,7 @@ template <typename T>
 void PBDArticulatedGradientInfoMap<T>::reset(const ArticulatedBody& body,VecCM xMap) {
   Mat3X4T JTrans;
   int nrJ=body.nrJ();
-  for(int i=0; i<nrJ; i++){
+  for(int i=0; i<nrJ; i++) {
     const Joint& J=body.joint(i);
     JTrans=TRANSI(_JTransM,i);
     //compute local transformation
@@ -126,7 +126,7 @@ template <typename T>
 T PBDArticulatedGradientInfoMap<T>::TG(const ArticulatedBody& body,Mat3XTCM G) const {
   T ret=0;
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     ret+=(ROTI(_TM,k)*ROTI(G,k).transpose()).trace();
     ret+=CTRI(_TM,k).dot(CTRI(G,k));
   }
@@ -138,7 +138,7 @@ void PBDArticulatedGradientInfoMap<T>::DTG(int k,const ArticulatedBody& body,Mat
   Eigen::Matrix<int,2,1> begEnd;
   Mat3T coefOmega;
   Vec3T coefOmegaV,coefT;
-  for(; k>=0; k=body.joint(k)._parent){
+  for(; k>=0; k=body.joint(k)._parent) {
     const Joint& J=body.joint(k);
     GETTCM_T(JLT,_TK_1KM,k)
     //gradient R,C
@@ -165,7 +165,7 @@ void PBDArticulatedGradientInfoMap<T>::DTG(const ArticulatedBody& body,Mat3XTM G
   Mat3T coefOmega;
   Vec3T coefOmegaV,coefT;
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     const Joint& J=body.joint(k);
     GETTCM_T(JLT,_TK_1KM,k)
     GETTM_T(GK,G,k)
@@ -197,8 +197,8 @@ void PBDArticulatedGradientInfoMap<T>::DTGBF(const ArticulatedBody& body,Mat3XTM
   int nrJ=body.nrJ();
   for(int k=0; k<nrJ; k++)
     this->DTG(k,body,G.template block<3,4>(0,k*4),[&](int col,T val) {
-      DTG[col]+=val;
-    });
+    DTG[col]+=val;
+  });
 }
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::DTGBFZ(const ArticulatedBody& body,Mat3XTM G,VecM DTG) const {
@@ -214,7 +214,7 @@ void PBDArticulatedGradientInfoMap<T>::toolA(int k,const ArticulatedBody& body,c
   Mat3T wK_1iMwK_1Kj,tK_1iMwK_1Kj;
   Mat3T wK_1iMtK_1Kj,tK_1iMtK_1Kj;
   Mat3T RP,RPj,DC;
-  for(; k>=0; k=body.joint(k)._parent){
+  for(; k>=0; k=body.joint(k)._parent) {
     const Joint& J=body.joint(k);
     RP=J._parent>=0? ROTI(_TM,J._parent): Mat3T(Mat3T::Identity());
     RPj=J._parent>=0? ROTI(Tj._TM,J._parent): Mat3T(Mat3T::Identity());
@@ -247,7 +247,7 @@ void PBDArticulatedGradientInfoMap<T>::toolA(const ArticulatedBody& body,const P
   Mat3T wK_1iMtK_1Kj,tK_1iMtK_1Kj;
   Mat3T RP,RPj,DC;
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     const Joint& J=body.joint(k);
     RP=J._parent>=0? ROTI(_TM,J._parent): Mat3T(Mat3T::Identity());
     RPj=J._parent>=0? ROTI(Tj._TM,J._parent): Mat3T(Mat3T::Identity());
@@ -353,7 +353,7 @@ void PBDArticulatedGradientInfoMap<T>::toolAContactAll(const ArticulatedBody& bo
   MtR.setZero();
   Mtt.setZero();
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     Eigen::Block<MatTCM,12,12> tensor=M.template block<12,12>(0,k*12);
     CONTRACTRC
   }
@@ -411,7 +411,7 @@ void PBDArticulatedGradientInfoMap<T>::toolALR(int kL,int kR,const ArticulatedBo
   Tj.JRSparse(body,kR,mapM(wj));
   Tj.JCSparse(body,kR,mapM(tj));
   for(int r=0; r<nrDOF; r++)
-    for(int c=0; c<nrDOF; c++){
+    for(int c=0; c<nrDOF; c++) {
       RT=concatCol(cross<T>(w.col(r))*ROTI(_TM,kL),t.col(r));
       RTj=concatCol(cross<T>(wj.col(c))*ROTI(Tj._TM,kR),tj.col(c));
       val=0;
@@ -424,7 +424,7 @@ void PBDArticulatedGradientInfoMap<T>::toolALR(int kL,int kR,const ArticulatedBo
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolABF(const ArticulatedBody& body,const PBDArticulatedGradientInfoMap& Tj,MatTCM M,MatTM A) const {
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     MatTCM MBlk(&(M.coeffRef(0,k*12)),12,12,Eigen::OuterStride<>(M.outerStride()));
     toolALR(k,k,body,Tj,MBlk,A);
   }
@@ -439,8 +439,8 @@ void PBDArticulatedGradientInfoMap<T>::toolABF2(const ArticulatedBody& body,cons
   int nrJ=body.nrJ();
   for(int k=0; k<nrJ; k++)
     toolA(k,body,Tj,MRRI,MRtI,MtRI,MttI,[&](int row,int col,T val) {
-      A(row,col)+=val;
-    });
+    A(row,col)+=val;
+  });
 }
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolABF2Z(const ArticulatedBody& body,const PBDArticulatedGradientInfoMap& Tj,Mat3XTM MRR,Mat3XTM MRt,Mat3XTM MtR,Mat3XTM Mtt,MatTM A) const {
@@ -463,7 +463,7 @@ template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolB(const ArticulatedBody& body,Mat3XTM G,std::function<void(int,int,T)> B) const {
   Mat3T RP,wK_1KiMwKj,tK_1KiMwKj;
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     const Joint& J=body.joint(k);
     RP=J._parent>=0? ROTI(_TM,J._parent): Mat3T(Mat3T::Identity());
     if(J.isRotational()) {
@@ -484,7 +484,7 @@ void PBDArticulatedGradientInfoMap<T>::toolB(const ArticulatedBody& body,Mat3XTM
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolB(int k,const ArticulatedBody& body,Mat3XTM G,std::function<void(int,int,T)> B) const {
   Mat3T RP,wK_1KiMwKj,tK_1KiMwKj;
-  for(; k>=0; k=body.joint(k)._parent){
+  for(; k>=0; k=body.joint(k)._parent) {
     const Joint& J=body.joint(k);
     RP=J._parent>=0? ROTI(_TM,J._parent): Mat3T(Mat3T::Identity());
     if(J.isRotational()) {
@@ -564,7 +564,7 @@ void PBDArticulatedGradientInfoMap<T>::toolBContactAll(const ArticulatedBody& bo
 #define CONTRACT(R0,R1,C0,C1) toolBContractTensor<R0,R1,C0,C1>(k,G,tensor(R0+R1*3,C0+C1*3));
   G.setZero();
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     Eigen::Block<MatTCM,12,12> tensor=M.template block<12,12>(0,k*12);
     CONTRACTRC
   }
@@ -575,7 +575,7 @@ template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolBBF(const ArticulatedBody& body,MatTCM M,MatTM B) const {
 #define CONTRACT(R0,R1,C0,C1) G(C0,C1+k*4)+=tensor(R0+R1*3,C0+C1*3)*TG1(R0,R1);
   Mat3XT G=Mat3XT::Zero(3,body.nrJ()*4);
-  for(int k=body.nrJ()-1; k>=0; k--){
+  for(int k=body.nrJ()-1; k>=0; k--) {
     Mat3X4T TG1=concatCol(cross<T>(DWDLI(_DTLambdaM,k))*ROTI(_TM,k),DTDLI(_DTLambdaM,k));
     Eigen::Block<MatTCM,12,12> tensor=M.template block<12,12>(0,k*12);
     CONTRACTRC
@@ -599,7 +599,7 @@ void PBDArticulatedGradientInfoMap<T>::toolAB(int k,const ArticulatedBody& body,
   Mat3T wK_1iMwK_1Kj,tK_1iMwK_1Kj;
   Mat3T wK_1iMtK_1Kj,tK_1iMtK_1Kj;
   Mat3T RP,BContrib,DC;
-  for(; k>=0; k=body.joint(k)._parent){
+  for(; k>=0; k=body.joint(k)._parent) {
     const Joint& J=body.joint(k);
     RP=J._parent>=0? ROTI(_TM,J._parent): Mat3T(Mat3T::Identity());
     DC=cross<T>(J._parent>=0? CTRI(_TM,k)-CTRI(_TM,J._parent): Vec3T(Vec3T::Zero()));
@@ -636,7 +636,7 @@ void PBDArticulatedGradientInfoMap<T>::toolAB(const ArticulatedBody& body,Mat3XT
   Mat3T wK_1iMtK_1Kj,tK_1iMtK_1Kj;
   Mat3T RP,BContrib,DC;
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     const Joint& J=body.joint(k);
     RP=J._parent>=0? ROTI(_TM,J._parent): Mat3T(Mat3T::Identity());
     DC=cross<T>(J._parent>=0? CTRI(_TM,k)-CTRI(_TM,J._parent): Vec3T(Vec3T::Zero()));
@@ -695,8 +695,8 @@ void PBDArticulatedGradientInfoMap<T>::toolABBF(const ArticulatedBody& body,Mat3
   int nrJ=body.nrJ();
   for(int k=0; k<nrJ; k++)
     toolAB(k,body,MRRI,MRtI,MtRI,MttI,G.template block<3,4>(0,k*4),[&](int row,int col,T val) {
-      AB(row,col)+=val;
-    });
+    AB(row,col)+=val;
+  });
 }
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolABBFZ(const ArticulatedBody& body,Mat3XTM MRR,Mat3XTM MRt,Mat3XTM MtR,Mat3XTM Mtt,Mat3XTM G,MatTM AB) const {
@@ -717,16 +717,16 @@ void PBDArticulatedGradientInfoMap<T>::toolABBFZ(const ArticulatedBody& body,Mat
 //this is an interface whose input is 4 3X3 tensor
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolAC(const ArticulatedBody& body,
-                                              const PBDArticulatedGradientInfoMap& Tj,
-                                              Mat3XTM MRRA,
-                                              Mat3XTM MRtA,
-                                              Mat3XTM MtRA,
-                                              Mat3XTM MttA,
-                                              Mat3XTM MRRC,
-                                              Mat3XTM MRtC,
-                                              Mat3XTM MtRC,
-                                              Mat3XTM MttC,
-                                              std::function<void(int row,int col,T val)> AC) const {
+    const PBDArticulatedGradientInfoMap& Tj,
+    Mat3XTM MRRA,
+    Mat3XTM MRtA,
+    Mat3XTM MtRA,
+    Mat3XTM MttA,
+    Mat3XTM MRRC,
+    Mat3XTM MRtC,
+    Mat3XTM MtRC,
+    Mat3XTM MttC,
+    std::function<void(int row,int col,T val)> AC) const {
   Mat3T wK_1KiMwKj,wK_1KiMtKj,wK_1KiLambdaMwKj,wK_1KiLambdaMtKj;
   Mat3T tK_1KiMwKj,tK_1KiMtKj;
   Mat3T wK_1iMwK_1Kj,tK_1iMwK_1Kj;
@@ -735,7 +735,7 @@ void PBDArticulatedGradientInfoMap<T>::toolAC(const ArticulatedBody& body,
   Mat3T wK_1iLambdaMtK_1Kj,tK_1iLambdaMtK_1Kj;
   Mat3T RP,RPj,DC,DCj,DWDLP,DDTDLP;
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     const Joint& J=body.joint(k);
     RP=J._parent>=0? ROTI(_TM,J._parent): Mat3T(Mat3T::Identity());
     RPj=J._parent>=0? ROTI(Tj._TM,J._parent): Mat3T(Mat3T::Identity());
@@ -773,13 +773,13 @@ void PBDArticulatedGradientInfoMap<T>::toolAC(const ArticulatedBody& body,
 }
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolACNonRecursivePhase1Rotational(int k,
-                                                                          const ArticulatedBody& body,
-                                                                          const PBDArticulatedGradientInfoMap& Tj,
-                                                                          const Mat3T& wK_1KiMwKj,
-                                                                          const Mat3T& wK_1KiMtKj,
-                                                                          const Mat3T& wK_1KiLambdaMwKj,
-                                                                          const Mat3T& wK_1KiLambdaMtKj,
-                                                                          std::function<void(int row,int col,T val)> AC) const {
+    const ArticulatedBody& body,
+    const PBDArticulatedGradientInfoMap& Tj,
+    const Mat3T& wK_1KiMwKj,
+    const Mat3T& wK_1KiMtKj,
+    const Mat3T& wK_1KiLambdaMwKj,
+    const Mat3T& wK_1KiLambdaMtKj,
+    std::function<void(int row,int col,T val)> AC) const {
   Eigen::Matrix<int,2,1> begEnd;
   const Joint& J=body.joint(k);
   Tj.JRCSparse(body,k,[&](int col,const Vec3T& v) {
@@ -792,11 +792,11 @@ void PBDArticulatedGradientInfoMap<T>::toolACNonRecursivePhase1Rotational(int k,
 }
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolACNonRecursivePhase2Rotational(int k,
-                                                                          const ArticulatedBody& body,
-                                                                          const PBDArticulatedGradientInfoMap& Tj,
-                                                                          const Mat3T& wK_1iLambdaMwK_1Kj,
-                                                                          const Mat3T& tK_1iLambdaMwK_1Kj,
-                                                                          std::function<void(int row,int col,T val)> AC) const {
+    const ArticulatedBody& body,
+    const PBDArticulatedGradientInfoMap& Tj,
+    const Mat3T& wK_1iLambdaMwK_1Kj,
+    const Mat3T& tK_1iLambdaMwK_1Kj,
+    std::function<void(int row,int col,T val)> AC) const {
   Eigen::Matrix<int,2,1> begEnd;
   const Joint& J=body.joint(k);
   JRCILambdaSparse(body,J._parent,[&](int col,const Vec3T& v) {
@@ -809,11 +809,11 @@ void PBDArticulatedGradientInfoMap<T>::toolACNonRecursivePhase2Rotational(int k,
 }
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolACNonRecursivePhase2Translational(int k,
-                                                                             const ArticulatedBody& body,
-                                                                             const PBDArticulatedGradientInfoMap& Tj,
-                                                                             const Mat3T& wK_1iLambdaMtK_1Kj,
-                                                                             const Mat3T& tK_1iLambdaMtK_1Kj,
-                                                                             std::function<void(int row,int col,T val)> AC) const {
+    const ArticulatedBody& body,
+    const PBDArticulatedGradientInfoMap& Tj,
+    const Mat3T& wK_1iLambdaMtK_1Kj,
+    const Mat3T& tK_1iLambdaMtK_1Kj,
+    std::function<void(int row,int col,T val)> AC) const {
   Eigen::Matrix<int,2,1> begEnd;
   const Joint& J=body.joint(k);
   JRCILambdaSparse(body,J._parent,[&](int col,const Vec3T& v) {
@@ -857,7 +857,7 @@ void PBDArticulatedGradientInfoMap<T>::toolCContactAll(const ArticulatedBody& bo
   MtRC.setZero();
   MttC.setZero();
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     Eigen::Block<MatTCM,12,12> tensor=MC.template block<12,12>(0,k*12);
     CONTRACTRC
   }
@@ -865,17 +865,17 @@ void PBDArticulatedGradientInfoMap<T>::toolCContactAll(const ArticulatedBody& bo
 }
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolACContactAll(const ArticulatedBody& body,
-                                                        const PBDArticulatedGradientInfoMap& Tj,
-                                                        Mat3XTM MRRA,
-                                                        Mat3XTM MRtA,
-                                                        Mat3XTM MtRA,
-                                                        Mat3XTM MttA,
-                                                        MatTCM MA,
-                                                        Mat3XTM MRRC,
-                                                        Mat3XTM MRtC,
-                                                        Mat3XTM MtRC,
-                                                        Mat3XTM MttC,
-                                                        MatTCM MC) const {
+    const PBDArticulatedGradientInfoMap& Tj,
+    Mat3XTM MRRA,
+    Mat3XTM MRtA,
+    Mat3XTM MtRA,
+    Mat3XTM MttA,
+    MatTCM MA,
+    Mat3XTM MRRC,
+    Mat3XTM MRtC,
+    Mat3XTM MtRC,
+    Mat3XTM MttC,
+    MatTCM MC) const {
 #define CONTRACT(R0,R1,C0,C1) toolACContractTensor<R0,R1,C0,C1>(k,Tj,MRRA,MRtA,MtRA,MttA,tensorA(R0+R1*3,C0+C1*3),MRRC,MRtC,MtRC,MttC,tensorC(R0+R1*3,C0+C1*3));
   MRRA.setZero();
   MRtA.setZero();
@@ -886,7 +886,7 @@ void PBDArticulatedGradientInfoMap<T>::toolACContactAll(const ArticulatedBody& b
   MtRC.setZero();
   MttC.setZero();
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     Eigen::Block<MatTCM,12,12> tensorA=MA.template block<12,12>(0,k*12);
     Eigen::Block<MatTCM,12,12> tensorC=MC.template block<12,12>(0,k*12);
     CONTRACTRC
@@ -954,7 +954,7 @@ void PBDArticulatedGradientInfoMap<T>::toolCLR(int kL,int kR,const ArticulatedBo
   Tj.JRSparse(body,kR,mapM(wj));
   Tj.JCSparse(body,kR,mapM(tj));
   for(int r=0; r<nrDOF; r++)
-    for(int c=0; c<nrDOF; c++){
+    for(int c=0; c<nrDOF; c++) {
       RT=concatCol((cross<T>(wIL.col(r))+cross<T>(w.col(r))*cross<T>(DWDLI(_DTLambdaM,kL)))*ROTI(_TM,kL),tIL.col(r));
       RTj=concatCol(cross<T>(wj.col(c))*ROTI(Tj._TM,kR),tj.col(c));
       val=0;
@@ -967,7 +967,7 @@ void PBDArticulatedGradientInfoMap<T>::toolCLR(int kL,int kR,const ArticulatedBo
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolCBF(const ArticulatedBody& body,const PBDArticulatedGradientInfoMap& Tj,MatTCM M,MatTM C) const {
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     MatTCM MBlk(&(M.coeffRef(0,k*12)),12,12,Eigen::OuterStride<>(M.outerStride()));
     toolCLR(k,k,body,Tj,MBlk,C);
   }
@@ -984,7 +984,7 @@ void PBDArticulatedGradientInfoMap<T>::toolDBF(const ArticulatedBody& body,Mat3X
   int nrJ=body.nrJ();
   Mat3T RP,C,wK_1KiMwKj,tK_1KiMwKj;
   Mat3XT GB=Mat3XT::Zero(3,nrJ*4);
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     const Joint& J=body.joint(k);
     //term1: third order derivatives of T_{K-1}^K
     RP=J._parent>=0? ROTI(_TM,J._parent): Mat3T(Mat3T::Identity());
@@ -1017,12 +1017,12 @@ void PBDArticulatedGradientInfoMap<T>::toolDBF(const ArticulatedBody& body,Mat3X
       });
       //term4: lambdaI|J, lambdaJ|I
       JRMILambdaSparse(body,J._parent,[&](int col,const Mat3T& R) {
-        for(begEnd=J.RBegEnd(); begEnd[0]<begEnd[1]; begEnd[0]++){
+        for(begEnd=J.RBegEnd(); begEnd[0]<begEnd[1]; begEnd[0]++) {
           T val=(R*cross<T>(_DTM.col(begEnd[0]))*ROTI(_TK_1KM,k)*ROTI(G,k).transpose()).trace();
           D(begEnd[0],col)+=val;
           D(col,begEnd[0])+=val;
         }
-        for(begEnd=J.CBegEnd(); begEnd[0]<begEnd[1]; begEnd[0]++){
+        for(begEnd=J.CBegEnd(); begEnd[0]<begEnd[1]; begEnd[0]++) {
           T val=(R*_DTM.col(begEnd[0])).dot(CTRI(G,k));
           D(begEnd[0],col)+=val;
           D(col,begEnd[0])+=val;
@@ -1030,7 +1030,7 @@ void PBDArticulatedGradientInfoMap<T>::toolDBF(const ArticulatedBody& body,Mat3X
       });
       //term5: I|lambdaJ, J|lambdaI
       JRMSparse(body,J._parent,[&](int col,const Mat3T& R) {
-        for(begEnd=J.RBegEnd(); begEnd[0]<begEnd[1]; begEnd[0]++){
+        for(begEnd=J.RBegEnd(); begEnd[0]<begEnd[1]; begEnd[0]++) {
           C=cross<T>(_DTM.col(begEnd[0]))*cross<T>(DWDLI(_DTK_1KLambdaM,k))+cross<T>(_DTILambdaM.col(begEnd[0]));
           T val=(R*C*ROTI(_TK_1KM,k)*ROTI(G,k).transpose()).trace();
           D(begEnd[0],col)+=val;
@@ -1058,17 +1058,17 @@ void PBDArticulatedGradientInfoMap<T>::toolDBFZ(const ArticulatedBody& body,Mat3
 //this is an interface whose input is 4 3X3 tensor
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::toolABCCTD(const ArticulatedBody& body,
-                                                  Mat3XTM MRRA,
-                                                  Mat3XTM MRtA,
-                                                  Mat3XTM MtRA,
-                                                  Mat3XTM MttA,
-                                                  Mat3XTM MRRC,
-                                                  Mat3XTM MRtC,
-                                                  Mat3XTM MtRC,
-                                                  Mat3XTM MttC,
-                                                  Mat3XTM G,
-                                                  Mat3XTM GB,
-                                                  std::function<void(int row,int col,T val)> ABCCTD) const {
+    Mat3XTM MRRA,
+    Mat3XTM MRtA,
+    Mat3XTM MtRA,
+    Mat3XTM MttA,
+    Mat3XTM MRRC,
+    Mat3XTM MRtC,
+    Mat3XTM MtRC,
+    Mat3XTM MttC,
+    Mat3XTM G,
+    Mat3XTM GB,
+    std::function<void(int row,int col,T val)> ABCCTD) const {
   GB/=2;
   Mat3T wK_1KiMwKjB,tK_1KiMwKjB;
   Mat3T wK_1KiMwKj,wK_1KiMtKj,wK_1KiLambdaMwKj,wK_1KiLambdaMtKj;
@@ -1080,7 +1080,7 @@ void PBDArticulatedGradientInfoMap<T>::toolABCCTD(const ArticulatedBody& body,
   Mat3T RP,CDWDLP,CDWDLL,DC,DDTDLP;
   Vec3T DWDLP,DWDLL;
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     const Joint& J=body.joint(k);
     RP=J._parent>=0? ROTI(_TM,J._parent): Mat3T(Mat3T::Identity());
     DC=cross<T>(J._parent>=0? CTRI(_TM,k)-CTRI(_TM,J._parent): Vec3T(Vec3T::Zero()));
@@ -1096,7 +1096,7 @@ void PBDArticulatedGradientInfoMap<T>::toolABCCTD(const ArticulatedBody& body,
       wK_1KiLambdaMwKj=RP.transpose()*(MRRCI+invDoubleCrossMatTrace<T>(ROTI(_TM,k)*ROTI(G,k).transpose()));
       wK_1KiLambdaMtKj=RP.transpose()*MRtCI;
       wK_1iMwK_1Kj=(MRRAI+DC*MtRAI+DDTDLP*MtRCI+invDoubleCrossMatTrace<T>(DWDLP,ROTI(_TM,k)*ROTI(G,k).transpose()).transpose()-
-          invDoubleCrossMatTrace<T>(ROTI(G,k)*ROTI(_TM,k).transpose()*CDWDLL))*RP;
+                    invDoubleCrossMatTrace<T>(ROTI(G,k)*ROTI(_TM,k).transpose()*CDWDLL))*RP;
       tK_1iMwK_1Kj=MtRAI*RP;
       wK_1iLambdaMwK_1Kj=(MRRCI+DC*MtRCI+invDoubleCrossMatTrace<T>(ROTI(G,k)*ROTI(_TM,k).transpose()))*RP;
       tK_1iLambdaMwK_1Kj=MtRCI*RP;
@@ -1155,7 +1155,7 @@ void PBDArticulatedGradientInfoMap<T>::toolBCCTDContactAll(const ArticulatedBody
   MtRC.setZero();
   MttC.setZero();
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     Eigen::Block<MatTCM,12,12> tensor=MC.template block<12,12>(0,k*12);
     CONTRACTRC
   }
@@ -1173,7 +1173,7 @@ void PBDArticulatedGradientInfoMap<T>::toolABCCTDContactAll(const ArticulatedBod
   MtRC.setZero();
   MttC.setZero();
   int nrJ=body.nrJ();
-  for(int k=nrJ-1; k>=0; k--){
+  for(int k=nrJ-1; k>=0; k--) {
     Eigen::Block<MatTCM,12,12> tensorA=MA.template block<12,12>(0,k*12);
     Eigen::Block<MatTCM,12,12> tensorC=MC.template block<12,12>(0,k*12);
     CONTRACTRC
@@ -1221,7 +1221,7 @@ void PBDArticulatedGradientInfoMap<T>::toolABCCTDBFZ(const ArticulatedBody& body
 //-------------------------------------------------------------Jacobian RC
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::JRSparse(const ArticulatedBody& body,int JID,std::function<void(int,const Vec3T&)> JR) const {
-  for(int j=JID; j>=0; j=body.joint(j)._parent){
+  for(int j=JID; j>=0; j=body.joint(j)._parent) {
     const Joint& J=body.joint(j);
     for(Eigen::Matrix<int,2,1> R=J.RBegEnd(); R[0]!=R[1]; R[0]++)
       JR(R[0],_RDTM.col(R[0]));
@@ -1235,7 +1235,7 @@ void PBDArticulatedGradientInfoMap<T>::JRMSparse(const ArticulatedBody& body,int
 }
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::JCSparse(const ArticulatedBody& body,int JID,std::function<void(int,const Vec3T&)> JC) const {
-  for(int j=JID; j>=0; j=body.joint(j)._parent){
+  for(int j=JID; j>=0; j=body.joint(j)._parent) {
     const Joint& J=body.joint(j);
     for(Eigen::Matrix<int,2,1> C=J.CBegEnd(); C[0]!=C[1]; C[0]++)
       JC(C[0],_RDTM.col(C[0]));
@@ -1246,12 +1246,12 @@ void PBDArticulatedGradientInfoMap<T>::JCSparse(const ArticulatedBody& body,int 
 }
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::JRCSparse(const ArticulatedBody& body,int JID,std::function<void(int,const Vec3T&)> JR,std::function<void(int,const Vec3T&)> JC) const {
-  for(int j=JID; j>=0; j=body.joint(j)._parent){
+  for(int j=JID; j>=0; j=body.joint(j)._parent) {
     const Joint& J=body.joint(j);
     for(Eigen::Matrix<int,2,1> C=J.CBegEnd(); C[0]!=C[1]; C[0]++)
       JC(C[0],_RDTM.col(C[0]));
     Vec3T DC=CTRI(_TM,JID)-CTRI(_TM,j);
-    for(Eigen::Matrix<int,2,1> R=J.RBegEnd(); R[0]!=R[1]; R[0]++){
+    for(Eigen::Matrix<int,2,1> R=J.RBegEnd(); R[0]!=R[1]; R[0]++) {
       JR(R[0],_RDTM.col(R[0]));
       JC(R[0],_RDTM.col(R[0]).cross(DC));
     }
@@ -1301,7 +1301,7 @@ void PBDArticulatedGradientInfoMap<T>::JCSparse(const ArticulatedBody& body,int 
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::JRILambdaSparse(const ArticulatedBody& body,int JID,std::function<void(int,const Vec3T&)> JR) const {
   Vec3T CP;
-  for(int j=JID; j>=0; j=body.joint(j)._parent){
+  for(int j=JID; j>=0; j=body.joint(j)._parent) {
     const Joint& J=body.joint(j);
     CP=J._parent>=0? DWDLI(_DTLambdaM,J._parent): Vec3T(Vec3T::Zero());
     for(Eigen::Matrix<int,2,1> R=J.RBegEnd(); R[0]!=R[1]; R[0]++)
@@ -1317,12 +1317,12 @@ void PBDArticulatedGradientInfoMap<T>::JRMILambdaSparse(const ArticulatedBody& b
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::JCILambdaSparse(const ArticulatedBody& body,int JID,std::function<void(int,const Vec3T&)> JC) const {
   Vec3T CP,DDTDL,DC,WIL;
-  for(int j=JID; j>=0; j=body.joint(j)._parent){
+  for(int j=JID; j>=0; j=body.joint(j)._parent) {
     const Joint& J=body.joint(j);
     CP=J._parent>=0? DWDLI(_DTLambdaM,J._parent): Vec3T(Vec3T::Zero());
     DDTDL=DTDLI(_DTLambdaM,JID)-DTDLI(_DTLambdaM,j);
     DC=CTRI(_TM,JID)-CTRI(_TM,j);
-    for(Eigen::Matrix<int,2,1> R=J.RBegEnd(); R[0]!=R[1]; R[0]++){
+    for(Eigen::Matrix<int,2,1> R=J.RBegEnd(); R[0]!=R[1]; R[0]++) {
       WIL=CP.cross(_RDTM.col(R[0]))+_RDTILambdaM.col(R[0]);
       JC(R[0],_RDTM.col(R[0]).cross(DDTDL)+WIL.cross(DC));
     }
@@ -1333,12 +1333,12 @@ void PBDArticulatedGradientInfoMap<T>::JCILambdaSparse(const ArticulatedBody& bo
 template <typename T>
 void PBDArticulatedGradientInfoMap<T>::JRCILambdaSparse(const ArticulatedBody& body,int JID,std::function<void(int,const Vec3T&)> JR,std::function<void(int,const Vec3T&)> JC) const {
   Vec3T CP,DDTDL,DC,WIL;
-  for(int j=JID; j>=0; j=body.joint(j)._parent){
+  for(int j=JID; j>=0; j=body.joint(j)._parent) {
     const Joint& J=body.joint(j);
     CP=J._parent>=0? DWDLI(_DTLambdaM,J._parent): Vec3T(Vec3T::Zero());
     DDTDL=DTDLI(_DTLambdaM,JID)-DTDLI(_DTLambdaM,j);
     DC=CTRI(_TM,JID)-CTRI(_TM,j);
-    for(Eigen::Matrix<int,2,1> R=J.RBegEnd(); R[0]!=R[1]; R[0]++){
+    for(Eigen::Matrix<int,2,1> R=J.RBegEnd(); R[0]!=R[1]; R[0]++) {
       WIL=CP.cross(_RDTM.col(R[0]))+_RDTILambdaM.col(R[0]);
       JR(R[0],WIL);
       JC(R[0],_RDTM.col(R[0]).cross(DDTDL)+WIL.cross(DC));
@@ -1393,7 +1393,7 @@ void PBDArticulatedGradientInfoMap<T>::HRK_1KSparse(const ArticulatedBody& body,
   Mat3T DRIJ;
   const Joint& J=body.joint(JID);
   for(Eigen::Matrix<int,2,1> RI=J.RBegEnd(); RI[0]<RI[1]; RI[0]++)
-    for(Eigen::Matrix<int,2,1> RJ=J.RBegEnd(); RJ[0]<RJ[1]; RJ[0]++){
+    for(Eigen::Matrix<int,2,1> RJ=J.RBegEnd(); RJ[0]<RJ[1]; RJ[0]++) {
       DRIJ=cross<T>(_DTM.col(RI[0]))*cross<T>(_DTM.col(RJ[0]))+cross<T>(JointFunc<T>::DDT(J,mapM2CM(_DDTM),RJ[0],RI[0]));
       HR(RI[0],RJ[0],DRIJ*ROTI(_TK_1KM,JID));
     }
@@ -1403,8 +1403,8 @@ template <typename T>
 void PBDArticulatedGradientInfoMap<T>::HRK_1KLambdaSparse(const ArticulatedBody& body,int JID,std::function<void(int,int,const Mat3T&)> HR) const {
   Mat3T DRIJ;
   const Joint& J=body.joint(JID);
-  for(Eigen::Matrix<int,2,1> RI=J.RBegEnd(); RI[0]<RI[1]; RI[0]++){
-    for(Eigen::Matrix<int,2,1> RJ=J.RBegEnd(); RJ[0]<RJ[1]; RJ[0]++){
+  for(Eigen::Matrix<int,2,1> RI=J.RBegEnd(); RI[0]<RI[1]; RI[0]++) {
+    for(Eigen::Matrix<int,2,1> RJ=J.RBegEnd(); RJ[0]<RJ[1]; RJ[0]++) {
       DRIJ=(cross<T>(_DTM.col(RI[0]))*cross<T>(_DTM.col(RJ[0]))+cross<T>(JointFunc<T>::DDT(J,mapM2CM(_DDTM),RJ[0],RI[0])))*cross<T>(DWDLI(_DTK_1KLambdaM,JID));
       DRIJ+=cross<T>(_DTILambdaM.col(RI[0]))*cross<T>(_DTM.col(RJ[0]))+cross<T>(_DTM.col(RI[0]))*cross<T>(_DTILambdaM.col(RJ[0]))+cross<T>(JointFunc<T>::DDT(J,mapM2CM(_DTIILambdaM),RJ[0],RI[0]));
       HR(RI[0],RJ[0],DRIJ*ROTI(_TK_1KM,JID));
@@ -1471,7 +1471,7 @@ void PBDArticulatedGradientInfo<T>::reorthogonalize(const ArticulatedBody& body)
   //this is because JTrans was originally calculated using low-precision
   if(_JTrans.rows()!=3 || _JTrans.cols()!=nrJ*4) {
     _JTrans.resize(3,nrJ*4);
-    for(int j=0; j<nrJ; j++){
+    for(int j=0; j<nrJ; j++) {
       Mat3X4T JTrans=body.joint(j)._trans.template cast<T>();
       JTrans.col(0)/=JTrans.col(0).norm();
       JTrans.col(1)-=JTrans.col(1).dot(JTrans.col(0))*JTrans.col(0);
@@ -1519,7 +1519,7 @@ void PBDArticulatedGradientInfo<T>::debug(const ArticulatedBody& body) {
 
   PBDArticulatedGradientInfo G,G2,G3,G4;
   DEFINE_NUMERIC_DELTA_T(T)
-  for(int JID=0; JID<nrJ; JID++){
+  for(int JID=0; JID<nrJ; JID++) {
     std::cout << "-------------------------------------------------------------DebugPBDArticulatedGradientInfo" << std::endl;
     //calculate info
     x.setRandom();

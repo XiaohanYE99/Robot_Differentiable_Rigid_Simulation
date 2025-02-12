@@ -13,7 +13,7 @@ struct SphericalBBoxExact;
 #ifdef USE_RATIONAL
 #define GEOMETRY_SCALAR rational
 #else
-#define  GEOMETRY_SCALAR double
+#define  GEOMETRY_SCALAR FLOAT
 #endif
 struct ShapeExact : public SerializableBase {
   typedef GEOMETRY_SCALAR T;
@@ -92,11 +92,9 @@ struct ShapeExact : public SerializableBase {
   virtual std::vector<Facet> facets() const;
   virtual std::vector<Edge> edges() const;
   void checkPositiveFacets() const;
-#ifndef SWIG
   virtual void writeVTK(VTKWriter<double>& os,const Mat3X4T& trans) const=0;
   virtual void writeFacetsVTK(VTKWriter<double>& os,const Mat3X4T& trans) const;
   virtual void writeEdgesVTK(VTKWriter<double>& os,const Mat3X4T& trans) const;
-#endif
 };
 }
 

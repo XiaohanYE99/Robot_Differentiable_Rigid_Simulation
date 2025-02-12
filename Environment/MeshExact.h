@@ -12,7 +12,7 @@ struct MeshExact : public ShapeExact {
   MeshExact(const std::string& path,bool buildBVH=true);
   MeshExact(const aiScene* scene,bool buildBVH=true);
   MeshExact(std::vector<Eigen::Matrix<double,3,1>>& vss,
-            std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH=true);
+            std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBSH=true,bool buildBVH=false);
   MeshExact(std::vector<Eigen::Matrix<double,3,1>>& vss,
             std::vector<Eigen::Matrix<double,2,1>>& tcss,
             std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH=true);
@@ -21,7 +21,7 @@ struct MeshExact : public ShapeExact {
             std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH=true);
   template <typename T2>
   void init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
-            const std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH=true);
+            const std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBSH=true,bool buildBVH=false);
   template <typename T2>
   void init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
             const std::vector<Eigen::Matrix<T2,2,1>>& tcss,
@@ -32,11 +32,10 @@ struct MeshExact : public ShapeExact {
   virtual std::string type() const override;
   virtual const BBoxExact& getBB() const override;
   virtual bool empty() const override;
-#ifndef SWIG
   const std::vector<Node<int,BBoxExact>>& getBVH() const;
-#endif
   const std::vector<char>& bss()const;
   const std::vector<Vec3T>& vss() const;
+  std::vector<Vec3T>& vssNonConst();
   const std::vector<Vec2T>& tcss() const;
   const std::vector<Eigen::Matrix<int,3,1>>& iss() const;
   void getMesh(std::vector<Eigen::Matrix<double,3,1>>& vss,
@@ -47,14 +46,14 @@ struct MeshExact : public ShapeExact {
   void scale(T coef) override;
   void translate(const Vec3T& delta);
   void transform(const Mat3X4T& trans);
+  void moveMesh(const Vec& delta);
+  void setMesh(const Vec& X);
   MeshExact addMesh(const MeshExact& mesh);
   //for GJK
   Vec3T support(const Vec3T& D,int& id) const override;
   //for SAT
   Vec2T project(const Vec3T& d) const override;
-#ifndef SWIG
   void writeVTK(VTKWriter<double>& os,const Mat3X4T& trans) const override;
-#endif
  protected:
   void initBss();
   std::vector<TriangleExact> _tss;
@@ -64,6 +63,7 @@ struct MeshExact : public ShapeExact {
   // belongingness set
   std::vector<char> _bss;
   std::vector<Node<int,BBoxExact>> _bvh;
+  std::vector<Node<int,BBoxExact>> _bsh;
 };
 }
 

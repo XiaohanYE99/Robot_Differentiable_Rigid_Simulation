@@ -22,6 +22,12 @@ struct Node : public SerializableBase {
   static void buildBVHVertexBottomUp(std::vector<Node<T,BBOX>>& bvh,const std::vector<Eigen::Matrix<int,3,1>>& iss,bool forceMerge=false);
   static void buildBVHBottomUp(std::vector<Node<T,BBOX>>& bvh,const std::unordered_map<Eigen::Matrix<int,2,1>,std::pair<int,int>,EdgeHash>& edgeMap,bool forceMerge=false);
   static void buildBVHBottomUpAll(std::vector<Node<T,BBOX>>& bvh);
+
+  static void buildBSHTriangleBottomUp(std::vector<Node<T,BBOX>>& bsh,const std::vector<Eigen::Matrix<int,3,1>>& iss,bool forceMerge=false);
+  static void buildBSHVertexBottomUp(std::vector<Node<T,BBOX>>& bsh,const std::vector<Eigen::Matrix<int,3,1>>& iss,bool forceMerge=false);
+  static void buildBSHBottomUp(std::vector<Node<T,BBOX>>& bsh,const std::unordered_map<Eigen::Matrix<int,2,1>,std::pair<int,int>,EdgeHash>& edgeMap,bool forceMerge=false);
+  static void buildBSHBottomUpAll(std::vector<Node<T,BBOX>>& bsh);
+
   static int nrEmpty(const std::vector<Node<T,BBOX>>& bvh);
   static bool isEmpty(const std::vector<Node<T,BBOX>>& bvh,int id);
   static bool hasEmpty(const std::vector<Node<T,BBOX>>& bvh,int nr0);

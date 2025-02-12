@@ -19,10 +19,11 @@ int main(int argc,char** argv) {
   //simulator
   PBDSimulator sim(0.01f);
   sim.setArticulatedBody(body);
-  sim.addShape(floor);
   sim.setGravity(Vec3T(0,0,-9.81f));
+  sim.setHeuristcGuessStiffness();
+  sim.addShape(floor);
   //setup kinematic
-  sim.getJointPhysicsParameter(0)._isKinematic=true;
+  sim.getJointPhysicsParameter(0)._isKinematic.assign(3,true);
   sim.getJointPhysicsParameter(0)._kin=[&](T t,int nrDOF) {
     ASSERT_MSG(nrDOF==3,"Incorrect DOF!")
     Vec ret=Vec::Zero(3);

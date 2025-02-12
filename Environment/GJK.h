@@ -1,8 +1,8 @@
 #ifndef GJK_H
 #define GJK_H
 
-#include "ShapeExact.h"
-#include "PointCloudExact.h"
+#include <Environment/MeshExact.h>
+#include <Environment/PointCloudExact.h>
 #include <stack>
 
 namespace PHYSICSMOTION {
@@ -28,7 +28,7 @@ struct GJK {
                   std::shared_ptr<ShapeExact> B,
                   const Mat3X4T& transA,
                   const Mat3X4T& transB,
-                  Vec3T& pAL,Vec3T& pBL,bool* intersect=NULL);
+                  Vec3T& pAL,Vec3T& pBL,bool* intersect);
   template <typename T2>
   static T2 closest(std::shared_ptr<MeshExact> A,const Eigen::Matrix<T2,3,1>& pt,Eigen::Matrix<T2,3,1>& n) {
     Eigen::Matrix<T2,3,1> normal;

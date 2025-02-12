@@ -1,12 +1,13 @@
 #include "ContactGenerator.h"
 #include "CompositeShapeExact.h"
 #include "SphericalBBoxExact.h"
-#include "GJKK.h"
+#include "GJK.h"
 #include "SAT.h"
 #include <stack>
 
 namespace PHYSICSMOTION {
-//ContactManifold
+//ContactPoint
+ContactGenerator::ContactPoint::ContactPoint():_tangentBound(0) {}
 ContactGenerator::T ContactGenerator::ContactPoint::depth() const {
   return (_ptA-_ptB).dot(_nA2B);
 }
@@ -19,19 +20,45 @@ void ContactGenerator::ContactPoint::transform(const Mat3X4T& t) {
   _ptB=ROT(t)*_ptB+CTR(t);
   _nA2B=ROT(t)*_nA2B;
 }
+//ContactManifold
 ContactGenerator::ContactManifold::ContactManifold():_sidA(-1),_sidB(-1),_jidA(-1),_jidB(-1) {}
 void ContactGenerator::ContactManifold::swap() {
   for(auto& p:_points)
     p.swap();
   std::swap(_sA,_sB);
-  std::swap(_pA,_pB);
   std::swap(_sidA,_sidB);
   std::swap(_jidA,_jidB);
   std::swap(_tA,_tB);
 }
+bool ContactGenerator::ContactManifold::operator<(const ContactManifold& other) const {
+  if(_sidA<other._sidA)
+    return true;
+  else if(_sidA>other._sidA)
+    return false;
+
+  if(_sidB<other._sidB)
+    return true;
+  else if(_sidB>other._sidB)
+    return false;
+
+  if(_jidA<other._jidA)
+    return true;
+  else if(_jidA>other._jidA)
+    return false;
+
+  if(_jidB<other._jidB)
+    return true;
+  else if(_jidB>other._jidB)
+    return false;
+
+  return false;
+}
 //ContactGenerator
-ContactGenerator::ContactGenerator(std::shared_ptr<ArticulatedBody> body,std::vector<std::shared_ptr<ShapeExact>> shapes):_body(body),_staticShapes(shapes) {
+ContactGenerator::ContactGenerator(std::shared_ptr<ArticulatedBody> body,std::vector<std::shared_ptr<ShapeExact>> shapes,bool buildBVH):_body(body),_staticShapes(shapes),_buildBVH(buildBVH) {
   Node<int,BBoxExact> n;
+  if(buildBVH){
+    
+  }
   //static BVH
   for(int i=0; i<(int)_staticShapes.size(); i++) {
     n._nrCell=1;
@@ -71,7 +98,7 @@ ContactGenerator::ContactGenerator(std::shared_ptr<ArticulatedBody> body,std::ve
     }
   Node<int,BBoxExact>::buildBVHBottomUp(_dynamicBVH,edgeMap,true);
 }
-void ContactGenerator::generateManifolds(std::vector<ContactManifold>& manifolds,Mat3XT t,T x0,int status, bool usingCCD) {
+void ContactGenerator::generateManifolds(T x0,bool useCCD,std::vector<ContactManifold>& manifolds,Mat3XT t,int status) {
   updateBVH(t,x0);
   std::stack<std::pair<int,int>> ss;
   //static-static
@@ -95,7 +122,8 @@ void ContactGenerator::generateManifolds(std::vector<ContactManifold>& manifolds
         m._sB=_staticShapes[m._sidB];
         m._tA.setIdentity();
         m._tB.setIdentity();
-        if(! usingCCD) generateManifold(manifolds,m);
+        if(!useCCD)
+          generateManifold(manifolds,m);
         else manifolds.push_back(m);
       } else if(na._cell>=0) {
         ss.push(std::make_pair(ia,nb._l));
@@ -130,7 +158,8 @@ void ContactGenerator::generateManifolds(std::vector<ContactManifold>& manifolds
         m._sB=_body->joint(m._jidB)._mesh;
         m._tA.setIdentity();
         m._tB=TRANSI(t,m._jidB);
-        if(! usingCCD) generateManifold(manifolds,m);
+        if(!useCCD)
+          generateManifold(manifolds,m);
         else manifolds.push_back(m);
       } else if(na._cell>=0) {
         ss.push(std::make_pair(ia,nb._l));
@@ -169,8 +198,13 @@ void ContactGenerator::generateManifolds(std::vector<ContactManifold>& manifolds
         m._sB=_body->joint(m._jidB)._mesh;
         m._tA=TRANSI(t,m._jidA);
         m._tB=TRANSI(t,m._jidB);
-        if(! usingCCD) generateManifold(manifolds,m);
-        else manifolds.push_back(m);
+        if(!useCCD)
+          generateManifold(manifolds,m);
+        else {
+          if(_body->joint(_body->joint(m._jidA)._parent)._class!=_body->joint(m._jidB)._class && _body->joint(_body->joint(m._jidB)._parent)._class!=_body->joint(m._jidA)._class)
+            if(_body->joint(m._jidA)._class!=_body->joint(m._jidB)._class && _body->joint(m._jidB)._class!=_body->joint(m._jidA)._class)
+              manifolds.push_back(m);
+        }
       } else if(na._cell>=0) {
         ss.push(std::make_pair(ia,nb._l));
         ss.push(std::make_pair(ia,nb._r));
@@ -186,7 +220,10 @@ void ContactGenerator::generateManifolds(std::vector<ContactManifold>& manifolds
     }
   }
 }
-void ContactGenerator::updateBVH(Mat3XT& t, T x0) {
+const std::unordered_set<Eigen::Matrix<int,2,1>,EdgeHash>& ContactGenerator::getExclude() const {
+  return _exclude;
+}
+void ContactGenerator::updateBVH(Mat3XT& t,T x0) {
   //static BVH
   for(int i=0; i<(int)_staticBVH.size(); i++) {
     auto& n=_staticBVH[i];
@@ -203,9 +240,7 @@ void ContactGenerator::updateBVH(Mat3XT& t, T x0) {
   for(int i=0; i<(int)_dynamicBVH.size(); i++) {
     auto& n=_dynamicBVH[i];
     if(n._cell>=0) {
-      ArticulatedBody::Mat3X4T tGOut;
-      n._bb=_body->joint(n._cell).getBB(TRANSI(t,n._cell).template cast<ArticulatedBody::T>(),&tGOut);
-      TRANSI(t,n._cell)=tGOut.template cast<T>();
+      n._bb=_body->joint(n._cell).getBB(TRANSI(t,n._cell).template cast<ArticulatedBody::T>());
     } else {
       n._bb=BBoxExact();
       n._bb.setUnion(_dynamicBVH[n._l]._bb);
@@ -243,22 +278,22 @@ void ContactGenerator::generateManifold(std::vector<ContactManifold>& manifolds,
         ContactManifold m2=m;
         m2._sA=cA->getGeoms()[i];
         m2._sB=cB->getGeoms()[j];
-        APPLY_TRANS(m2._tA,cA->getTrans()[i].template cast<T>(),m._tA);
-        APPLY_TRANS(m2._tB,cB->getTrans()[j].template cast<T>(),m._tB);
+        APPLY_TRANS(m2._tA,m._tA,cA->getTrans()[i].template cast<T>());
+        APPLY_TRANS(m2._tB,m._tB,cB->getTrans()[j].template cast<T>());
         generateManifold(manifolds,m2);
       }
   } else if(cA) {
     for(int i=0; i<(int)cA->getGeoms().size(); i++) {
       ContactManifold m2=m;
       m2._sA=cA->getGeoms()[i];
-      APPLY_TRANS(m2._tA,cA->getTrans()[i].template cast<T>(),m._tA);
+      APPLY_TRANS(m2._tA,m._tA,cA->getTrans()[i].template cast<T>());
       generateManifold(manifolds,m2);
     }
   } else if(cB) {
     for(int j=0; j<(int)cB->getGeoms().size(); j++) {
       ContactManifold m2=m;
       m2._sB=cB->getGeoms()[j];
-      APPLY_TRANS(m2._tB,cB->getTrans()[j].template cast<T>(),m._tB);
+      APPLY_TRANS(m2._tB,m._tB,cB->getTrans()[j].template cast<T>());
       generateManifold(manifolds,m2);
     }
   } else {
@@ -616,7 +651,7 @@ bool ContactGenerator::generateManifoldCapsuleBox(std::vector<ContactManifold>& 
     auto FB=_facetCache.find(sB)->second;
     auto EA=_edgeCache.find(sA)->second;
     auto EB=_edgeCache.find(sB)->second;
-    T distSqr=GJKK::runGJK(sA,sB,m._tA,m._tB,pAL,pBL,&intersect);
+    T distSqr=GJK::runGJK(sA,sB,m._tA,m._tB,pAL,pBL,&intersect);
     if(intersect || distSqr<_epsDist*_epsDist) {
       SAT::generateManifold(sA,sB,FA,FB,EA,EB,m._tA,m._tB,m);
       for(auto& p:m._points) {

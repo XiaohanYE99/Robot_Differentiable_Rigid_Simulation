@@ -13,16 +13,16 @@ void visualizeSparse(int argc,char** argv,const Eigen::SparseMatrix<T,O,I>& a) {
   Drawer drawer(argc,argv);
   //frame
   std::shared_ptr<MeshShape> frame=makeSquare(false,Eigen::Matrix<GLfloat,2,1>(a.cols()/2.,a.rows()/2.));
-  frame->setColor(GL_LINE_LOOP,.7,.7,.7);
+  frame->setColorDiffuse(GL_LINE_LOOP,.7,.7,.7);
   std::shared_ptr<Box2DShape> movedFrame(new Box2DShape);
   movedFrame->setLocalTransform(a.cols()/2.,a.rows()/2.,1);
   movedFrame->addShape(frame);
   drawer.addShape(movedFrame);
   //entries
   std::shared_ptr<MeshShape> entry=makeSquare(true,Eigen::Matrix<GLfloat,2,1>(.5f,.5f));
-  entry->setColor(GL_QUADS,.7,.7,.7);
+  entry->setColorDiffuse(GL_QUADS,.7,.7,.7);
   std::shared_ptr<MeshShape> entryFrame=makeSquare(false,Eigen::Matrix<GLfloat,2,1>(.5f,.5f));
-  entryFrame->setColor(GL_LINE_LOOP,.5,.5,.5);
+  entryFrame->setColorDiffuse(GL_LINE_LOOP,.5,.5,.5);
   for(int k=0; k<a.outerSize(); ++k)
     for(typename Eigen::SparseMatrix<T,O,I>::InnerIterator it(a,k); it; ++it) {
       std::shared_ptr<Box2DShape> movedEntry(new Box2DShape);

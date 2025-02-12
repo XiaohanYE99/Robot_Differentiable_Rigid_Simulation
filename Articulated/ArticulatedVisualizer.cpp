@@ -1,5 +1,6 @@
 #include "ArticulatedVisualizer.h"
 #include "ArticulatedLoader.h"
+#include <Environment/ConvexHullExact.h>
 #include <Environment/EnvironmentVisualizer.h>
 #include <TinyVisualizer/Bullet3DShape.h>
 #include <TinyVisualizer/CellShape.h>
@@ -12,7 +13,7 @@ std::shared_ptr<DRAWER::Shape> visualizeArticulated
  const Eigen::Matrix<GLfloat,3,1>& colorBody,
  const Eigen::Matrix<GLfloat,3,1>& colorBB,
  const Eigen::Matrix<GLfloat,3,1>& colorIDX,
- bool wire) {
+ bool wire,bool convex) {
   using namespace DRAWER;
   std::shared_ptr<Texture> checker=drawChecker();
   std::shared_ptr<CompositeShape> shape(new CompositeShape);
@@ -20,15 +21,52 @@ std::shared_ptr<DRAWER::Shape> visualizeArticulated
     if(b->joint(i)._mesh) {
       std::shared_ptr<Bullet3DShape> stJ(new Bullet3DShape);
       {
-        std::shared_ptr<Shape> s=visualizeShapeExact(b->joint(i)._mesh,wire);
-        std::shared_ptr<Bullet3DShape> st(new Bullet3DShape);
-        st->setLocalRotate(ROT(b->joint(i)._transMesh).template cast<GLfloat>());
-        st->setLocalTranslate(CTR(b->joint(i)._transMesh).template cast<GLfloat>());
-        st->addShape(s);
-        stJ->addShape(st);
-        if(!wire) st->setTextureDiffuse(checker);
-        st->setColorDiffuse(GL_TRIANGLES,colorBody[0],colorBody[1],colorBody[2]);
-        st->setColorDiffuse(GL_LINES,colorBody[0],colorBody[1],colorBody[2]);
+        std::shared_ptr<Shape> s;
+        if(convex && !std::dynamic_pointer_cast<ConvexHullExact>(b->joint(i)._mesh)) {
+          //cast as convex shape
+          std::vector<Eigen::Matrix<double,3,1>> vss;
+          std::vector<Eigen::Matrix<int,3,1>> iss;
+          b->joint(i)._mesh->getMesh(vss,iss);
+          //visualize convex shape
+          std::shared_ptr<ConvexHullExact> mesh(new ConvexHullExact(vss));
+          s=visualizeShapeExact(mesh,wire);
+        } else s=visualizeShapeExact(b->joint(i)._mesh,wire);
+        stJ->addShape(s);
+        if(!wire) s->setTextureDiffuse(checker);
+        s->setColorDiffuse(GL_TRIANGLES,colorBody[0],colorBody[1],colorBody[2]);
+        s->setColorDiffuse(GL_LINES,colorBody[0],colorBody[1],colorBody[2]);
+      }
+      shape->addShape(stJ);
+    }
+  return shape;
+}
+std::shared_ptr<DRAWER::Shape> visualizeArticulated
+(std::shared_ptr<ArticulatedBody> b,
+ const std::vector<Eigen::Matrix<GLfloat,3,1>>& colorBody,
+ const Eigen::Matrix<GLfloat,3,1>& colorBB,
+ const Eigen::Matrix<GLfloat,3,1>& colorIDX,
+ bool wire,bool convex) {
+  using namespace DRAWER;
+  std::shared_ptr<Texture> checker=drawChecker();
+  std::shared_ptr<CompositeShape> shape(new CompositeShape);
+  for(int i=0; i<b->nrJ(); i++)
+    if(b->joint(i)._mesh) {
+      std::shared_ptr<Bullet3DShape> stJ(new Bullet3DShape);
+      {
+        std::shared_ptr<Shape> s;
+        if(convex && !std::dynamic_pointer_cast<ConvexHullExact>(b->joint(i)._mesh)) {
+          //cast as convex shape
+          std::vector<Eigen::Matrix<double,3,1>> vss;
+          std::vector<Eigen::Matrix<int,3,1>> iss;
+          b->joint(i)._mesh->getMesh(vss,iss);
+          //visualize convex shape
+          std::shared_ptr<ConvexHullExact> mesh(new ConvexHullExact(vss));
+          s=visualizeShapeExact(mesh,wire);
+        } else s=visualizeShapeExact(b->joint(i)._mesh,wire);
+        stJ->addShape(s);
+        if(!wire) s->setTextureDiffuse(checker);
+        s->setColorDiffuse(GL_TRIANGLES,colorBody[i][0],colorBody[i][1],colorBody[i][2]);
+        s->setColorDiffuse(GL_LINES,colorBody[i][0],colorBody[i][1],colorBody[i][2]);
       }
       shape->addShape(stJ);
     }

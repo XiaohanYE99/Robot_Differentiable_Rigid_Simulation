@@ -16,7 +16,7 @@ typedef boost::multiprecision::mpq_rational rational;
 #ifdef QUADMATH_SUPPORT
 typedef boost::multiprecision::float128 float128;
 #endif
-typedef boost::multiprecision::mpfr_float mpfr_float;
+typedef boost::multiprecision::static_mpfr_float_100 mpfr_float;
 template <typename T>
 struct Epsilon {
   static T defaultEps() {

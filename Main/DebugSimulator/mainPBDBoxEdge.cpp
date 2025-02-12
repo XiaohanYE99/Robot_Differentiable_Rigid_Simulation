@@ -26,8 +26,9 @@ int main(int argc,char** argv) {
   //simulator
   PBDSimulator sim(0.01f);
   sim.setArticulatedBody(body);
-  sim.addShape(shape);
   sim.setGravity(Vec3T(0,0,-9.81f));
+  sim.setHeuristcGuessStiffness();
+  sim.addShape(shape);
   //run app
   visualizeSimulator(argc,argv,sim);
   return 0;

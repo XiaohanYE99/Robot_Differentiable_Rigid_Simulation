@@ -25,13 +25,14 @@ MeshExact::MeshExact(const aiScene* scene,bool buildBVH) {
   init(scene,NULL,vss,iss,buildBVH);
 }
 MeshExact::MeshExact(std::vector<Eigen::Matrix<double,3,1>>& vss,
-                     std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH) {
-  if(buildBVH) {
+                     std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBSH,bool buildBVH) {
+  ASSERT_MSG(!(buildBVH && buildBSH),"Cannot build BVH and BSH simultaneously !")
+  if(buildBVH || buildBSH) {
     makeUniform(iss);
     if(volume(vss,iss)<0)
       makeInsideOut(iss);
   }
-  init(vss,iss,buildBVH);
+  init(vss,iss,buildBSH,buildBVH);
 }
 MeshExact::MeshExact(std::vector<Eigen::Matrix<double,3,1>>& vss,
                      std::vector<Eigen::Matrix<double,2,1>>& tcss,
@@ -101,7 +102,7 @@ void MeshExact::init(const aiScene* scene,const aiNode* node,
 }
 template <typename T2>
 void MeshExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
-                     const std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH) {
+                     const std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBSH,bool buildBVH) {
   //vss
   if(vss.empty() || iss.empty())
     return;
@@ -126,6 +127,21 @@ void MeshExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
       n._cell=i;
     }
     Node<int,BBoxExact>::buildBVHTriangleBottomUp(_bvh,iss,true);
+  } else if (buildBSH){
+    //tss
+    _tss.resize(_iss.size());
+    for(int i=0; i<(int)_tss.size(); i++)
+      _tss[i]=TriangleExact(_vss[_iss[i][0]],_vss[_iss[i][1]],_vss[_iss[i][2]]);
+    //bsh
+    _bsh.assign(_iss.size(),Node<int,BBoxExact>());
+    for(int i=0; i<(int)_bvh.size(); i++) {
+      Node<int,BBoxExact>& n=_bsh[i];
+      Vec4T SBB=_tss[i].getSBB();
+      n._bb=BBoxExact(SBB.segment<3>(0),SBB[3]);
+      n._nrCell=1;
+      n._cell=i;
+    }
+    Node<int,BBoxExact>::buildBSHTriangleBottomUp(_bsh,iss,true);
   } else {
     //tss
     _tss.clear();
@@ -136,6 +152,7 @@ void MeshExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
     for(int i=3; i<(int)_vss.size(); i++)
       _bvh[0]._bb.setUnion(_vss[i]);
   }
+  
 }
 template <typename T2>
 void MeshExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
@@ -183,6 +200,9 @@ const std::vector<Node<int,BBoxExact>>& MeshExact::getBVH() const {
 }
 const std::vector<char>& MeshExact::bss() const {
   return _bss;
+}
+std::vector<MeshExact::Vec3T>& MeshExact::vssNonConst() {
+  return _vss;
 }
 const std::vector<MeshExact::Vec3T>& MeshExact::vss() const {
   return _vss;
@@ -375,6 +395,22 @@ void MeshExact::writeVTK(VTKWriter<double>& os,const Mat3X4T& trans) const {
     vss.push_back((ROT(trans)*v+CTR(trans)).template cast<double>());
   os.appendPoints(vss.begin(),vss.end());
   os.appendCells(_iss.begin(),_iss.end(),VTKWriter<double>::TRIANGLE,true);
+}
+void MeshExact::moveMesh(const Vec& delta) {
+  ASSERT_MSG(delta.size()==(int)_vss.size()*3,"moving mesh size mismatch !")
+  for(int i=0; i<(int)_vss.size(); i++) {
+    _vss[i][0]+=delta[i*3+0];
+    _vss[i][1]+=delta[i*3+1];
+    _vss[i][2]+=delta[i*3+2];
+  }
+}
+void MeshExact::setMesh(const Vec& X) {
+  ASSERT_MSG(X.size()==(int)_vss.size()*3,"moving mesh size mismatch !")
+  for(int i=0; i<(int)_vss.size(); i++) {
+    _vss[i][0]=1.0*X[i*3+0];
+    _vss[i][1]=1.0*X[i*3+1];
+    _vss[i][2]=1.0*X[i*3+2];
+  }
 }
 void MeshExact::initBss() {
   //bss structure: char 00-edge[321]-vertices[321]

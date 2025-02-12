@@ -203,8 +203,7 @@ void ArticulatedBody::writeVTK(const std::string& path,const Mat3XT& t) const {
 }
 void ArticulatedBody::writeVTK(VTKWriter<double>& os,const Mat3XT& t) const {
   for(int JID=0; JID<nrJ(); JID++) {
-    Mat3X4T trans,transJ=TRANSI(t,JID);
-    APPLY_TRANS(trans,transJ,joint(JID)._transMesh);
+    Mat3X4T trans=TRANSI(t,JID);
     if(joint(JID)._mesh)
       joint(JID)._mesh->writeVTK(os,trans.template cast<ShapeExact::T>());
   }
@@ -352,10 +351,5 @@ void ArticulatedBody::scaleMass(T coef) {
 }
 ArticulatedBody::T ArticulatedBody::totalMass() const {
   return ArticulatedUtils(const_cast<ArticulatedBody&>(*this)).totalMass();
-}
-void ArticulatedBody::clearTransMesh() {
-  for(auto &joint:_joints) {
-    joint.clearTransMesh();
-  }
 }
 }

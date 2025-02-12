@@ -19,6 +19,7 @@ const Joint& Joint::operator=(const Joint& other) {
   //joint
   _children=other._children;
   _parent=other._parent;
+  _class=other._class;
   _depth=other._depth;
   _typeJoint=other._typeJoint;
   _mimic=other._mimic;
@@ -37,7 +38,6 @@ const Joint& Joint::operator=(const Joint& other) {
   _MCCT=other._MCCT;
   _name=other._name;
   //mesh approx.
-  _transMesh=other._transMesh;
   if(other._mesh)
     _mesh=std::dynamic_pointer_cast<ShapeExact>(other._mesh->copy());
   else _mesh=NULL;
@@ -71,7 +71,6 @@ bool Joint::read(std::istream& is,IOData* dat) {
   readBinaryData(_MCCT,is);
   readBinaryData(_name,is);
   //mesh approx.
-  readBinaryData(_transMesh,is);
   readBinaryData(_mesh,is,dat);
   //L1
   readBinaryData(_L1,is);
@@ -104,7 +103,6 @@ bool Joint::write(std::ostream& os,IOData* dat) const {
   writeBinaryData(_MCCT,os);
   writeBinaryData(_name,os);
   //mesh approx.
-  writeBinaryData(_transMesh,os);
   writeBinaryData(_mesh,os,dat);
   //L1
   writeBinaryData(_L1,os);
@@ -143,18 +141,20 @@ std::string Joint::typeToString(JOINT_TYPE type) {
   return "";
 #undef T2S
 }
-BBoxExact Joint::getBB(const Mat3X4T& t,Mat3X4T* tGOut) const {
-  Mat3X4T tG;
-  APPLY_TRANS(tG,t,_transMesh)
-  if(tGOut)
-    *tGOut=tG;
+BBoxExact Joint::getBB(const Mat3X4T& t) const {
   std::vector<Eigen::Matrix<double,3,1>> vss;
   std::vector<Eigen::Matrix<int,3,1>> iss;
   if(_mesh)
     _mesh->getMesh(vss,iss);
-  BBoxExact bb;
+  
+  Vec3T center(0.,0.,0.);
   for(const Eigen::Matrix<double,3,1>& v:vss)
-    bb.setUnion((ROT(tG)*v.template cast<T>()+CTR(tG)).template cast<BBoxExact::T>());
+    center+=(ROT(t)*v.template cast<T>()+CTR(t)).template cast<BBoxExact::T>();
+  center/=vss.size();
+  T rad=-1;
+  for(const Eigen::Matrix<double,3,1>& v:vss)
+    rad=std::max(rad,((ROT(t)*v.template cast<T>()+CTR(t)).template cast<BBoxExact::T>()-center).norm());
+  BBoxExact bb(center,rad);
   return bb;
 }
 Joint::Mat3XT Joint::getAxes(bool& markX,bool& markY,bool& markZ,const Mat3XT* t) const {
@@ -216,8 +216,6 @@ void Joint::assemble(T rho) {
     std::vector<Eigen::Matrix<double,3,1>> vss;
     std::vector<Eigen::Matrix<int,3,1>> iss;
     _mesh->getMesh(vss,iss);
-    for(Eigen::Matrix<double,3,1>& v:vss)
-      v=ROT(_transMesh)*v+CTR(_transMesh);
     RigidBodyMass<T> M(vss,iss);
     _M=(T) M.getM();
     _MC=M.getMC().cast<T>();
@@ -233,15 +231,28 @@ void Joint::assemble(T rho) {
     _MCCT*=rho;
   }
 }
+void Joint::debugTransformMesh() {
+  assemble(1);
+  Mat3X4T t;
+  ROT(t)=expWGradV<T,Vec3T>(Vec3T::Random()*M_PI);
+  CTR(t)=Vec3T::Random();
+  transformMesh(t);
+  Mat6T m0=getMass();
+  assemble(1);
+  DEFINE_NUMERIC_DELTA_T(T)
+  DEBUG_GRADIENT("Transformed-Mass",getMass().norm(),(m0-getMass()).norm())
+}
 void Joint::transformMass(const Mat3X4T& trans) {
   Mat3T tmp=CTR(trans)*_MC.transpose()*ROT(trans).transpose();
   _MCCT=ROT(trans)*_MCCT*ROT(trans).transpose()+tmp+tmp.transpose()+_M*CTR(trans)*CTR(trans).transpose();
   _MC=ROT(trans)*_MC+CTR(trans)*_M;
 }
 void Joint::transformMesh(const Mat3X4T& trans) {
-  Mat3X4T TNew;
-  APPLY_TRANS(TNew,trans,_transMesh)
-  _transMesh=TNew;
+  if(!_mesh)
+    return;
+  else if(std::dynamic_pointer_cast<CompositeShapeExact>(_mesh))
+    std::dynamic_pointer_cast<CompositeShapeExact>(_mesh)->transform(trans.template cast<GEOMETRY_SCALAR>());
+  else _mesh.reset(new CompositeShapeExact({_mesh}, {trans.template cast<GEOMETRY_SCALAR>()}));
   transformMass(trans);
 }
 void Joint::transformMesh(const Mat3T& R,const Vec3T& X) {
@@ -366,17 +377,6 @@ void Joint::loopAllJointTypes(std::function<void(Joint::JOINT_TYPE)> t) {
     type>>=1;
   }
 }
-void Joint::debugTransformMesh() {
-  assemble(1);
-  Mat3X4T t;
-  ROT(t)=expWGradV<T,Vec3T>(Vec3T::Random()*M_PI);
-  CTR(t)=Vec3T::Random();
-  transformMesh(t);
-  Mat6T m0=getMass();
-  assemble(1);
-  DEFINE_NUMERIC_DELTA_T(T)
-  DEBUG_GRADIENT("Transformed-Mass",getMass().norm(),(m0-getMass()).norm())
-}
 void Joint::initL1(const ArticulatedBody& body) {
   if(!_mesh)
     return;
@@ -477,15 +477,5 @@ void Joint::initL1(const ArticulatedBody& body) {
 }
 Joint::VecCM Joint::getL1(int vertexId) const {
   return Eigen::Map<const Joint::Vec>(_L1.data()+_L1.rows()*vertexId,_L1.rows());
-}
-void Joint::clearTransMesh() {
-  if(!_mesh) return;
-  std::shared_ptr<MeshExact> mesh=std::dynamic_pointer_cast<MeshExact>(_mesh);
-  ASSERT_MSG(mesh,"We only support mesh based arm!")
-  mesh->transform(_transMesh.template cast<GEOMETRY_SCALAR>());
-  _transMesh.setIdentity();
-  MeshExact* m=new MeshExact();
-  m->init(mesh->vss(),mesh->iss(),true);
-  _mesh.reset(m);
 }
 }

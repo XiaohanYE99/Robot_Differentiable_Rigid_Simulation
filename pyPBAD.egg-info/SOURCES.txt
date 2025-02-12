@@ -1,0 +1,7 @@
+setup.py
+pyPBAD.egg-info/PKG-INFO
+pyPBAD.egg-info/SOURCES.txt
+pyPBAD.egg-info/dependency_links.txt
+pyPBAD.egg-info/not-zip-safe
+pyPBAD.egg-info/requires.txt
+pyPBAD.egg-info/top_level.txt

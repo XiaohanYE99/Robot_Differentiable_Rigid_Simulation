@@ -1,0 +1,13 @@
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/PhysicsMotion.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/mainDebugConvHullPBDDesign.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/mainDebugConvHullPBD.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/mainDebugCC.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/mainDebugBaryDerivative.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/mainConvHullPBDTwoChain.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/mainDebugJacobianDeriv.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/edit_cache.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/rebuild_cache.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/list_install_components.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/install.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/install/local.dir
+/home/yxh/yxh/SDRS_LRI/build/CMakeFiles/install/strip.dir

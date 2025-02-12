@@ -50,45 +50,17 @@ CompositeShapeExact::CompositeShapeExact(const std::string& path,bool buildBVH) 
   ASSERT_MSGV(scene,"Mesh %s is empty!",path.c_str())
   std::filesystem::path dir(path);
   init(scene,NULL,buildBVH,Mat3X4T::Identity(),dir.parent_path().string());
-  for(int i=0; i<(int)_geoms.size(); i++) {
-    BBoxExact bb=_geoms[i]->getBB();
-    for(const T& x: {
-          bb.minCorner()[0],bb.maxCorner()[0]
-        })
-      for(const T& y: {
-            bb.minCorner()[1],bb.maxCorner()[1]
-          })
-        for(const T& z: {
-              bb.minCorner()[2],bb.maxCorner()[2]
-            })
-          _bb.setUnion(ROT(_trans[i])*Vec3T(x,y,z)+CTR(_trans[i]));
-  }
+  initBB();
 }
 CompositeShapeExact::CompositeShapeExact
 (const std::vector<std::shared_ptr<ShapeExact>>& geoms,
  const std::vector<Mat3X4T>& trans):_geoms(geoms),_trans(trans) {
-  for(int i=0; i<(int)_geoms.size(); i++) {
-    BBoxExact bb=_geoms[i]->getBB();
-    for(const T& x: {
-          bb.minCorner()[0],bb.maxCorner()[0]
-        })
-      for(const T& y: {
-            bb.minCorner()[1],bb.maxCorner()[1]
-          })
-        for(const T& z: {
-              bb.minCorner()[2],bb.maxCorner()[2]
-            })
-          _bb.setUnion(ROT(_trans[i])*Vec3T(x,y,z)+CTR(_trans[i]));
-  }
   ASSERT(_trans.size()==_geoms.size())
+  initBB();
 }
 CompositeShapeExact::CompositeShapeExact
 (const std::vector<std::shared_ptr<ShapeExact>>& geoms):_geoms(geoms),_trans(geoms.size(),Mat3X4T::Identity()) {
-  for(int i=0; i<(int)_geoms.size(); i++) {
-    BBoxExact bb=_geoms[i]->getBB();
-    _bb.setUnion(bb.minCorner());
-    _bb.setUnion(bb.maxCorner());
-  }
+  initBB();
   ASSERT(_trans.size()==_geoms.size())
 }
 bool CompositeShapeExact::read(std::istream& is,IOData* dat) {
@@ -172,6 +144,12 @@ bool CompositeShapeExact::closestInner(const Vec3T& pt,Vec3T& n,Vec3T& normal,Ma
   }
   return ret;
 }
+void CompositeShapeExact::transform(const Mat3X4T& trans) {
+  for(auto& t:_trans) {
+    APPLY_TRANS(t,trans,t)
+  }
+  initBB();
+}
 void CompositeShapeExact::scale(T coef) {
   for(std::shared_ptr<ShapeExact> s:_geoms)
     s->scale(coef);
@@ -195,6 +173,23 @@ void CompositeShapeExact::writeVTK(VTKWriter<double>& os,const Mat3X4T& trans) c
   for(int i=0; i<(int)_geoms.size(); i++) {
     APPLY_TRANS(t,trans,_trans[i]);
     _geoms[i]->writeVTK(os,t);
+  }
+}
+//helper
+void CompositeShapeExact::initBB() {
+  _bb=BBoxExact();
+  for(int i=0; i<(int)_geoms.size(); i++) {
+    BBoxExact bb=_geoms[i]->getBB();
+    for(const T& x: {
+          bb.minCorner()[0],bb.maxCorner()[0]
+        })
+      for(const T& y: {
+            bb.minCorner()[1],bb.maxCorner()[1]
+          })
+        for(const T& z: {
+              bb.minCorner()[2],bb.maxCorner()[2]
+            })
+          _bb.setUnion(ROT(_trans[i])*Vec3T(x,y,z)+CTR(_trans[i]));
   }
 }
 void CompositeShapeExact::init(const aiScene* scene,const aiNode* node,bool buildBVH,Mat3X4T trans,const std::string& path) {

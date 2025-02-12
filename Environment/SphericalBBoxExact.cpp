@@ -45,7 +45,7 @@ bool SphericalBBoxExact::empty() const {
 }
 void SphericalBBoxExact::getMesh(std::vector<Eigen::Matrix<double,3,1>>& vss,
                                  std::vector<Eigen::Matrix<int,3,1>>& iss) const {
-  makeBox(vss,iss,17,Eigen::Matrix<double,3,1>::Ones());
+  makeBox(vss,iss,3,Eigen::Matrix<double,3,1>::Ones());
   Eigen::Matrix<double,3,1> halfExt=(_maxC-_minC).template cast<double>()/2;
   for(int i=0; i<(int)vss.size(); i++) {
     Eigen::Matrix<double,3,1>& v=vss[i];

@@ -73,6 +73,12 @@ void Node<T,BBOX>::buildBVHTriangleBottomUp(std::vector<Node<T,BBOX>>& bvh,const
   buildBVHBottomUp(bvh,edgeMap,forceMerge);
 }
 template <typename T,typename BBOX>
+void Node<T,BBOX>::buildBSHTriangleBottomUp(std::vector<Node<T,BBOX>>& bsh,const std::vector<Eigen::Matrix<int,3,1>>& iss,bool forceMerge) {
+  std::unordered_map<Eigen::Matrix<int,2,1>,std::pair<int,int>,EdgeHash> edgeMap;
+  buildEdge(iss,edgeMap);
+  buildBSHBottomUp(bsh,edgeMap,forceMerge);
+}
+template <typename T,typename BBOX>
 void Node<T,BBOX>::buildBVHVertexBottomUp(std::vector<Node<T,BBOX>>& bvh,const std::vector<Eigen::Matrix<int,3,1>>& iss,bool forceMerge) {
   std::unordered_map<Eigen::Matrix<int,2,1>,std::pair<int,int>,EdgeHash> edgeMap;
   for(const Eigen::Matrix<int,3,1>& t:iss)
@@ -148,6 +154,72 @@ void Node<T,BBOX>::buildBVHBottomUp(std::vector<Node<T,BBOX>>& bvh,const std::un
     ASSERT_MSG((int)bvh.size()==nrLeaf*2-1,"Multi-component mesh detected!")
   }
 }
+
+template <typename T,typename BBOX>
+void Node<T,BBOX>::buildBSHBottomUp(std::vector<Node<T,BBOX>>& bsh,const std::unordered_map<Eigen::Matrix<int,2,1>,std::pair<int,int>,EdgeHash>& edgeMap,bool forceMerge) {
+  int nrLeaf=0;
+  for(const Node<T,BBOX>& n:bsh)
+    if(n._l==-1)
+      nrLeaf++;
+  //initialize hash
+  std::vector<int> heap;
+  std::vector<int> heapOffsets;
+  std::vector<std::pair<int,int>> ess;
+  std::vector<typename BBOX::Vec3T::Scalar> cost;
+  for(const auto& e:edgeMap) {
+    heapOffsets.push_back(-1);
+    ess.push_back(e.second);
+    BBOX bb=bsh[e.second.first]._bb;
+    if(e.second.second>=0)
+      bb=bb.setUnionSphere(bsh[e.second.second]._bb);
+    typename BBOX::Vec3T::Scalar c=SurfaceArea<3>::area(bb);
+    cost.push_back(c);
+  }
+  for(int i=0; i<(int)ess.size(); i++)
+    pushHeapDef(cost,heapOffsets,heap,i);
+  //merge BVH
+  int err;
+  while(!heap.empty()) {
+    int i=popHeapDef(cost,heapOffsets,heap,err);
+    int t0=ess[i].first,t1=ess[i].second;
+    //boundary edge
+    if(t1==-1)
+      continue;
+    //find parent
+    while(bsh[t0]._parent>=0)
+      t0=bsh[t0]._parent;
+    while(bsh[t1]._parent>=0)
+      t1=bsh[t1]._parent;
+    //check already merged
+    if(t0==t1)
+      continue;
+    //merge
+    BBOX bb=bsh[t0]._bb;
+    bb=bb.setUnionSphere(bsh[t1]._bb);
+    typename BBOX::Vec3T::Scalar c=SurfaceArea<3>::area(bb);
+    if(c>cost[i]) {
+      cost[i]=c;
+      pushHeapDef(cost,heapOffsets,heap,i);
+    } else {
+      Node<T,BBOX> n;
+      n._l=t0;
+      n._r=t1;
+      n._parent=-1;
+      n._cell=-1;
+      n._bb=bb;
+      n._nrCell=bsh[n._l]._nrCell+bsh[n._r]._nrCell;
+      bsh[t0]._parent=(int)bsh.size();
+      bsh[t1]._parent=(int)bsh.size();
+      bsh.push_back(n);
+    }
+  }
+  if(forceMerge)
+    buildBSHBottomUpAll(bsh);
+  else {
+    ASSERT_MSG((int)bsh.size()==nrLeaf*2-1,"Multi-component mesh detected!")
+  }
+}
+
 template <typename T,typename BBOX>
 void Node<T,BBOX>::buildBVHBottomUpAll(std::vector<Node<T,BBOX>>& bvh) {
   std::unordered_map<Eigen::Matrix<int,2,1>,std::pair<int,int>,EdgeHash> edgeMap;
@@ -161,6 +233,21 @@ void Node<T,BBOX>::buildBVHBottomUpAll(std::vector<Node<T,BBOX>>& bvh) {
       for(int j=i+1; j<(int)roots.size(); j++)
         edgeMap[Eigen::Matrix<int,2,1>(roots[i],roots[j])]=std::make_pair(roots[i],roots[j]);
     buildBVHBottomUp(bvh,edgeMap,false);
+  }
+}
+template <typename T,typename BBOX>
+void Node<T,BBOX>::buildBSHBottomUpAll(std::vector<Node<T,BBOX>>& bvh) {
+  std::unordered_map<Eigen::Matrix<int,2,1>,std::pair<int,int>,EdgeHash> edgeMap;
+  std::vector<int> roots;
+  for(int i=0; i<(int)bvh.size(); i++)
+    if(bvh[i]._parent==-1)
+      roots.push_back(i);
+  if((int)roots.size()>1) {
+    std::cout << "Merging " << roots.size() << " isolated BVH!" << std::endl;
+    for(int i=0; i<(int)roots.size(); i++)
+      for(int j=i+1; j<(int)roots.size(); j++)
+        edgeMap[Eigen::Matrix<int,2,1>(roots[i],roots[j])]=std::make_pair(roots[i],roots[j]);
+    buildBSHBottomUp(bvh,edgeMap,false);
   }
 }
 template <typename T,typename BBOX>

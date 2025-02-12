@@ -36,9 +36,10 @@ struct Joint : public SerializableBase {
   std::string type() const override;
   void setType(const std::string& type);
   static std::string typeToString(JOINT_TYPE type);
-  BBoxExact getBB(const Mat3X4T& t,Mat3X4T* tGOut=NULL) const;
+  BBoxExact getBB(const Mat3X4T& t) const;
   Mat3XT getAxes(bool& markX,bool& markY,bool& markZ,const Mat3XT* t=NULL) const;
   void assemble(T rho);
+  void debugTransformMesh();
   void transformMass(const Mat3X4T& trans);
   void transformMesh(const Mat3X4T& trans);
   void transformMesh(const Mat3T& R,const Vec3T& X);
@@ -66,17 +67,14 @@ struct Joint : public SerializableBase {
   bool isRoot(const ArticulatedBody& body) const;
   std::shared_ptr<ShapeExact> getGeomPtr() const;
   static void loopAllJointTypes(std::function<void(Joint::JOINT_TYPE)> t);
-  void clearTransMesh();
-  void debugTransformMesh();
   //Lipschitz constant
   void initL1(const ArticulatedBody& body);
-#ifndef SWIG
   VecCM getL1(int vertexId) const;
-#endif
   //joint
   std::vector<int> _children;
   int _parent,_depth,_typeJoint,_mimic;
   int _offDOF,_offDDT;
+  int _class;
   Mat3XT _limits;
   Vec _control;
   Vec _damping;
@@ -89,7 +87,6 @@ struct Joint : public SerializableBase {
   Mat3T _MCCT;
   std::string _name;
   //mesh approx.
-  Mat3X4T _transMesh;
   std::shared_ptr<ShapeExact> _mesh;
   //Lipschitz constant.
   MatT _L1;

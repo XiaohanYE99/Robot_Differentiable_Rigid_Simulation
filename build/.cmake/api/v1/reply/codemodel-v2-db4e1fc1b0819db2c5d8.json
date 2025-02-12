@@ -1,0 +1,115 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Release-b9b5621c0eb1e41380d3.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.21"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					]
+				}
+			],
+			"name" : "Release",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "PhysicsMotion",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "PhysicsMotion::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-PhysicsMotion-Release-a83545d65d0aa3c79cba.json",
+					"name" : "PhysicsMotion",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainConvHullPBDTwoChain::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainConvHullPBDTwoChain-Release-a916d60d5d1a28752195.json",
+					"name" : "mainConvHullPBDTwoChain",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainDebugBaryDerivative::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainDebugBaryDerivative-Release-9a8b9971dc7790cd88a1.json",
+					"name" : "mainDebugBaryDerivative",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainDebugCC::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainDebugCC-Release-d64eba506b7c59ad562a.json",
+					"name" : "mainDebugCC",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainDebugConvHullPBD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainDebugConvHullPBD-Release-bb6eda82b4219870290d.json",
+					"name" : "mainDebugConvHullPBD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainDebugConvHullPBDDesign::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainDebugConvHullPBDDesign-Release-c3fb2fe0d49056a84541.json",
+					"name" : "mainDebugConvHullPBDDesign",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainDebugJacobianDeriv::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainDebugJacobianDeriv-Release-f63cddb95650148405a2.json",
+					"name" : "mainDebugJacobianDeriv",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/yxh/yxh/SDRS_LRI/build",
+		"source" : "/home/yxh/yxh/SDRS_LRI"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

@@ -38,15 +38,15 @@ struct CompositeShapeExact : public ShapeExact {
   virtual bool closestInner(const Vec3T& pt,Vec3T& n,Vec3T& normal,Mat3T& hessian,
                             T& rad,Eigen::Matrix<int,2,1>& feat,bool cache=false,
                             std::vector<Vec3T>* history=NULL) const override;
+  void transform(const Mat3X4T& trans);
   void scale(T coef) override;
   const std::vector<std::shared_ptr<ShapeExact>>& getGeoms() const;
   const std::vector<Mat3X4T>& getTrans() const;
   const std::vector<Material>& getMaterials() const;
   std::vector<Material>& getMaterials();
-#ifndef SWIG
   void writeVTK(VTKWriter<double>& os,const Mat3X4T& trans) const override;
-#endif
  protected:
+  void initBB();
   void init(const aiScene* scene,const aiNode* node,bool buildBVH,Mat3X4T trans,const std::string& path);
   static Material initMaterial(const aiMaterial& mat,const std::string& path);
   static Eigen::Matrix<double,4,1> parseVec4(const aiMaterialProperty& matP);

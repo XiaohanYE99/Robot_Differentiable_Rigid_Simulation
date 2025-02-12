@@ -17,6 +17,7 @@ struct TriangleExact : public SerializableBase {
   const Vec3T& v(int i) const;
   const Vec3T& normal() const;
   BBoxExact getBB() const;
+  Vec4T getSBB() const;
   Vec3T bary(const Vec3T& p) const;
   Vec3T interp(const Vec3T& bary) const;
   Vec2T project(const Vec3T& d) const;

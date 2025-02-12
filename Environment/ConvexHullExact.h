@@ -27,6 +27,7 @@ struct ConvexHullExact : public MeshExact {
                     T& rad,Eigen::Matrix<int,2,1>& feat,bool cache=false,
                     std::vector<Vec3T>* history=NULL) const override;
   void scale(T coef) override;
+  const std::vector<EdgeExact>& ess() const;
   Eigen::Matrix<T,4,1> plane(int i) const;
   int nrPlane() const;
   //for GJK
@@ -34,9 +35,7 @@ struct ConvexHullExact : public MeshExact {
   //for SAT
   std::vector<Facet> facets() const override;
   std::vector<Edge> edges() const override;
-#ifndef SWIG
   void writeVTK(VTKWriter<double>& os,const Mat3X4T& trans) const override;
-#endif
  private:
   //data
   std::vector<EdgeExact> _ess;

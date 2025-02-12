@@ -116,13 +116,14 @@ void GJK::writeVTK(const std::string& path,
                    const Mat3X4T& transA,
                    const Mat3X4T& transB) {
   Vec3T pAL,pBL;
-  runGJK(A,B,transA,transB,pAL,pBL);
+  bool intersect;
+  runGJK(A,B,transA,transB,pAL,pBL,&intersect);
   VTKWriter<double> os("GJK",path,true);
   //write mesh
   A->writeVTK(os,transA);
   B->writeVTK(os,transB);
   //write distance
-  runGJK(A,B,transA,transB,pAL,pBL);
+  runGJK(A,B,transA,transB,pAL,pBL,&intersect);
   //write GJK
   os.setRelativeIndex();
   std::vector<Eigen::Matrix<double,3,1>> vss;

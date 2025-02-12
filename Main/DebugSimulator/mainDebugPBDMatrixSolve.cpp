@@ -56,14 +56,16 @@ int main(int argc,char** argv) {
     infoNE.calcH(*body);
     DEBUG_GRADIENT("Mass-Matrix",H.norm(),(H-infoNE._HM).norm())
     //invert using Eigen
-    MatT b=Vec::Random(body->nrDOF());
-    Vec diag=Vec::Random(body->nrDOF())+Vec::Ones(body->nrDOF());
+    MatT b=Vec::Random(body->nrDOF()),HMDiag=infoNE._HM;
+    MatT diag=MatT::Identity(body->nrDOF(),body->nrDOF());
+    diag.diagonal().setRandom();
+    HMDiag+=diag;
     PBDMatrixSolverEigen solEig(body);
-    solEig.compute(MatT(infoNE._HM+MatT(diag.asDiagonal())));
+    solEig.compute(HMDiag);
     Vec invHbEig=solEig.solve(b);
     //invert using CRBA
     PBDMatrixSolverCRBA solCRBA(body);
-    solCRBA.compute(MatT(infoNE._HM+MatT(diag.asDiagonal())));
+    solCRBA.compute(HMDiag);
     DEBUG_GRADIENT("CRBA",invHbEig.norm(),(invHbEig-solCRBA.solve(b)).norm())
     //invert using ABA
     PBDMatrixSolverABA solABA(body);
@@ -102,14 +104,16 @@ int main(int argc,char** argv) {
     infoNE.calcHInner(*body,infoNE._HM,GNE::mapCM(I));
     DEBUG_GRADIENT("General-Matrix",H.norm(),(H-infoNE._HM).norm())
     //invert using Eigen
-    MatT b=Vec::Random(body->nrDOF());
-    Vec diag=Vec::Random(body->nrDOF())+Vec::Ones(body->nrDOF());
+    MatT b=Vec::Random(body->nrDOF()),HMDiag=infoNE._HM;
+    MatT diag=MatT::Identity(body->nrDOF(),body->nrDOF());
+    diag.diagonal().setRandom();
+    HMDiag+=diag;
     PBDMatrixSolverEigen solEig(body);
-    solEig.compute(MatT(infoNE._HM+MatT(diag.asDiagonal())));
+    solEig.compute(HMDiag);
     Vec invHbEig=solEig.solve(b);
     //invert using CRBA
     PBDMatrixSolverCRBA solCRBA(body);
-    solCRBA.compute(MatT(infoNE._HM+MatT(diag.asDiagonal())));
+    solCRBA.compute(HMDiag);
     DEBUG_GRADIENT("CRBA",invHbEig.norm(),(invHbEig-solCRBA.solve(b)).norm())
     //invert using ABA
     PBDMatrixSolverABA solABA(body);

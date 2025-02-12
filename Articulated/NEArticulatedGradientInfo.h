@@ -93,7 +93,7 @@ struct NEArticulatedGradientInfoMap {
     }
   }
   //-------------------------------------------------------------ABA
-  void ABAInner(const ArticulatedBody& body,Vec6TCM a0,Mat6XTCM fx,VecCM tau0,Mat6XTCM IMCustom=mapCM((const Mat6XT*)NULL),VecCM diag=mapCV((const Vec*)NULL));
+  void ABAInner(const ArticulatedBody& body,Vec6TCM a0,Mat6XTCM fx,VecCM tau0,Mat6XTCM IMCustom=mapCM((const Mat6XT*)NULL),MatTCM diag=mapCM((const MatT*)NULL));
   void ABA(const ArticulatedBody& body,Vec6TCM a0,Mat6XTCM fx,VecCM tau0);
   template <typename M,typename IM>
   void invert(M in,IM out);

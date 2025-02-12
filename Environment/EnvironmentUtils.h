@@ -16,7 +16,6 @@ struct TriangleHash {
   bool operator()(const Eigen::Matrix<int,3,1>& a, const Eigen::Matrix<int,3,1>& b) const;
 };
 struct ConvexHullExact;
-#ifndef SWIG
 extern void buildEdge(const std::vector<Eigen::Matrix<int,3,1>>& iss,
                       std::unordered_map<Eigen::Matrix<int,2,1>,std::pair<int,int>,EdgeHash>& edgeMap);
 extern void makeUniform(std::vector<Eigen::Matrix<int,3,1>>& iss);
@@ -28,7 +27,6 @@ extern double volume(const std::vector<Eigen::Matrix<double,3,1>>& vss,
 extern void makeConvex(std::vector<Eigen::Matrix<double,3,1>>& vss,
                        std::vector<Eigen::Matrix<int,3,1>>& iss);
 extern void makeConvexProject(std::vector<Eigen::Matrix<double,3,1>>& vss);
-#endif
 extern std::pair<int,int> addBox(std::vector<Eigen::Matrix<double,3,1>>& vss,
                                  std::vector<Eigen::Matrix<int,3,1>>& iss,
                                  Eigen::Matrix<double,3,1> minC,Eigen::Matrix<double,3,1> maxC);

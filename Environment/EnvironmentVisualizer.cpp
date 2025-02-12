@@ -65,11 +65,14 @@ std::shared_ptr<DRAWER::Shape> visualizePointCloudExact(std::shared_ptr<PointClo
 }
 std::shared_ptr<DRAWER::Shape> visualizeBBoxExact(std::shared_ptr<BBoxExact> m,bool wire) {
   using namespace DRAWER;
-  std::shared_ptr<Texture> checker=drawChecker();
+  std::shared_ptr<Texture> checker=drawGrid(25,0.001,0,Eigen::Matrix<GLfloat,3,1>(.8f,.9f,1.f),Eigen::Matrix<GLfloat,3,1>(.1f,.1f,.1f));
   std::shared_ptr<Bullet3DShape> shape(new Bullet3DShape);
   std::shared_ptr<MeshShape> box=makeBox(1,!wire,(m->maxCorner()-m->minCorner()).template cast<GLfloat>()/2);
   box->setCastShadow(false);
   box->setTextureDiffuse(checker);
+  box->setColorDiffuse(GL_POINTS,.8f,.9f,1.f);
+  box->setColorDiffuse(GL_LINES,.8f,.9f,1.f);
+  box->setColorDiffuse(GL_TRIANGLES,.8f,.9f,1.f);
   shape->setLocalTranslate((m->maxCorner()+m->minCorner()).template cast<GLfloat>()/2);
   shape->addShape(box);
   return shape;

@@ -1,14 +1,23 @@
 #include "PBDSimulator.h"
 #include "PBDMatrixSolver.h"
+#include "JointLimit.h"
+#include "SoftJoint.h"
 #include <Utils/RotationUtils.h>
-#include <Utils/CrossSpatialUtils.h>
 
 namespace PHYSICSMOTION {
-#define USE_CRBA 0
-PBDSimulator::PBDSimulator(T dt):Simulator(dt),_gTol(1e-7f),_alpha(1e-6f),_epsV(1e-1f),_output(false),_JTJ(true),_crossTerm(false),_maxIt(1e4) {}
+//SolverState
+PBDSimulator::SolverState::SolverState() {}
+PBDSimulator::SolverState::SolverState(const ArticulatedBody& body,const Vec& x) {
+  reset(body,x);
+}
+void PBDSimulator::SolverState::reset(const ArticulatedBody& body,const Vec& x) {
+  _pos.reset(body,x);
+}
+//PBDSimulator
+PBDSimulator::PBDSimulator(T dt):Simulator(dt),_gTol(1e-7f),_epsV(1e-1f),_JTJ(true),_crossTerm(false),_maxIt(1e4) {}
 void PBDSimulator::setArticulatedBody(std::shared_ptr<ArticulatedBody> body) {
   Simulator::setArticulatedBody(body);
-  _JRCF.setZero(3,4*_body->nrJ());
+  setGravity(Vec3T::Zero());
   _pos.reset(*body,Vec::Zero(body->nrDOF()));
   _lastPos.reset(*body,Vec::Zero(body->nrDOF()));
   setCrossTerm(_crossTerm);
@@ -19,44 +28,12 @@ void PBDSimulator::step() {
   //generate contacts
   detectCurrentContact();
   //update kinematic state
-  GradInfo newPos(*_body,setKinematic(_pos._xM,_t+_dt)),newPos2;
-  //normal solve
-  Vec DE,DE2;
-  MatT DDE,DDE2;
-  T alphaMax=1e6f,alphaMin=1e-6f;
-  T e=energy(newPos,DE,DDE,true),e2=0;
-  mask(_diag,DE,DDE);
-  for(int iter=0; iter<_maxIt;) {
-    //update configuration
-    //detectCurrentContact();
-    update(newPos,newPos2,DE,DDE,_alpha);
-    e2=energy(newPos2,DE2,DDE2);
-    mask(_diag,DE2,DDE2);
-    //iteration update
-    if(e2<e || DE2.cwiseAbs().maxCoeff()<_gTol) {
-      _alpha=std::max<T>(_alpha*.8f,alphaMin);
-      newPos=newPos2;
-      e=e2;
-      DE=DE2;
-      DDE=DDE2;
-      iter++;
-      if(_output)
-        std::cout << "Iter=" << iter << " E=" << e << " gNorm=" << DE.cwiseAbs().maxCoeff() << " alpha=" << _alpha << std::endl;
-      //termination: gradient tolerance
-      if(DE2.cwiseAbs().maxCoeff()<_gTol)
-        break;
-    } else {
-      _alpha=std::min<T>(_alpha*1.5f,alphaMax);
-      if(_output)
-        std::cout << "Iter=" << iter << " E=" << e << " E2=" << e2 << " alpha=" << _alpha << std::endl;
-      //termination: numerical issue
-      if(_alpha>=alphaMax)
-        break;
-    }
-  }
+  SolverState state(*_body,setKinematic(_pos._xM,_t+_dt)),state2;
+  //integrate all constraints
+  solveBody(state,state2);
   //update
   _lastPos=_pos;
-  _pos=newPos;
+  _pos=state._pos;
   _t+=_dt;
 }
 PBDSimulator::Vec PBDSimulator::pos() const {
@@ -71,14 +48,6 @@ PBDSimulator::Vec PBDSimulator::vel() const {
 void PBDSimulator::setVel(const Vec& vel) {
   _lastPos.reset(*_body,setKinematic(_pos._xM-vel*_dt,_t-_dt));
 }
-void PBDSimulator::setGravity(const Vec3T& g) {
-  _JRCF.setZero(3,_body->nrJ()*4);
-  for(int i=0; i<_body->nrJ(); i++)
-    if(_body->joint(i)._M>0) {
-      ROTI(_JRCF,i)=-g*_body->joint(i)._MC.transpose().template cast<T>();
-      CTRI(_JRCF,i)=-_body->joint(i)._M*g;
-    }
-}
 void PBDSimulator::detectCurrentContact() {
   _manifolds.clear();
   detectContact(_pos._TM);
@@ -86,7 +55,7 @@ void PBDSimulator::detectCurrentContact() {
 void PBDSimulator::debugEnergy(T scale) {
   DEFINE_NUMERIC_DELTA_T(T)
   //generate random pose
-  GradInfo newPos(*_body,Vec::Random(_body->nrDOF())*scale);
+  SolverState state(*_body,Vec::Random(_body->nrDOF())*scale);
   _pos.reset(*_body,Vec::Random(_body->nrDOF())*scale);
   _lastPos.reset(*_body,Vec::Random(_body->nrDOF())*scale);
 
@@ -116,17 +85,14 @@ void PBDSimulator::debugEnergy(T scale) {
     if(m._jidA!=m._jidB)
       _manifolds.push_back(m);
   }
-  computeLocalContactPos(newPos._TM);
+  computeLocalContactPos(state._pos._TM);
 
   //generate random drag
-  _drags.clear();
+  _joints.clear();
   for(int k=0; k<nrJ; k++) {
-    DragEnergy d;
-    d._jid=k;
-    d._k=rand()/(T)RAND_MAX;
-    d._pt=Vec3T::Random();
-    d._ptL=Vec3T::Random();
-    _drags.push_back(d);
+    SoftJoint j;
+    j.setRandom(*_body);
+    _joints.push_back(j);
   }
 
   //generate random PD target and joint limit
@@ -150,56 +116,94 @@ void PBDSimulator::debugEnergy(T scale) {
   //debug DE/DDE
   MatT DDE,DDE2;
   Vec DE,DE2,dx=Vec::Random(_body->nrDOF());
-  GradInfo newPos2(*_body,newPos._xM+dx*DELTA);
-  T e=energy(newPos,DE,DDE,true);
-  T e2=energy(newPos2,DE2,DDE2);
-  DEBUG_GRADIENT("DE",DE.dot(dx),DE.dot(dx)-(e2-e)/DELTA)
-  DEBUG_GRADIENT("DDE",(DDE*dx).norm(),(DDE*dx-(DE2-DE)/DELTA).norm())
+  SolverState state2(*_body,state._pos._xM+dx*DELTA);
+  T e=energy(state,true);
+  T e2=energy(state2);
+  DEBUG_GRADIENT("DE",state._DE.dot(dx),state._DE.dot(dx)-(e2-e)/DELTA)
+  DEBUG_GRADIENT("DDE",(state._DDE*dx).norm(),(state._DDE*dx-(state2._DE-state._DE)/DELTA).norm())
 
   //matrix solver
   MatT HInvH;
   setJTJ(false);
   setCrossTerm(false);
-  energy(newPos,DE,DDE,true);
+  energy(state,true);
   PBDMatrixSolverEigen solEigen(_body);
-  solEigen.compute(DDE);
-  HInvH=solEigen.solve(DDE);
+  solEigen.compute(state._DDE);
+  HInvH=solEigen.solve(state._DDE);
   DEBUG_GRADIENT("HInvH-Eigen",HInvH.norm(),(HInvH-MatT::Identity(DDE.rows(),DDE.cols())).norm())
   PBDMatrixSolverCRBA solCRBA(_body);
-  solCRBA.compute(DDE);
-  HInvH=solCRBA.solve(DDE);
+  solCRBA.compute(state._DDE);
+  HInvH=solCRBA.solve(state._DDE);
   DEBUG_GRADIENT("HInvH-CRBA",HInvH.norm(),(HInvH-MatT::Identity(DDE.rows(),DDE.cols())).norm())
   PBDMatrixSolverABA solABA(_body);
-  solABA.compute(Vec(newPos._xM),_MRR,_MRt,_MtR,_Mtt,_diag);
-  HInvH=solABA.solve(DDE);
+  solABA.compute(Vec(state._pos._xM),state._MRR,state._MRt,state._MtR,state._Mtt,state._diag);
+  HInvH=solABA.solve(state._DDE);
   DEBUG_GRADIENT("HInvH-ABA",HInvH.norm(),(HInvH-MatT::Identity(DDE.rows(),DDE.cols())).norm())
-}
-void PBDSimulator::setOutput(bool output) {
-  _output=output;
 }
 void PBDSimulator::setJTJ(bool JTJ) {
   _JTJ=JTJ;
 }
-void PBDSimulator::setCrossTerm(bool cross) {
+void PBDSimulator::setCrossTerm(bool cross,bool CRBA) {
   _crossTerm=cross;
-  if(_crossTerm)
+  if(_crossTerm) {
     _sol.reset(new PBDMatrixSolverEigen(_body));
-  else if(USE_CRBA)
+    if(_output)
+      std::cout << "Choosing Eigen's native matrix solver!" << std::endl;
+  } else if(CRBA) {
     _sol.reset(new PBDMatrixSolverCRBA(_body));
-  else {
+    if(_output)
+      std::cout << "Choosing CRBA matrix solver!" << std::endl;
+  } else {
     _sol.reset(new PBDMatrixSolverABA(_body));
+    if(_output)
+      std::cout << "Choosing ABA matrix solver!" << std::endl;
     _JTJ=true;
   }
 }
 //helper
-void PBDSimulator::update(const GradInfo& newPos,GradInfo& newPos2,const Vec& DE,const MatT& DDE,T alpha) const {
-  MatT DDER=DDE;
-  DDER.diagonal().array()+=_alpha;
+void PBDSimulator::solveBody(SolverState& state,SolverState& state2) {
+  T alphaMax=1e6f,alphaMin=1e-6f,alpha=alphaMin;
+  T e=energy(state,true),e2=0;
+  mask(&(state._diag),&(state._DE),&(state._DDE));
+  for(int iter=0; iter<_maxIt;) {
+    //update configuration
+    update(state,state2,alpha);
+    e2=energy(state2);
+    mask(&(state2._diag),&(state2._DE),&(state2._DDE));
+    //iteration update
+    if(e2<e || state2._DE.cwiseAbs().maxCoeff()<_gTol) {
+      alpha=std::max<T>(alpha*.5f,alphaMin);
+      state=state2;
+      e=e2;
+      iter++;
+      if(_output)
+        std::cout << "Iter=" << iter << " E=" << e << " gNorm=" << state2._DE.cwiseAbs().maxCoeff() << " alpha=" << alpha << std::endl;
+      //termination: gradient tolerance
+      if(state2._DE.cwiseAbs().maxCoeff()<_gTol)
+        break;
+    } else {
+      alpha=std::min<T>(alpha*5.f,alphaMax);
+      if(_output)
+        std::cout << "Iter=" << iter << " E=" << e << " E2=" << e2 << " alpha=" << alpha << std::endl;
+      //termination: numerical issue
+      if(alpha>=alphaMax)
+        break;
+    }
+  }
+}
+void PBDSimulator::update(const SolverState& state,SolverState& state2,T alpha) {
   //compute
-  if(std::dynamic_pointer_cast<PBDMatrixSolverABA>(_sol))
-    std::dynamic_pointer_cast<PBDMatrixSolverABA>(_sol)->compute(Vec(newPos._xM),_MRR,_MRt,_MtR,_Mtt,Vec(_diag+Vec::Constant(newPos._xM.size(),_alpha)));
-  else _sol->compute(DDER);
-  newPos2.reset(*_body,newPos._xM-_sol->solve(MatT(DE)));
+  if(std::dynamic_pointer_cast<PBDMatrixSolverABA>(_sol)) {
+    _DDER=state._diag;
+    _DDER.diagonal().array()+=alpha;
+    std::dynamic_pointer_cast<PBDMatrixSolverABA>(_sol)->compute(Vec(state._pos._xM),state._MRR,state._MRt,state._MtR,state._Mtt,_DDER);
+  } else {
+    _DDER=state._DDE;
+    _DDER.diagonal().array()+=alpha;
+    _sol->compute(_DDER);
+  }
+  //update
+  state2.reset(*_body,state._pos._xM-_sol->solve(MatT(state._DE)));
 }
 void PBDSimulator::computeLocalContactPos(const Mat3XT& t) {
   Simulator::computeLocalContactPos(t);
@@ -214,122 +218,62 @@ void PBDSimulator::computeLocalContactPos(const Mat3XT& t) {
       else p._ptBLast=p._ptB;
     }
 }
-void PBDSimulator::mask(Vec& diag,Vec& DE,MatT& DDE) const {
-  int nrJ=_body->nrJ();
-  for(int k=0; k<nrJ; k++) {
-    const Joint& J=_body->joint(k);
-    int nrDJ=J.nrDOF();
-    if(_params[k]._isKinematic) {
-      diag.segment(J._offDOF,nrDJ).setConstant(std::numeric_limits<double>::infinity());
-      DE.segment(J._offDOF,nrDJ).setZero();
-      DDE.block(J._offDOF,0,nrDJ,DDE.cols()).setZero();
-      DDE.block(0,J._offDOF,DDE.cols(),nrDJ).setZero();
-      DDE.diagonal().segment(J._offDOF,nrDJ).setOnes();
-    }
-  }
-}
-PBDSimulator::T PBDSimulator::energy(const GradInfo& newPos,Vec& DE,MatT& DDE,bool updateTangentBound) {
-  Vec tmp;
-  Mat3X4T A;
-  Vec3T P,ptA;
-  Mat3T PPT,ptARC,H;
-  Mat3XT G,GB,MRR,MRt,MtR,Mtt;
-  T coef=1.0/(_dt*_dt),E=0,val;
+PBDSimulator::T PBDSimulator::energy(SolverState& state,bool updateTangentBound) {
+  T E=0,damping;
   int nrJ=_body->nrJ();
   int nrD=_body->nrDOF();
-  //std::cout<<nrJ<<std::endl;
-  DE.setZero(nrD);
-  G.setZero(3,4*nrJ);
-  _MRR.setZero(3,3*nrJ);
-  _MRt.setZero(3,3*nrJ);
-  _MtR.setZero(3,3*nrJ);
-  _Mtt.setZero(3,3*nrJ);
-  _diag.setZero(nrD);
-  DDE.setZero(nrD,nrD);
+  state._DE.setZero(nrD);
+  _G.setZero(3,4*nrJ);
+  state._MRR.setZero(3,3*nrJ);
+  state._MRt.setZero(3,3*nrJ);
+  state._MtR.setZero(3,3*nrJ);
+  state._Mtt.setZero(3,3*nrJ);
+  state._diag.setZero(nrD,nrD);
+  state._DDE.setZero(nrD,nrD);
   for(int k=0; k<nrJ; k++) {
-    //dynamic
-    const Joint& J=_body->joint(k);
-    _MRR.template block<3,3>(0,k*3)-=invDoubleCrossMatTrace<T>(ROTI(newPos._TM,k)*J._MCCT.template cast<T>()*ROTI(newPos._TM,k).transpose())*coef;
-    _MRt.template block<3,3>(0,k*3)+=cross<T>(ROTI(newPos._TM,k)*J._MC.template cast<T>())*coef;
-    _MtR.template block<3,3>(0,k*3)-=cross<T>(ROTI(newPos._TM,k)*J._MC.template cast<T>())*coef;
-    _Mtt.template block<3,3>(0,k*3)+=Mat3T::Identity()*J._M*coef;
-    PPT=J._MCCT.template cast<T>();
-    P=J._MC.template cast<T>();
+    //inertial
+    const auto& J=_body->joint(k);
     nrD=J.nrDOF();
-    //kinematic force
-    A=TRANSI(newPos._TM,k)-2*TRANSI(_pos._TM,k)+TRANSI(_lastPos._TM,k);
-    E+=(ROT(A)*PPT*ROT(A).transpose()+2*CTR(A)*P.transpose()*ROT(A).transpose()+CTR(A)*CTR(A).transpose()*J._M).trace()*coef/2;
-    ROTI(G,k)+=(ROT(A)*PPT+CTR(A)*P.transpose())*coef;
-    CTRI(G,k)+=(CTR(A)*J._M+ROT(A)*P)*coef;
-    //external force
-    E+=(TRANSI(newPos._TM,k)*TRANSI(_JRCF,k).transpose()).trace();
-    TRANSI(G,k)+=TRANSI(_JRCF,k);
-    //P controller
-    if(_params[k]._kp>0) {
-      tmp=newPos._xM.segment(J._offDOF,nrD)-_params[k]._tarP(_t,nrD);
-      E+=tmp.squaredNorm()*_params[k]._kp/2;
-      DE.segment(J._offDOF,nrD)+=tmp*_params[k]._kp;
-      _diag.segment(J._offDOF,nrD).array()+=_params[k]._kp;
-    }
-    //D controller
-    if(_params[k]._kd>0) {
-      tmp=(newPos._xM-_pos._xM).segment(J._offDOF,nrD)/_dt-_params[k]._tarD(_t,nrD);
-      E+=tmp.squaredNorm()*_params[k]._kd/2;
-      DE.segment(J._offDOF,nrD)+=tmp*_params[k]._kd/_dt;
-      _diag.segment(J._offDOF,nrD).array()+=_params[k]._kd/_dt/_dt;
-    }
+    damping=0;
+    if(J._damping.size()>0 && J._damping.maxCoeff()>0)
+      damping=J._damping.maxCoeff();
+    E+=energyInertial(state._pos,_pos,_lastPos,k,damping,
+                      J._M,J._MC.template cast<T>(),J._MCCT.template cast<T>(),
+                      &_G,state._MRR,state._MRt,state._MtR,state._Mtt);
+    //PD controller
+    E+=energyPDController(mapV2CV(state._pos._xM),mapV2CV(_pos._xM),k,J,nrD,&(state._DE),&(state._diag));
     //joint limit
-    for(int c=0; c<J._limits.cols(); c++)
-      if(isfinite(J._limits(2,c)) && J._limits(2,c)>0) {
-        if(isfinite(J._limits(0,c)) && newPos._xM[J._offDOF+c]<J._limits(0,c)) {
-          //lower limited
-          val=newPos._xM[J._offDOF+c]-J._limits(0,c);
-          E+=val*val*J._limits(2,c)/2;
-          DE[J._offDOF+c]+=val*J._limits(2,c);
-          _diag[J._offDOF+c]+=J._limits(2,c);
-        } else if(isfinite(J._limits(1,c)) && newPos._xM[J._offDOF+c]>J._limits(1,c)) {
-          //upper limited
-          val=newPos._xM[J._offDOF+c]-J._limits(1,c);
-          E+=val*val*J._limits(2,c)/2;
-          DE[J._offDOF+c]+=val*J._limits(2,c);
-          _diag[J._offDOF+c]+=J._limits(2,c);
-        }
-      }
+    E+=JointLimit::energy(mapV2CV(state._pos._xM),J,nrD,&(state._DE),&(state._diag));
   }
   //contact
   for(auto& m:_manifolds)
     for(auto& p:m._points)
-      E+=contactEnergy(m,p,newPos,DE,DDE,G,_MRR,_MRt,_MtR,_Mtt,updateTangentBound);
-  //drags
-  for(const auto& d:_drags) {
-    ptA=ROTI(newPos._TM,d._jid)*d._ptL+CTRI(newPos._TM,d._jid);
-    TRANSI(G,d._jid)+=d._k*(ptA-d._pt)*Vec4T(d._ptL[0],d._ptL[1],d._ptL[2],1).transpose();
-    ptARC=cross<T>(ROTI(newPos._TM,d._jid)*d._ptL);
-    _MRR.template block<3,3>(0,d._jid*3)+=ptARC*ptARC.transpose()*d._k;
-    _MRt.template block<3,3>(0,d._jid*3)+=H=ptARC*d._k;
-    _MtR.template block<3,3>(0,d._jid*3)+=H.transpose();
-    _Mtt.template block<3,3>(0,d._jid*3)+=Mat3T::Identity()*d._k;
-    E+=(ptA-d._pt).squaredNorm()*d._k/2;
-  }
+      E+=contactEnergy(m,p,state,updateTangentBound);
+  //joints
+  for(const auto& joint:_joints)
+    E+=joint.energy(*_body,state._pos,&(state._DE),state._DDE,_G,state._MRR,state._MRt,state._MtR,state._Mtt,_crossTerm);
   //gradient
-  newPos.DTG(*_body,mapM(GB=G),mapV(DE));
+  state._pos.DTG(*_body,mapM(_GB=_G),mapV(state._DE));
   //hessian
-  if(_JTJ) {
-    newPos.toolA(*_body,newPos,mapM(MRR=_MRR),mapM(MRt=_MRt),mapM(MtR=_MtR),mapM(Mtt=_Mtt),[&](int r,int c,T val) {
-      DDE(r,c)+=val;
-    });
-  } else {
-    newPos.toolAB(*_body,mapM(MRR=_MRR),mapM(MRt=_MRt),mapM(MtR=_MtR),mapM(Mtt=_Mtt),mapM(GB=G),[&](int r,int c,T val) {
-      DDE(r,c)+=val;
-    });
+  if(!std::dynamic_pointer_cast<PBDMatrixSolverABA>(_sol)) {
+    if(_JTJ) {
+      state._pos.toolA(*_body,state._pos,mapM(state._MRR),mapM(state._MRt),mapM(state._MtR),mapM(state._Mtt),[&](int r,int c,T val) {
+        state._DDE(r,c)+=val;
+      });
+    } else {
+      state._pos.toolAB(*_body,mapM(state._MRR),mapM(state._MRt),mapM(state._MtR),mapM(state._Mtt),mapM(_GB=_G),[&](int r,int c,T val) {
+        state._DDE(r,c)+=val;
+      });
+    }
+    for(int k=0; k<nrJ; k++) {
+      const Joint& J=_body->joint(k);
+      nrD=J.nrDOF();
+      state._DDE.template block(J._offDOF,J._offDOF,nrD,nrD)+=state._diag.template block(J._offDOF,J._offDOF,nrD,nrD);
+    }
   }
-  DDE.diagonal()+=_diag;
   return E;
 }
-PBDSimulator::T PBDSimulator::contactEnergy
-(const ContactManifold& m,ContactPoint& p,
- const GradInfo& newPos,Vec& DE,MatT& DDE,Mat3XT& G,
- Mat3XT& MRR,Mat3XT& MRt,Mat3XT& MtR,Mat3XT& Mtt,bool updateTangentBound) const {
+PBDSimulator::T PBDSimulator::contactEnergy(const ContactManifold& m,ContactPoint& p,SolverState& state,bool updateTangentBound) {
   T E=0,val;
   Mat3T ptARC,ptBRC,HRR,HRt,HtR,H;
   //energy = kc/2*|max(p.depth(),0)|^2
@@ -337,42 +281,42 @@ PBDSimulator::T PBDSimulator::contactEnergy
   p._fA.setZero();
   p._fB.setZero();
   //compute energy/gradient/hessian: normal
-  E+=normalEnergy(newPos,m,p,G,H);
+  E+=normalEnergy(state._pos,m,p,_G,H);
   //compute energy/gradient/hessian: friction
-  //E+=tangentEnergy(newPos,m,p,G,H,updateTangentBound);
+  E+=tangentEnergy(state._pos,m,p,_G,H,updateTangentBound);
   //fill-in non-zero gradient/hessian
   if(!H.isZero()) {
     if(m._jidA>=0) {
-      ptARC=cross<T>(ROTI(newPos._TM,m._jidA)*p._ptAL.template cast<T>());
-      MRR.template block<3,3>(0,m._jidA*3)+=ptARC*H*ptARC.transpose();
-      MRt.template block<3,3>(0,m._jidA*3)+=HRt=ptARC*H;
-      MtR.template block<3,3>(0,m._jidA*3)+=HRt.transpose();
-      Mtt.template block<3,3>(0,m._jidA*3)+=H;
+      ptARC=cross<T>(ROTI(state._pos._TM,m._jidA)*p._ptAL.template cast<T>());
+      state._MRR.template block<3,3>(0,m._jidA*3)+=ptARC*H*ptARC.transpose();
+      state._MRt.template block<3,3>(0,m._jidA*3)+=HRt=ptARC*H;
+      state._MtR.template block<3,3>(0,m._jidA*3)+=HRt.transpose();
+      state._Mtt.template block<3,3>(0,m._jidA*3)+=H;
     }
     if(m._jidB>=0) {
-      ptBRC=cross<T>(ROTI(newPos._TM,m._jidB)*p._ptBL.template cast<T>());
-      MRR.template block<3,3>(0,m._jidB*3)+=ptBRC*H*ptBRC.transpose();
-      MtR.template block<3,3>(0,m._jidB*3)+=HtR=H*ptBRC.transpose();
-      MRt.template block<3,3>(0,m._jidB*3)+=HtR.transpose();
-      Mtt.template block<3,3>(0,m._jidB*3)+=H;
+      ptBRC=cross<T>(ROTI(state._pos._TM,m._jidB)*p._ptBL.template cast<T>());
+      state._MRR.template block<3,3>(0,m._jidB*3)+=ptBRC*H*ptBRC.transpose();
+      state._MtR.template block<3,3>(0,m._jidB*3)+=HtR=H*ptBRC.transpose();
+      state._MRt.template block<3,3>(0,m._jidB*3)+=HtR.transpose();
+      state._Mtt.template block<3,3>(0,m._jidB*3)+=H;
     }
     if(m._jidA>=0 && m._jidB>=0 && _crossTerm) {
       HRR=ptARC*H*ptBRC.transpose();
-      newPos.JRCSparse(*_body,m._jidA,[&](int r,const Vec3T& JRA) {
-        newPos.JRCSparse(*_body,m._jidB,[&](int c,const Vec3T& JRB) {
-          DDE(r,c)-=val=JRA.dot(HRR*JRB);
-          DDE(c,r)-=val;
+      state._pos.JRCSparse(*_body,m._jidA,[&](int r,const Vec3T& JRA) {
+        state._pos.JRCSparse(*_body,m._jidB,[&](int c,const Vec3T& JRB) {
+          state._DDE(r,c)-=val=JRA.dot(HRR*JRB);
+          state._DDE(c,r)-=val;
         },[&](int c,const Vec3T& JtB) {
-          DDE(r,c)-=val=JRA.dot(HRt*JtB);
-          DDE(c,r)-=val;
+          state._DDE(r,c)-=val=JRA.dot(HRt*JtB);
+          state._DDE(c,r)-=val;
         });
       },[&](int r,const Vec3T& JtA) {
-        newPos.JRCSparse(*_body,m._jidB,[&](int c,const Vec3T& JRB) {
-          DDE(r,c)-=val=JtA.dot(HtR*JRB);
-          DDE(c,r)-=val;
+        state._pos.JRCSparse(*_body,m._jidB,[&](int c,const Vec3T& JRB) {
+          state._DDE(r,c)-=val=JtA.dot(HtR*JRB);
+          state._DDE(c,r)-=val;
         },[&](int c,const Vec3T& JtB) {
-          DDE(r,c)-=val=JtA.dot(H*JtB);
-          DDE(c,r)-=val;
+          state._DDE(r,c)-=val=JtA.dot(H*JtB);
+          state._DDE(c,r)-=val;
         });
       });
     }
@@ -406,6 +350,7 @@ PBDSimulator::T PBDSimulator::tangentEnergy(const GradInfo& newPos,const Contact
   if(updateTangentBound) {
     T fri=std::max<T>(m._jidA>=0?_params[m._jidA]._friction:0,m._jidB>=0?_params[m._jidB]._friction:0);
     p._tangentBound=(GEOMETRY_SCALAR)(fri*std::max<T>(p._fA.template cast<T>().norm(),p._fB.template cast<T>().norm()));
+    //std::cout << p._tangentBound << std::endl;
   }
   if(p._tangentBound>0) {
     Mat3X2T tA2B=p._tA2B.template cast<T>();

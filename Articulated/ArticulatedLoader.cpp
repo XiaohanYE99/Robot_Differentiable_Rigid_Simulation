@@ -85,7 +85,12 @@ void ArticulatedLoader::readLinks(Links& links,const tinyxml2::XMLElement& pt,co
         } else if(hasAttribute(meshPt,"geometry.sphere")) {
           T r=get<T>(meshPt,"geometry.sphere.<xmlattr>.radius");
           mesh.reset(new SphericalBBoxExact(r));
+        } else if(hasAttribute(meshPt,"geometry.capsule")) {
+          T r=get<T>(meshPt,"geometry.capsule.<xmlattr>.radius");
+          T l=get<T>(meshPt,"geometry.capsule.<xmlattr>.length");
+          mesh.reset(new SphericalBBoxExact(0,0,l/2,r));
         } else if(hasAttribute(meshPt,"geometry.cylinder")) {
+          std::cout << "Warning: using capsule as cylinder!" << std::endl;
           T r=get<T>(meshPt,"geometry.cylinder.<xmlattr>.radius");
           T l=get<T>(meshPt,"geometry.cylinder.<xmlattr>.length");
           mesh.reset(new SphericalBBoxExact(0,0,l/2,r));
@@ -349,7 +354,7 @@ int ArticulatedLoader::inferDim(int rootType) {
   int dim=2;
   Joint::loopAllJointTypes([&](Joint::JOINT_TYPE t) {
     if(t&rootType) {
-      if(t==Joint::TRANS_3D || t==Joint::ROT_3D_EXP || t==Joint::ROT_3D_XYZ || t==Joint::BALL_JOINT)
+      if(t==Joint::ROT_3D_EXP || t==Joint::ROT_3D_XYZ || t==Joint::BALL_JOINT)
         dim=3;
     }
   });
@@ -388,6 +393,31 @@ tinyxml2::XMLElement* ArticulatedLoader::addRootJoint(tinyxml2::XMLElement& pt,i
     put<std::string>(*ret,"type",Joint::typeToString(Joint::FIX_JOINT));
   }
   return ret;
+}
+tinyxml2::XMLElement* ArticulatedLoader::createBalls(tinyxml2::XMLElement& pt,int rootType,int nr) {
+  tinyxml2::XMLElement* child=NULL;
+  for(int i=0; i<nr; i++) {
+    if(i == 0)
+      child=addRootJoint(pt,rootType);
+    else {
+      put<std::string>(*child,"type","FIX_JOINT");
+    }
+    put<T>(*child,"geom0D.rad",1.0);
+    if(i<nr-1)
+      child=addChild(*child,"joint");
+  }
+  return &pt;
+}
+ArticulatedBody ArticulatedLoader::createInitJoints(int convexhulls,int sz){
+  tinyxml2::XMLDocument pt;
+  pt.InsertEndChild(pt.NewElement("root"));
+  ArticulatedLoader::createBalls(*(pt.RootElement()),Joint::TRANS_3D|Joint::ROT_3D_EXP,convexhulls);
+  ArticulatedBody body;
+  ArticulatedUtils utils(body);
+  utils.assemble(*(pt.RootElement()));
+  for(int j=1;j<=convexhulls;j++)
+    utils.initMesh(j,sz);
+  return body;
 }
 tinyxml2::XMLElement* ArticulatedLoader::createBird(tinyxml2::XMLElement& pt,int rootType,T bodySz,T bodyLen,T neckSz,T neckLen,T footLen1,T footLen2,T footLen3,T footRad1,T footRad2,T footRad3,bool fixFoot,bool head) {
   Mat3T R0=expWGradV<T,Vec3T>(Vec3T(0,0,D2R(-85.0f)));
@@ -584,7 +614,7 @@ tinyxml2::XMLElement* ArticulatedLoader::createChain(tinyxml2::XMLElement& pt,in
     put<T>(*child,"geom"+std::to_string(geomDim)+"D.rad",rad);
     //rotation
     put<T>(*child,"transY",1+yOff);
-    putPtree(*child,"meshDirX",Vec3T(1,0,0));
+    putPtree(*child,"meshDirX",Vec3T(0,0,1));
     putPtree(*child,"meshDirY",Vec3T(0,-1,0));
     putPtree(*child,"jointDirY",Vec3T(0,0,1));
     putPtree(*child,"jointDirZ",Vec3T(1,0,0));
@@ -604,6 +634,43 @@ tinyxml2::XMLElement* ArticulatedLoader::createChain(tinyxml2::XMLElement& pt,in
   }
   return &pt;
 }
+tinyxml2::XMLElement* ArticulatedLoader::createGrasper(tinyxml2::XMLElement& pt,T armRad) {
+  tinyxml2::XMLElement* root=addChild(pt,"joint");
+  put<std::string>(*root,"type","FIX_JOINT");
+  {
+    //the table
+    tinyxml2::XMLElement* child=addChild(*root,"joint");
+    put<std::string>(*child,"type","FIX_JOINT");
+    put<T>(*child,"geom3D.lenX",armRad*10);
+    put<T>(*child,"geom3D.lenY",armRad*5);
+    put<T>(*child,"geom3D.lenZ",armRad*2);
+    put<T>(*child,"geom3D.rad",0);
+    putPtree<Vec3T>(*child,"trans",Vec3T::UnitZ()*armRad*5.f);
+    putPtree<Vec3T>(*child,"meshDirX",Vec3T::UnitX());
+    putPtree<Vec3T>(*child,"meshDirY",Vec3T::UnitY());
+
+    tinyxml2::XMLElement* child2=addChild(*child,"joint");
+    put<std::string>(*child2,"type","TRANS_1D");
+    put<T>(*child2,"geom3D.lenX",armRad*1);
+    put<T>(*child2,"geom3D.lenY",armRad*4);
+    put<T>(*child2,"geom3D.lenZ",armRad*10);
+    put<T>(*child2,"geom3D.rad",0);
+    putPtree<Vec3T>(*child2,"trans",Vec3T(armRad*4.5f,0.,-armRad*5.f));
+    putPtree<Vec3T>(*child2,"meshDirX",Vec3T::UnitX());
+    putPtree<Vec3T>(*child2,"meshDirY",Vec3T::UnitY());
+
+    tinyxml2::XMLElement* child3=addChild(*child,"joint");
+    put<std::string>(*child3,"type","TRANS_1D");
+    put<T>(*child3,"geom3D.lenX",armRad*1);
+    put<T>(*child3,"geom3D.lenY",armRad*4);
+    put<T>(*child3,"geom3D.lenZ",armRad*10);
+    put<T>(*child3,"geom3D.rad",0);
+    putPtree<Vec3T>(*child3,"trans",Vec3T(-armRad*4.5f,0.,-armRad*5.f));
+    putPtree<Vec3T>(*child3,"meshDirX",Vec3T::UnitX());
+    putPtree<Vec3T>(*child3,"meshDirY",Vec3T::UnitY());
+  }
+  return &pt;
+}
 tinyxml2::XMLElement* ArticulatedLoader::createSpider(tinyxml2::XMLElement& pt,int rootType,T bodySz,T footLen,T footRad,T angLegLift,T rangeLeg1,T rangeLeg2,bool ball) {
   int nrDOF;
   tinyxml2::XMLElement* body=addRootJoint(pt,rootType);
@@ -611,7 +678,7 @@ tinyxml2::XMLElement* ArticulatedLoader::createSpider(tinyxml2::XMLElement& pt,i
   for(int i=0; i<4; i++) {
     Mat3T R0=expWGradV<T,Vec3T>(Vec3T(0,M_PI/4+(T)i*M_PI/2,0));
     Mat3T R1=expWGradV<T,Vec3T>(Vec3T(0,0,angLegLift));
-    Mat3T R2=expWGradV<T,Vec3T>(Vec3T(0,0,angLegLift-M_PI/2));
+    Mat3T R2=expWGradV<T,Vec3T>(Vec3T(0,0,angLegLift+M_PI/4));
 
     //leg1
     nrDOF=ball?2:1;
@@ -621,9 +688,9 @@ tinyxml2::XMLElement* ArticulatedLoader::createSpider(tinyxml2::XMLElement& pt,i
     putPtree<Vec>(*leg1,"limit.lower",Vec::Constant(nrDOF,-rangeLeg1));
     putPtree<Vec>(*leg1,"limit.upper",Vec::Constant(nrDOF,rangeLeg1));
     //putPtree(*leg1,"limit.coef",Vec::Constant(nrDOF,1000));  //use global joint limit
-    put<T>(*leg1,"geom1D.lenY",footLen);
+    put<T>(*leg1,"geom1D.lenY",footLen*0.5);
     put<T>(*leg1,"geom1D.rad",footRad);
-    putPtree<Vec3T>(*leg1,"trans",R0*Vec3T::UnitX()*bodySz);
+    putPtree<Vec3T>(*leg1,"trans",R0*Vec3T::UnitX()*(bodySz+footRad/2));
     putPtree<Vec3T>(*leg1,"jointDirY",R0*Vec3T(0,0,1));
     putPtree<Vec3T>(*leg1,"jointDirZ",Vec3T(0,1,0));
     putPtree<Vec3T>(*leg1,"meshDirY",R0*R1*Vec3T::UnitX());
@@ -633,6 +700,7 @@ tinyxml2::XMLElement* ArticulatedLoader::createSpider(tinyxml2::XMLElement& pt,i
     tinyxml2::XMLElement* leg2=addChild(*leg1,"joint");
     put<std::string>(*leg2,"name",std::string(i==0?"LF":i==1?"RF":i==2?"RB":"LB")+"_LowerLimb");
     put<std::string>(*leg2,"type",Joint::typeToString(Joint::HINGE_JOINT));
+    //put<std::string>(*leg2,"type",Joint::typeToString(Joint::BALL_JOINT));
     putPtree<Vec>(*leg2,"limit.lower",Vec::Constant(nrDOF,-rangeLeg2));
     putPtree<Vec>(*leg2,"limit.upper",Vec::Constant(nrDOF,rangeLeg2));
     //putPtree(*leg2,"limit.coef",Vec::Constant(nrDOF,1000));  //use global joint limit
@@ -642,11 +710,6 @@ tinyxml2::XMLElement* ArticulatedLoader::createSpider(tinyxml2::XMLElement& pt,i
     putPtree<Vec3T>(*leg2,"jointDirZ",R0*Vec3T(0,0,1));
     putPtree<Vec3T>(*leg2,"meshDirY",R0*R2*Vec3T::UnitX());
   }
-  return &pt;
-}
-tinyxml2::XMLElement* ArticulatedLoader::createDummy(tinyxml2::XMLElement&pt) {
-  tinyxml2::XMLElement* root=addChild(pt,"joint");
-  put<std::string>(*root,"type","FIX_JOINT");
   return &pt;
 }
 tinyxml2::XMLElement* ArticulatedLoader::createArm(tinyxml2::XMLElement& pt,T armLen,T armRad) {
@@ -698,6 +761,12 @@ tinyxml2::XMLElement* ArticulatedLoader::createArm(tinyxml2::XMLElement& pt,T ar
   }
   return &pt;
 }
+tinyxml2::XMLElement* ArticulatedLoader::createBall(tinyxml2::XMLElement& pt,int rootType,T Rad) {
+  tinyxml2::XMLElement* body=addRootJoint(pt,rootType);
+  put<T>(*body,"geom0D.rad",Rad*1.5);
+  //putPtree<Vec3T>(*body,"trans",Vec3T::UnitY()*Rad*5.f);
+  return &pt;
+}
 tinyxml2::XMLElement* ArticulatedLoader::createBox(tinyxml2::XMLElement& pt,T x,T y,T z,T rad) {
   tinyxml2::XMLElement* root=addChild(pt,"joint");
   put<std::string>(*root,"type","FIX_JOINT");
@@ -714,41 +783,54 @@ tinyxml2::XMLElement* ArticulatedLoader::createBox(tinyxml2::XMLElement& pt,T x,
   }
   return &pt;
 }
+tinyxml2::XMLElement* ArticulatedLoader::createDummy(tinyxml2::XMLElement&pt) {
+  tinyxml2::XMLElement* root=addChild(pt,"joint");
+  put<std::string>(*root,"type","FIX_JOINT");
+  return &pt;
+}
 //build-in bodies as ArticulatedBody
-ArticulatedBody ArticulatedLoader::createBird(int root,bool head) {
+ArticulatedBody ArticulatedLoader::createBird(int root,T bodySz,T bodyLen,T neckSz,T neckLen,T footLen1,T footLen2,T footLen3,T footRad1,T footRad2,T footRad3,bool fixFoot,bool head) {
   tinyxml2::XMLDocument pt;
   pt.InsertEndChild(pt.NewElement("root"));
-  createBird(*(pt.RootElement()),root,0.25f,0.5f,0.1f,0.6f, 0.3f,0.4f,0.45f, 0.12f,0.1f,0.2f,false,head);
+  createBird(*(pt.RootElement()),root,bodySz,bodyLen,neckSz,neckLen,footLen1,footLen2,footLen3,footRad1,footRad2,footRad3,fixFoot,head);
   ArticulatedBody body;
   ArticulatedUtils utils(body);
   utils.assemble(*(pt.RootElement()));
   return body;
 }
-ArticulatedBody ArticulatedLoader::createBipedal(int root,bool withHand) {
+ArticulatedBody ArticulatedLoader::createBipedal(int root,T bodySz,T bodyLen,T footLen1,T footLen2,T footLen3,T footRad1,T footRad2,T footRad3,bool fixFoot,bool withHand,T handLen1,T handLen2,T handRad1,T handRad2) {
   tinyxml2::XMLDocument pt;
   pt.InsertEndChild(pt.NewElement("root"));
-  tinyxml2::XMLElement* bodyNode=createBipedal(*(pt.RootElement()),root,0.25f,0.5f, 0.4f,0.4f,0.3f, 0.12f,0.1f,0.15f, false);
+  tinyxml2::XMLElement* bodyNode=createBipedal(*(pt.RootElement()),root,bodySz,bodyLen,footLen1,footLen2,footLen3,footRad1,footRad2,footRad3,fixFoot);
   if(withHand)
-    addBipedalHand(*bodyNode,0.25f,0.5f, 0.4f,0.4f, 0.1f,0.1f);
+    addBipedalHand(*bodyNode,bodySz,bodyLen,handLen1,handLen2,handRad1,handRad2);
   ArticulatedBody body;
   ArticulatedUtils utils(body);
   utils.assemble(*(pt.RootElement()));
   return body;
 }
-ArticulatedBody ArticulatedLoader::createChain(int root,T rad,int nrLink) {
+ArticulatedBody ArticulatedLoader::createChain(int root,int nr,T l,T rad,T rot,T rot0,T t,T t0,int geomDim,T yOff,T ratioX,T ratioZ) {
   tinyxml2::XMLDocument pt;
   pt.InsertEndChild(pt.NewElement("root"));
-  createChain(*(pt.RootElement()),root,nrLink,0.5f,rad,D2R(120),0,0,0,3,0.0f,0.2f,0.2f);
+  createChain(*(pt.RootElement()),root,nr,l,rad,rot,rot0,t,t0,geomDim,yOff,ratioX,ratioZ);
   ArticulatedBody body;
   ArticulatedUtils utils(body);
   utils.assemble(*(pt.RootElement()));
   return body;
 }
-ArticulatedBody ArticulatedLoader::createSpider(int root,T lmt,T lmt2) {
+ArticulatedBody ArticulatedLoader::createGrasper(T armRad) {
   tinyxml2::XMLDocument pt;
   pt.InsertEndChild(pt.NewElement("root"));
-  T footLen=0.2f*sqrt(2.0f)+0.16f;
-  ArticulatedLoader::createSpider(*(pt.RootElement()),root,0.25f,footLen,0.08f,D2R(10),D2R(lmt),D2R(lmt2),true);
+  ArticulatedLoader::createGrasper(*(pt.RootElement()),armRad);
+  ArticulatedBody body;
+  ArticulatedUtils utils(body);
+  utils.assemble(*(pt.RootElement()));
+  return body;
+}
+ArticulatedBody ArticulatedLoader::createSpider(int root,T bodySz,T footLen,T footRad,T angLegLift,T rangeLeg1,T rangeLeg2,bool ball) {
+  tinyxml2::XMLDocument pt;
+  pt.InsertEndChild(pt.NewElement("root"));
+  ArticulatedLoader::createSpider(*(pt.RootElement()),root,bodySz,footLen,footRad,angLegLift,rangeLeg1,rangeLeg2,ball);
   ArticulatedBody body;
   ArticulatedUtils utils(body);
   utils.assemble(*(pt.RootElement()));
@@ -758,6 +840,24 @@ ArticulatedBody ArticulatedLoader::createArm(T armLen,T armRad) {
   tinyxml2::XMLDocument pt;
   pt.InsertEndChild(pt.NewElement("root"));
   createArm(*(pt.RootElement()),armLen,armRad);
+  ArticulatedBody body;
+  ArticulatedUtils utils(body);
+  utils.assemble(*(pt.RootElement()));
+  return body;
+}
+ArticulatedBody ArticulatedLoader::createBall(int rootType,T Rad) {
+  tinyxml2::XMLDocument pt;
+  pt.InsertEndChild(pt.NewElement("root"));
+  createBall(*(pt.RootElement()),rootType,Rad);
+  ArticulatedBody body;
+  ArticulatedUtils utils(body);
+  utils.assemble(*(pt.RootElement()));
+  return body;
+}
+ArticulatedBody ArticulatedLoader::createBox(T x,T y,T z,T rad) {
+  tinyxml2::XMLDocument pt;
+  pt.InsertEndChild(pt.NewElement("root"));
+  createBox(*(pt.RootElement()),x,y,z,rad);
   ArticulatedBody body;
   ArticulatedUtils utils(body);
   utils.assemble(*(pt.RootElement()));

@@ -19,11 +19,9 @@ class Environment : public SerializableBase {
   virtual ~Environment() {}
   virtual T phi(const Vec3T& x) const;
   virtual Vec3T phiGrad(const Vec3T& x) const;
-#ifndef SWIG
   virtual T phi(const Vec3T& x,Vec3T* g) const=0;
   virtual Vec3T phiGrad(const Vec3T& x,Mat3T* h) const=0;
   virtual const std::vector<Node<int,BBoxExact>>& getBVH() const=0;
-#endif
   virtual const BBoxExact& getBB() const=0;
   virtual bool empty() const=0;
   virtual void createHills(double xMin,double xMax,double yMin,double yMax,EnvironmentCallback& h,double res);
@@ -41,11 +39,9 @@ class EnvironmentExact : public Environment<T> {
   virtual bool write(std::ostream& os,IOData* dat) const override;
   virtual std::shared_ptr<SerializableBase> copy() const override;
   virtual std::string type() const override;
-#ifndef SWIG
   virtual T phi(const Vec3T& x,Vec3T* g) const override;
   virtual Vec3T phiGrad(const Vec3T& x,Mat3T* h) const override;
   virtual const std::vector<Node<int,BBoxExact>>& getBVH() const override;
-#endif
   virtual const BBoxExact& getBB() const override;
   virtual bool empty() const override;
   virtual void createHills(double xMin,double xMax,double yMin,double yMax,std::function<double(double,double)> h,double res) override;
@@ -62,11 +58,9 @@ class EnvironmentHeight : public Environment<T> {
   virtual bool write(std::ostream& os,IOData* dat) const override;
   virtual std::shared_ptr<SerializableBase> copy() const override;
   virtual std::string type() const override;
-#ifndef SWIG
   virtual T phi(const Vec3T& x,Vec3T* g) const override;
   virtual Vec3T phiGrad(const Vec3T& x,Mat3T* h) const override;
   virtual const std::vector<Node<int,BBoxExact>>& getBVH() const override;
-#endif
   virtual const BBoxExact& getBB() const override;
   virtual bool empty() const override;
   virtual void createHills(double xMin,double xMax,double yMin,double yMax,std::function<double(double,double)> h,double res) override;

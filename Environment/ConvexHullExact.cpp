@@ -107,11 +107,14 @@ void ConvexHullExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
   }
   //bvh
   if(!_vss.empty()) {
-    _bvh.resize(1);
-    ASSERT_MSG(_vss.size()>=3,"We do not accept mesh having <= 3 vertices!")
-    _bvh[0]._bb=BBoxExact(_vss[0],_vss[1],_vss[2]);
-    for(int i=3; i<(int)_vss.size(); i++)
-      _bvh[0]._bb.setUnion(_vss[i]);
+    _bvh.assign(_iss.size(),Node<int,BBoxExact>());
+    for(int i=0; i<(int)_bvh.size(); i++) {
+      Node<int,BBoxExact>& n=_bvh[i];
+      n._bb=BBoxExact(_tss[i].getBB());
+      n._nrCell=1;
+      n._cell=i;
+    }
+    Node<int,BBoxExact>::buildBVHTriangleBottomUp(_bvh,iss,true);
   }
   //edge
   std::unordered_map<Eigen::Matrix<int,2,1>,std::pair<int,int>,EdgeHash> ess;
@@ -141,6 +144,8 @@ void ConvexHullExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
     eid++;
   }
   parityCheck();
+  //bss
+  initBss();
 }
 bool ConvexHullExact::read(std::istream& is,IOData* dat) {
   MeshExact::read(is,dat);
@@ -316,6 +321,9 @@ void ConvexHullExact::scale(T coef) {
   for(Vec3T& v:vss)
     v*=coef;
   init(vss,_iss);
+}
+const std::vector<EdgeExact>& ConvexHullExact::ess() const {
+  return _ess;
 }
 Eigen::Matrix<ConvexHullExact::T,4,1> ConvexHullExact::plane(int i) const {
   Eigen::Matrix<T,4,1> ret;

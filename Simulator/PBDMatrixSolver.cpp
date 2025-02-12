@@ -30,13 +30,14 @@ PBDMatrixSolverCRBA::MatT PBDMatrixSolverCRBA::solve(const Eigen::MatrixBase<Mat
 PBDMatrixSolverABA::PBDMatrixSolverABA(std::shared_ptr<ArticulatedBody> body):PBDMatrixSolver(body) {
   _info.reset(*_body);
 }
-void PBDMatrixSolverABA::compute(const Eigen::MatrixBase<Vec>& q,const Eigen::MatrixBase<Mat3XT>& MRR,const Eigen::MatrixBase<Mat3XT>& MRt,const Eigen::MatrixBase<Mat3XT>& MtR,const Eigen::MatrixBase<Mat3XT>& Mtt,const Eigen::MatrixBase<Vec>& d) {
+void PBDMatrixSolverABA::compute(const Eigen::MatrixBase<Vec>& q,const Eigen::MatrixBase<Mat3XT>& MRR,const Eigen::MatrixBase<Mat3XT>& MRt,const Eigen::MatrixBase<Mat3XT>& MtR,const Eigen::MatrixBase<Mat3XT>& Mtt,const Eigen::MatrixBase<MatT>& d) {
   Mat3T R;
   ASSERT_MSG(MRR.size()==3*3*_body->nrJ(),"MRR's input matrix size != input matrix size!")
   ASSERT_MSG(MRt.size()==3*3*_body->nrJ(),"MRt's input matrix size != input matrix size!")
   ASSERT_MSG(MtR.size()==3*3*_body->nrJ(),"MtR's input matrix size != input matrix size!")
   ASSERT_MSG(Mtt.size()==3*3*_body->nrJ(),"Mtt's input matrix size != input matrix size!")
-  ASSERT_MSG(_info._qM.size()==d.size(),"d's input matrix size != input matrix size!")
+  ASSERT_MSG(d.rows()==_body->nrDOF(),"d's input matrix size != input matrix size!")
+  ASSERT_MSG(d.cols()==_body->nrDOF(),"d's input matrix size != input matrix size!")
   _info.reset(*_body,q,Vec::Zero(_body->nrDOF()));
   _I.resize(6,_body->nrJ()*6);
   for(int k=0; k<_body->nrJ(); k++) {
@@ -48,9 +49,10 @@ void PBDMatrixSolverABA::compute(const Eigen::MatrixBase<Vec>& q,const Eigen::Ma
   }
   _d=d;
 }
-void PBDMatrixSolverABA::compute(const Eigen::MatrixBase<Vec>& q,const Eigen::MatrixBase<Mat6XT>& I,const Eigen::MatrixBase<Vec>& d) {
+void PBDMatrixSolverABA::compute(const Eigen::MatrixBase<Vec>& q,const Eigen::MatrixBase<Mat6XT>& I,const Eigen::MatrixBase<MatT>& d) {
   ASSERT_MSG(_info._IM.size()==I.size(),"I's input matrix size != input matrix size!")
-  ASSERT_MSG(_info._qM.size()==d.size(),"d's input matrix size != input matrix size!")
+  ASSERT_MSG(d.rows()==_body->nrDOF(),"d's input matrix size != input matrix size!")
+  ASSERT_MSG(d.cols()==_body->nrDOF(),"d's input matrix size != input matrix size!")
   _info.reset(*_body,q,Vec::Zero(_body->nrDOF()));
   _I=I;
   _d=d;
@@ -67,7 +69,7 @@ PBDMatrixSolverABA::MatT PBDMatrixSolverABA::solve(const Eigen::MatrixBase<MatT>
     info.ABAInner(*_body,
                   GradInfo::mapCV((const Vec6T*)NULL),
                   GradInfo::mapCM((const Mat6XT*)NULL),
-                  GradInfo::mapCV(bcol),GradInfo::mapCM(_I),GradInfo::mapCV(_d));
+                  GradInfo::mapCV(bcol),GradInfo::mapCM(_I),GradInfo::mapCM(_d));
     ret.col(c)=info._ddqM;
   }
   return ret;

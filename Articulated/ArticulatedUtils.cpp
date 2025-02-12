@@ -30,6 +30,7 @@ void ArticulatedUtils::assemble(const tinyxml2::XMLElement& pt) {
   //apply X0
   for(int i=0; i<(int) _body.nrJ(); i++) {
     Joint& J=_body.joint(i);
+    J._class=i;
     J.transformMesh(infos[i]._X0);
     if(J._parent>=0) {
       const TransInfo& infoP=infos[J._parent];
@@ -105,7 +106,6 @@ void ArticulatedUtils::assembleJoint(const tinyxml2::XMLElement& pt,int parent,s
     if(!beginsWith(std::string(v->Name()),"geom"))
       continue;
     const tinyxml2::XMLElement& c=*v;
-    J._transMesh.setIdentity();
     if(std::string(v->Name())=="geom3D") {
       info._rad=get<T>(c,"rad");
       info._lenX[0]=get<T>(c,"lenX");
@@ -254,16 +254,29 @@ void ArticulatedUtils::assembleJoint(const tinyxml2::XMLElement& pt,int parent,s
 void ArticulatedUtils::mergeMesh(Joint& joint,
                                  const std::vector<std::shared_ptr<ShapeExact>>& geomsMerged,
                                  const std::vector<CompositeShapeExact::Mat3X4T>& transMerged) {
-  joint._mesh=NULL;
-  if((int) geomsMerged.size()>1) {
-    joint._mesh.reset(new CompositeShapeExact(geomsMerged,transMerged));
-    joint._transMesh.setIdentity();
-  } else if((int) geomsMerged.size()==1) {
-    joint._mesh=geomsMerged.back();
-    joint._transMesh=transMerged.back().template cast<T>();
-  }
+  if(geomsMerged.empty())
+    return;
+  else if((int)transMerged.size()==1 && transMerged[0].isIdentity())
+    joint._mesh=geomsMerged[0];
+  else joint._mesh.reset(new CompositeShapeExact(geomsMerged,transMerged));
 }
-void ArticulatedUtils::addBase(int dim,const Vec3T& planeNormal) {
+void ArticulatedUtils::initMesh(int k,int sz) {
+  std::vector<Vec3T> vss;
+  for(int i=0;i<sz;i++) {
+    T theta = M_PI * (i + 0.5) / sz;
+    T phi = 2 * M_PI * (i + 0.5) / sz;
+
+    T x = sin(theta) * cos(phi);
+    T y = sin(theta) * sin(phi);
+    T z = cos(theta);
+    vss.push_back(Vec3T(x,y,z));
+  }
+  ConvexHullExact m(vss);
+  std::shared_ptr<MeshExact> mesh=std::dynamic_pointer_cast<MeshExact>(m.copy());
+  _body.joint(k)._mesh=mesh;
+  _body.joint(k).assemble(1);
+}
+void ArticulatedUtils::addBase(int dim,const Vec3T& planeNormal,bool exponential) {
   //check if we already have root
   for(int i=1; i<_body.nrJ(); i++)
     if(_body.joint(i).isRoot(_body)) {
@@ -291,8 +304,9 @@ void ArticulatedUtils::addBase(int dim,const Vec3T& planeNormal) {
     _body.joint(1)._typeJoint=Joint::HINGE_JOINT;
     _body.joint(0)._typeJoint=Joint::TRANS_2D;
   } else {
-    _body.joint(1)._typeJoint=Joint::ROT_3D_XYZ;
-    //_body.joint(1)._typeJoint=Joint::ROT_3D_EXP;
+    if(exponential)
+      _body.joint(1)._typeJoint=Joint::ROT_3D_EXP;
+    else _body.joint(1)._typeJoint=Joint::ROT_3D_XYZ;
     _body.joint(0)._typeJoint=Joint::TRANS_3D;
   }
   for(int i=0; i<2; i++) {
@@ -364,7 +378,10 @@ void ArticulatedUtils::combine(const std::vector<ArticulatedBody>& bodies) {
       Joint joint=body.joint(i);
       if(joint._parent==-1)
         joint._parent=0;
-      else joint._parent+=off;
+      else{
+        joint._parent+=off;
+        joint._class+=off;
+      } 
       joint._depth++;
       if(joint._mimic>=0)
         joint._mimic++;
@@ -408,15 +425,13 @@ ArticulatedUtils::Vec ArticulatedUtils::mergeChildren(int jid,const Vec& DOF) {
     const Joint& joint=_body.joint(j);
     if(eliminate && joint._mesh) {
       shapes.push_back(joint._mesh);
-      Mat3X4T TRel,TM,TJ=TRANSI(info._TM,j);
-      APPLY_TRANS(TM,TJ,joint._transMesh)
-      APPLY_TRANS(TRel,ITC,TM)
+      Mat3X4T TRel,TJ=TRANSI(info._TM,j);
+      APPLY_TRANS(TRel,ITC,TJ)
       trans.push_back(TRel.template cast<ShapeExact::T>());
     }
   }
   if(!shapes.empty()) {
     shape.reset(new CompositeShapeExact(shapes,trans));
-    _body.joint(jidc)._transMesh.setIdentity();
     _body.joint(jidc)._mesh=shape;
   }
   //update body
@@ -526,19 +541,15 @@ ArticulatedUtils::Vec ArticulatedUtils::simplify(std::function<bool(int,const Jo
       //merge mesh
       if(!joint._mesh)
         continue;
-      else if(!parent._mesh) {
-        APPLY_TRANS(parent._transMesh,trans,joint._transMesh)
-        parent._mesh=joint._mesh;
-      } else {
+      else {
         std::vector<std::shared_ptr<ShapeExact>> geomsMerged;
         std::vector<CompositeShapeExact::Mat3X4T> transMerged;
-        geomsMerged.push_back(parent._mesh);
-        transMerged.push_back(parent._transMesh.template cast<CompositeShapeExact::T>());
+        if(parent._mesh) {
+          geomsMerged.push_back(parent._mesh);
+          transMerged.push_back(Mat3X4T::Identity().template cast<CompositeShapeExact::T>());
+        }
         geomsMerged.push_back(joint._mesh);
-        Mat3X4T meshTrans;
-        APPLY_TRANS(meshTrans,trans,joint._transMesh)
-        transMerged.push_back(meshTrans.template cast<CompositeShapeExact::T>());
-        //transMerged.push_back(joint._transMesh.template cast<CompositeShapeExact::T>());
+        transMerged.push_back(trans.template cast<CompositeShapeExact::T>());
         mergeMesh(parent,geomsMerged,transMerged);
       }
     }
@@ -648,7 +659,7 @@ ArticulatedUtils::Vec ArticulatedUtils::replaceJoint(const Vec& DOF,int jid,Mat3
   }
   //transform joint & children
   ROT(J._trans)=ROT(J._trans)*R;
-  J._transMesh=R.transpose()*J._transMesh;
+  J.transformMesh(R.transpose(),Vec3T::Zero());
   for(int jidc:J._children) {
     Joint& JC=_body._joints[jidc];
     JC._trans=R.transpose()*JC._trans;
@@ -696,7 +707,6 @@ void ArticulatedUtils::convexDecompose(T rho) {
   //transMesh
   PBDArticulatedGradientInfo<ArticulatedBody::T> info(_body,Vec::Zero(_body.nrDOF()));
   Mat3X4T transMesh=TRANSI(info._TM,meshJointId);
-  APPLY_TRANS(transMesh,transMesh,_body.joint(meshJointId)._transMesh);
   //decompose
   std::vector<Eigen::Matrix<double,3,1>> vss;
   std::vector<Eigen::Matrix<int,3,1>> iss;
@@ -720,8 +730,8 @@ void ArticulatedUtils::convexDecompose(T rho) {
     //mimic
     joint._mult=joint._offset=0;
     //mesh approx.
-    joint._transMesh=transMesh;
     joint._mesh=decompose.getConvexHulls()[i];
+    joint.transformMesh(transMesh);
     //mass
     joint._name="Convex"+std::to_string(i);
     joint.assemble(rho);
@@ -732,6 +742,54 @@ void ArticulatedUtils::convexDecompose(T rho) {
     _body._joints.push_back(joint);
   }
   std::cout << "Decomposed into " << decompose.getConvexHulls().size() << " sub-joints!" << std::endl;
+}
+void ArticulatedUtils::convexDecompose(std::vector<int> jid, int maxConvexHulls, T rho) {
+  std::vector<MeshExact> Mesh;
+  PBDArticulatedGradientInfo<ArticulatedBody::T> info(_body,Vec::Zero(_body.nrDOF()));
+  for(uint i=0;i<jid.size();i++){
+    int meshJointId=jid[i];//transMesh
+    //decompose
+    std::vector<Eigen::Matrix<double,3,1>> vss;
+    std::vector<Eigen::Matrix<int,3,1>> iss;
+    _body.joint(meshJointId)._mesh->getMesh(vss,iss);
+    MeshExact mesh;
+    mesh.init(vss,iss);
+    Mesh.push_back(mesh);
+  }
+  for(uint k=0;k<Mesh.size();k++){
+    int meshJointId=jid[k];//transMesh
+    ConvexDecomposition decompose(Mesh[k],1.,Vec3T(0,0,0),Mat3T::Identity(),maxConvexHulls);
+    //Mat3X4T transMesh=TRANSI(info._TM,meshJointId);
+    _body.joint(meshJointId)._mesh=decompose.getConvexHulls()[0];
+    _body.joint(meshJointId)._name="Convex"+std::to_string(0);
+    _body.joint(meshJointId).assemble(rho);
+    for(int i=1; i<(int)decompose.getConvexHulls().size(); i++) {
+      Joint joint;
+      //joint
+      joint._parent=_body.joint(meshJointId)._parent;
+      joint._depth=_body.joint(joint._parent)._depth+1;
+      joint._typeJoint=Joint::FIX_JOINT;
+      joint._offDOF=_body.joint(meshJointId)._offDOF;
+      joint._offDDT=_body.joint(meshJointId)._offDDT;
+      joint._limits=_body.joint(meshJointId)._limits;
+      joint._control=_body.joint(meshJointId)._control;
+      joint._damping=_body.joint(meshJointId)._damping;
+      joint._trans=_body.joint(meshJointId)._trans;
+      //mimic
+      joint._mult=_body.joint(meshJointId)._mult;
+      joint._offset=_body.joint(meshJointId)._offset;
+      //mesh approx.
+      joint._mesh=decompose.getConvexHulls()[i];
+      //joint.transformMesh(transMesh);
+      //mass
+      joint._name="Convex"+std::to_string(i);
+      joint.assemble(rho);
+      joint._class=meshJointId;
+      _body._joints.push_back(joint);
+      //_body._joints[_body._joints.size()-1]._class=meshJointId;
+    }
+    std::cout << "Decomposed into " << decompose.getConvexHulls().size() << " sub-joints!" << std::endl;
+  }
 }
 void ArticulatedUtils::addBody(ArticulatedBody& body) {
   int offset=(int) _body._joints.size();
@@ -761,8 +819,6 @@ void ArticulatedUtils::tessellate(bool rebuildBVH) {
       std::vector<Eigen::Matrix<int,3,1>> iss;
       joint._mesh->getMesh(vss,iss);
       joint._mesh.reset(new MeshExact(vss,iss,rebuildBVH));
-      std::dynamic_pointer_cast<MeshExact>(joint._mesh)->transform(joint._transMesh.template cast<GEOMETRY_SCALAR>());
-      joint._transMesh.setIdentity();
     }
   }
 }
@@ -776,8 +832,6 @@ void ArticulatedUtils::BBApproxiate(bool rebuildBVH) {
              joint._mesh->getBB().minCorner().template cast<double>(),
              joint._mesh->getBB().maxCorner().template cast<double>());
       joint._mesh.reset(new MeshExact(vss,iss,rebuildBVH));
-      std::dynamic_pointer_cast<MeshExact>(joint._mesh)->transform(joint._transMesh.template cast<GEOMETRY_SCALAR>());
-      joint._transMesh.setIdentity();
     }
   }
 }
@@ -788,9 +842,6 @@ void ArticulatedUtils::makeConvex() {
       std::vector<Eigen::Matrix<double,3,1>> vss;
       std::vector<Eigen::Matrix<int,3,1>> iss;
       joint._mesh->getMesh(vss,iss);
-      for(Eigen::Matrix<double,3,1>& v:vss)
-        v=ROT(joint._transMesh).template cast<double>()*v+CTR(joint._transMesh).template cast<double>();
-      joint._transMesh.setIdentity();
       joint._mesh.reset(new ConvexHullExact(vss));
     }
   }
@@ -829,7 +880,7 @@ ArticulatedUtils::Mat3X4T ArticulatedUtils::transformTorsoToCOM() {
 ArticulatedUtils::Mat3X4T ArticulatedUtils::scaleBody(T coef) {
   for(Joint& J:_body._joints) {
     CTR(J._trans)*=coef;
-    CTR(J._transMesh)*=coef;
+    J._mesh->scale(coef);
     J._M*=std::pow(coef,3);
     J._MC*=std::pow(coef,4);
     J._MCCT*=std::pow(coef,5);

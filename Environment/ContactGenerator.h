@@ -4,7 +4,6 @@
 #include "BVHNode.h"
 #include "ShapeExact.h"
 #include "Articulated/ArticulatedBody.h"
-#include "SIPCollision/ConvexHullDistanceConvexEnergy.h"
 
 namespace PHYSICSMOTION {
 class ContactGenerator {
@@ -17,6 +16,7 @@ class ContactGenerator {
     DYNAMIC_DYNAMIC=4,
   };
   struct ContactPoint {
+    ContactPoint();
     T depth() const;
     void swap();
     void transform(const Mat3X4T& t);
@@ -25,23 +25,26 @@ class ContactGenerator {
     T _tangentBound;
     Vec3T _ptALast,_ptBLast;
     Vec3T _ptAL,_ptBL;
-    Vec3T _fA,_fB,_lambda;
+    Vec3T _fA,_fB;
     Mat3X2T _tA2B;
   };
   struct ContactManifold {
     ContactManifold();
     void swap();
+    bool operator<(const ContactManifold& other) const;
     std::vector<ContactPoint> _points;
     std::shared_ptr<ShapeExact> _sA,_sB;
-    std::shared_ptr<GJKPolytope<T>> _pA,_pB;
     int _sidA,_sidB,_jidA,_jidB;
     Mat3X4T _tA,_tB;
+    std::vector<Mat3X4T> _DNDX;
+    Vec4T _x;
   };
   typedef ShapeExact::Facet Facet;
   typedef ShapeExact::Edge Edge;
-  ContactGenerator(std::shared_ptr<ArticulatedBody> body,std::vector<std::shared_ptr<ShapeExact>> shapes);
-  void generateManifolds(std::vector<ContactManifold>& manifolds,Mat3XT t,T x0=0.0,int status=STATIC_DYNAMIC|DYNAMIC_DYNAMIC, bool usingCCD=true);
-  void updateBVH(Mat3XT& t, T x0=0.0);
+  ContactGenerator(std::shared_ptr<ArticulatedBody> body,std::vector<std::shared_ptr<ShapeExact>> shapes,bool buildBVH=true);
+  void generateManifolds(T x0,bool useCCD,std::vector<ContactManifold>& manifolds,Mat3XT t,int status=STATIC_DYNAMIC|DYNAMIC_DYNAMIC);
+  const std::unordered_set<Eigen::Matrix<int,2,1>,EdgeHash>& getExclude() const;
+  void updateBVH(Mat3XT& t,T x0=0.0);
   BBoxExact getBB() const;
   static T epsDist();
   static T epsDir();
@@ -63,6 +66,7 @@ class ContactGenerator {
   std::unordered_map<std::shared_ptr<ShapeExact>,std::vector<Edge>> _edgeCache;
   std::unordered_set<Eigen::Matrix<int,2,1>,EdgeHash> _exclude;
   static T _epsDir,_epsDist;
+  bool _buildBVH;
 };
 }
 
