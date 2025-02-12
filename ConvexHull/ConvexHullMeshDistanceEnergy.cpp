@@ -290,21 +290,46 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::evalBvh(std::shared_ptr<MeshExact> c1,std:
   return true;
 }
 template <typename T,typename PFunc,typename TH>
-T CCBarrierMeshEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward) const {
+bool CCBarrierMeshEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward) const {
   MAll m;
   const auto& bvh1=_p1.getBVH();
   const auto& bvh2=_p2.getBVH();
   T P1=0,P2=0,P=0;
   int id1=bvh1.size()-1;
   int id2=bvh2.size()-1;
+  ComputePotential(id1,id2);
+  
+  
+  return true;
+}
+template <typename T,typename PFunc,typename TH>
+T CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(int id1,int id2) const {
+  const auto& bvh1=_p1.getBVH();
+  const auto& bvh2=_p2.getBVH();
+  T P1=0,P2=0,P=0;
   Vec3T x1=bvh1[id1]._bb.center();
   Vec3T x2=bvh2[id2]._bb.center();
-  if(bvh1[id1]._cell>=0 && bvh2[id2]._cell>=0) {
-    P=12*(1+sqrt((x1-x2).norm())).squaredNorm();
-    return P;
+  T dist=((x1-x2).norm()-_d1)/(_d2-_d1);
+  P2=12*pow((1+sqrt((x1-x2).norm())),2);
+  T phi=0;
+  if(dist>1) return P2;
+  else if(dist>0) phi=6*pow(dist,5)-15*pow(dist,4)+10*pow(dist,3);
+  if(bvh1[id1]._cell>=0 && bvh2[id2]._cell>=0) return P2;
+  else if(bvh1[id1]._cell>=0) {
+    P1+=ComputePotential(id1,bvh2[id2]._l);
+    P1+=ComputePotential(id1,bvh2[id2]._r);
   }
-  
-  
+  else if(bvh2[id2]._cell>=0) {
+    P1+=ComputePotential(bvh1[id1]._l,id2);
+    P1+=ComputePotential(bvh1[id1]._r,id2);
+  }
+  else {
+    P1+=ComputePotential(bvh1[id1]._l,bvh2[id2]._l);
+    P1+=ComputePotential(bvh1[id1]._l,bvh2[id2]._r);
+    P1+=ComputePotential(bvh1[id1]._r,bvh2[id2]._l);
+    P1+=ComputePotential(bvh1[id1]._r,bvh2[id2]._r);
+  }
+  return P=(1-phi)*P1+phi*P2;
 }
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierMeshEnergy<T,PFunc,TH>::evalEE(GJKPolytopePtr pss[4],int vid[4],T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,MAll& m,bool backward) const {

@@ -44,15 +44,17 @@ class CCBarrierMeshEnergy : public CCBarrierEnergy<T,PFunc,TH> {
  protected:
   bool evalBF(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward=false) const;
   bool evalBvh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward=false) const;
-  T evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward=false) const;
+  bool evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward=false) const;
   bool evalEE(GJKPolytopePtr pss[4],int vid[4],T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,MAll& m,bool backward=false) const;
   bool evalVT(GJKPolytopePtr pss[4],int vid[4],T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,MAll& m,bool backward=false) const;
   //bool evalVT(GJKPolytopePtr pss[4],int vid[4],T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,MAll& m,bool backward=false) const;
   void computeDTGH(GJKPolytopePtr pss[4],const int vid[4],const ArticulatedBody& body,CollisionGradInfo<T>& grad,const Vec12T& G,const Mat12T& H,MAll& m) const;
   void computeHBackward(GJKPolytopePtr pss[4],const int vid[4],const ArticulatedBody& body,CollisionGradInfo<T>& grad,const Vec12T& G,const Mat12T& H,MAll& m) const;
   void contractHAll(const ArticulatedBody& body,CollisionGradInfo<T>& grad,const MAll& m) const;
+  T ComputePotential(int id1,int id2) const;
   bool _useBVH=true;
   bool _useLRI=true;
+  T _d1,_d2;
 };
 }
 #endif
