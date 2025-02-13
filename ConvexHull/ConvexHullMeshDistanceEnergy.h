@@ -25,6 +25,34 @@ class CCBarrierMeshEnergy : public CCBarrierEnergy<T,PFunc,TH> {
   using CCBarrierEnergy<T,PFunc,TH>::initialize;
   using CCBarrierEnergy<T,PFunc,TH>::debugEnergy;
   typedef GJKPolytope<T> const* GJKPolytopePtr;
+  struct EPair {
+    Mat3T _Mww=Mat3T::Zero();
+    Mat3T _Mwt=Mat3T::Zero();
+    Mat3T _Mtw=Mat3T::Zero();
+    Mat3T _Mtt=Mat3T::Zero();
+    Mat3X4T _DTG=Mat3X4T::Zero();
+    T _P=0;
+    EPair operator+(const EPair& other) {
+        EPair result;
+        result._Mww = this->_Mww + other._Mww;
+        result._Mwt = this->_Mwt + other._Mwt;
+        result._Mtw = this->_Mtw + other._Mtw;
+        result._Mtt = this->_Mtt + other._Mtt;
+        result._DTG = this->_DTG + other._DTG;
+        result._P = this->_P + other._P;
+        return result;
+    }
+    EPair operator*(T a) {
+        EPair result;
+        result._Mww = this->_Mww * a;
+        result._Mwt = this->_Mwt * a;
+        result._Mtw = this->_Mtw * a;
+        result._Mtt = this->_Mtt * a;
+        result._DTG = this->_DTG * a;
+        result._P = this->_P * a;
+        return result;
+    }
+  };
   struct MPair {
     Mat3T _Mww=Mat3T::Zero();
     Mat3T _Mwt=Mat3T::Zero();
@@ -51,7 +79,7 @@ class CCBarrierMeshEnergy : public CCBarrierEnergy<T,PFunc,TH> {
   void computeDTGH(GJKPolytopePtr pss[4],const int vid[4],const ArticulatedBody& body,CollisionGradInfo<T>& grad,const Vec12T& G,const Mat12T& H,MAll& m) const;
   void computeHBackward(GJKPolytopePtr pss[4],const int vid[4],const ArticulatedBody& body,CollisionGradInfo<T>& grad,const Vec12T& G,const Mat12T& H,MAll& m) const;
   void contractHAll(const ArticulatedBody& body,CollisionGradInfo<T>& grad,const MAll& m) const;
-  T ComputePotential(int id1,int id2) const;
+  EPair ComputePotential(int id1,int id2) const;
   bool _useBVH=true;
   bool _useLRI=true;
   T _d1,_d2;

@@ -1,8 +1,8 @@
 CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o: \
- /home/yxh/yxh/SDRS_LRI/Main/DebugSimulator/mainDebugBaryDerivative.cpp \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugBaryDerivative.cpp \
  /usr/include/stdc-predef.h \
- /home/yxh/yxh/SDRS_LRI/Environment/BaryDerivativeFunction.h \
- /home/yxh/yxh/SDRS_LRI/Environment/DistanceFunction.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BaryDerivativeFunction.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/DistanceFunction.h \
  /usr/include/c++/11/tuple /usr/include/c++/11/utility \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -101,10 +101,10 @@ CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivati
  /usr/include/c++/11/bits/stl_heap.h \
  /usr/include/c++/11/bits/stl_tempbuf.h \
  /usr/include/c++/11/bits/uniform_int_dist.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Interp.h \
- /home/yxh/yxh/SDRS_LRI/Utils/SparseUtils.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Pragma.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Epsilon.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Interp.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/SparseUtils.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Epsilon.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/float.h \
  /usr/include/boost/multiprecision/gmp.hpp \
  /usr/include/boost/multiprecision/number.hpp \
@@ -884,11 +884,11 @@ CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivati
  /usr/include/boost/smart_ptr/detail/operator_bool.hpp \
  /usr/include/boost/functional/hash.hpp \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
- /home/yxh/yxh/SDRS_LRI/Utils/DebugGradient.h \
- /home/yxh/yxh/SDRS_LRI/Utils/ParallelVector.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/DebugGradient.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/ParallelVector.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/omp.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Zero.h /usr/include/eigen3/Eigen/Dense \
- /usr/include/eigen3/Eigen/Core \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Zero.h \
+ /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \
  /usr/include/eigen3/Eigen/src/Core/util/ConfigureVectorization.h \
@@ -1146,4 +1146,4 @@ CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivati
  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h \
  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h \
  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h \
- /home/yxh/yxh/SDRS_LRI/Utils/CrossSpatialUtils.h
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/CrossSpatialUtils.h

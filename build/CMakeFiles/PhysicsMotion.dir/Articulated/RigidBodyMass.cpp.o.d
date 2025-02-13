@@ -1,7 +1,7 @@
 CMakeFiles/PhysicsMotion.dir/Articulated/RigidBodyMass.cpp.o: \
- /home/yxh/yxh/SDRS_LRI/Articulated/RigidBodyMass.cpp \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/RigidBodyMass.cpp \
  /usr/include/stdc-predef.h \
- /home/yxh/yxh/SDRS_LRI/Articulated/RigidBodyMass.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/RigidBodyMass.h \
  /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \
@@ -409,10 +409,10 @@ CMakeFiles/PhysicsMotion.dir/Articulated/RigidBodyMass.cpp.o: \
  /usr/include/eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
  /usr/include/eigen3/Eigen/src/Eigenvalues/./RealQZ.h \
  /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Pragma.h \
- /home/yxh/yxh/SDRS_LRI/Utils/CrossSpatialUtils.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Pragma.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Epsilon.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/CrossSpatialUtils.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Epsilon.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/float.h \
  /usr/include/boost/multiprecision/gmp.hpp \
  /usr/include/boost/multiprecision/number.hpp \

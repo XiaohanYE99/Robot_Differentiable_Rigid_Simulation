@@ -163,7 +163,7 @@
 			[
 				{
 					"backtrace" : 10,
-					"path" : "/home/yxh/yxh/SDRS_LRI/extern/ompl-1.6.0"
+					"path" : "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/extern/ompl-1.6.0"
 				},
 				{
 					"backtrace" : 11,
@@ -171,11 +171,11 @@
 				},
 				{
 					"backtrace" : 12,
-					"path" : "/home/yxh/yxh/SDRS_LRI/extern/pybind11/include"
+					"path" : "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/extern/pybind11/include"
 				},
 				{
 					"backtrace" : 13,
-					"path" : "/home/yxh/yxh/SDRS_LRI"
+					"path" : "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation"
 				}
 			],
 			"language" : "CXX",

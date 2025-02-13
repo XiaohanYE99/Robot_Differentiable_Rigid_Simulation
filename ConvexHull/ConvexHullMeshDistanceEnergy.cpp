@@ -294,7 +294,7 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std:
   MAll m;
   const auto& bvh1=_p1.getBVH();
   const auto& bvh2=_p2.getBVH();
-  T P1=0,P2=0,P=0;
+  //T P1=0,P2=0,P=0;
   int id1=bvh1.size()-1;
   int id2=bvh2.size()-1;
   ComputePotential(id1,id2);
@@ -303,33 +303,35 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std:
   return true;
 }
 template <typename T,typename PFunc,typename TH>
-T CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(int id1,int id2) const {
+typename CCBarrierMeshEnergy<T,PFunc,TH>::EPair CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(int id1,int id2) const {
+  EPair res,res1,res2;
   const auto& bvh1=_p1.getBVH();
   const auto& bvh2=_p2.getBVH();
-  T P1=0,P2=0,P=0;
   Vec3T x1=bvh1[id1]._bb.center();
   Vec3T x2=bvh2[id2]._bb.center();
   T dist=((x1-x2).norm()-_d1)/(_d2-_d1);
-  P2=12*pow((1+sqrt((x1-x2).norm())),2);
+  T alpha=bvh1[id1]._num*bvh2[id2]._num;
+  res2._P=12*alpha*pow((1+sqrt((x1-x2).norm())),2);
   T phi=0;
-  if(dist>1) return P2;
+  if(dist>1) return res2;
   else if(dist>0) phi=6*pow(dist,5)-15*pow(dist,4)+10*pow(dist,3);
-  if(bvh1[id1]._cell>=0 && bvh2[id2]._cell>=0) return P2;
+  if(bvh1[id1]._cell>=0 && bvh2[id2]._cell>=0) return res2;
   else if(bvh1[id1]._cell>=0) {
-    P1+=ComputePotential(id1,bvh2[id2]._l);
-    P1+=ComputePotential(id1,bvh2[id2]._r);
+    res1=res1+ComputePotential(id1,bvh2[id2]._l);
+    res1=res1+ComputePotential(id1,bvh2[id2]._r);
   }
   else if(bvh2[id2]._cell>=0) {
-    P1+=ComputePotential(bvh1[id1]._l,id2);
-    P1+=ComputePotential(bvh1[id1]._r,id2);
+    res1=res1+ComputePotential(bvh1[id1]._l,id2);
+    res1=res1+ComputePotential(bvh1[id1]._r,id2);
   }
   else {
-    P1+=ComputePotential(bvh1[id1]._l,bvh2[id2]._l);
-    P1+=ComputePotential(bvh1[id1]._l,bvh2[id2]._r);
-    P1+=ComputePotential(bvh1[id1]._r,bvh2[id2]._l);
-    P1+=ComputePotential(bvh1[id1]._r,bvh2[id2]._r);
+    res1=res1+ComputePotential(bvh1[id1]._l,bvh2[id2]._l);
+    res1=res1+ComputePotential(bvh1[id1]._l,bvh2[id2]._r);
+    res1=res1+ComputePotential(bvh1[id1]._r,bvh2[id2]._l);
+    res1=res1+ComputePotential(bvh1[id1]._r,bvh2[id2]._r);
   }
-  return P=(1-phi)*P1+phi*P2;
+  //return P=(1-phi)*P1+phi*P2;
+  return res=res1*(1-phi)+res2*phi;
 }
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierMeshEnergy<T,PFunc,TH>::evalEE(GJKPolytopePtr pss[4],int vid[4],T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,MAll& m,bool backward) const {

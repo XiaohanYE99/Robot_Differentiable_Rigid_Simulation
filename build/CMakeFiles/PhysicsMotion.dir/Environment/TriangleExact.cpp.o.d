@@ -1,11 +1,11 @@
 CMakeFiles/PhysicsMotion.dir/Environment/TriangleExact.cpp.o: \
- /home/yxh/yxh/SDRS_LRI/Environment/TriangleExact.cpp \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/TriangleExact.cpp \
  /usr/include/stdc-predef.h \
- /home/yxh/yxh/SDRS_LRI/Environment/TriangleExact.h \
- /home/yxh/yxh/SDRS_LRI/Environment/BBoxExact.h \
- /home/yxh/yxh/SDRS_LRI/Environment/ShapeExact.h \
- /home/yxh/yxh/SDRS_LRI/Environment/BVHNode.h \
- /home/yxh/yxh/SDRS_LRI/Environment/EnvironmentUtils.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/TriangleExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BBoxExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ShapeExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BVHNode.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EnvironmentUtils.h \
  /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \
@@ -424,8 +424,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/TriangleExact.cpp.o: \
  /usr/include/c++/11/bits/shared_ptr_atomic.h \
  /usr/include/c++/11/backward/auto_ptr.h \
  /usr/include/c++/11/pstl/glue_memory_defs.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Serializable.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Epsilon.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Serializable.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Epsilon.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/float.h \
  /usr/include/boost/multiprecision/gmp.hpp \
  /usr/include/boost/multiprecision/number.hpp \
@@ -1076,8 +1076,9 @@ CMakeFiles/PhysicsMotion.dir/Environment/TriangleExact.cpp.o: \
  /usr/include/boost/smart_ptr/detail/operator_bool.hpp \
  /usr/include/boost/functional/hash.hpp \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Pragma.h /home/yxh/yxh/SDRS_LRI/Utils/IO.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Serializable.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/IO.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Serializable.h \
  /usr/include/eigen3/Eigen/Sparse /usr/include/eigen3/Eigen/SparseCore \
  /usr/include/eigen3/Eigen/src/SparseCore/SparseUtil.h \
  /usr/include/eigen3/Eigen/src/SparseCore/SparseMatrixBase.h \

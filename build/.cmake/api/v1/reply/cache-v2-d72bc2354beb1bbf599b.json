@@ -307,7 +307,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/yxh/yxh/SDRS_LRI/build"
+			"value" : "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -535,10 +535,10 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
+					"value" : "C compiler"
 				}
 			],
-			"type" : "FILEPATH",
+			"type" : "STRING",
 			"value" : "/usr/bin/gcc-12"
 		},
 		{
@@ -915,7 +915,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/yxh/yxh/SDRS_LRI"
+			"value" : "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1523,7 +1523,7 @@
 				},
 				{
 					"name" : "STRINGS",
-					"value" : "double;float128;mpfr_float"
+					"value" : "double;mpfr_float"
 				}
 			],
 			"type" : "STRING",
@@ -2247,7 +2247,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/yxh/yxh/SDRS_LRI/build"
+			"value" : "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build"
 		},
 		{
 			"name" : "PhysicsMotion_IS_TOP_LEVEL",
@@ -2271,7 +2271,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/yxh/yxh/SDRS_LRI"
+			"value" : "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation"
 		},
 		{
 			"name" : "QUADMATH_FOUND",

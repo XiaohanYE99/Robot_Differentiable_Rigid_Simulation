@@ -52,6 +52,7 @@ struct Node : public SerializableBase {
   bool operator==(Node<T,BBOX>& node);
   void print(const std::string& prefix="") const;
   int _l,_r,_parent,_nrCell;
+  int _num;//number of triangles
   BBOX _bb;
   T _cell;
 };

@@ -1,8 +1,8 @@
 CMakeFiles/PhysicsMotion.dir/Articulated/ArticulatedVisualizer.cpp.o: \
- /home/yxh/yxh/SDRS_LRI/Articulated/ArticulatedVisualizer.cpp \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedVisualizer.cpp \
  /usr/include/stdc-predef.h \
- /home/yxh/yxh/SDRS_LRI/Articulated/ArticulatedVisualizer.h \
- /home/yxh/yxh/SDRS_LRI/Articulated/ArticulatedBody.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedVisualizer.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedBody.h \
  /usr/include/c++/11/set /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/stl_algobase.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
@@ -46,10 +46,10 @@ CMakeFiles/PhysicsMotion.dir/Articulated/ArticulatedVisualizer.cpp.o: \
  /usr/include/c++/11/bits/stl_multiset.h \
  /usr/include/c++/11/bits/range_access.h \
  /usr/include/c++/11/bits/erase_if.h \
- /home/yxh/yxh/SDRS_LRI/Articulated/Joint.h \
- /home/yxh/yxh/SDRS_LRI/Environment/ShapeExact.h \
- /home/yxh/yxh/SDRS_LRI/Environment/BVHNode.h \
- /home/yxh/yxh/SDRS_LRI/Environment/EnvironmentUtils.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/Joint.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ShapeExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BVHNode.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EnvironmentUtils.h \
  /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \
@@ -426,8 +426,8 @@ CMakeFiles/PhysicsMotion.dir/Articulated/ArticulatedVisualizer.cpp.o: \
  /usr/include/c++/11/bits/shared_ptr_atomic.h \
  /usr/include/c++/11/backward/auto_ptr.h \
  /usr/include/c++/11/pstl/glue_memory_defs.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Serializable.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Epsilon.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Serializable.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Epsilon.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/float.h \
  /usr/include/boost/multiprecision/gmp.hpp \
  /usr/include/boost/multiprecision/number.hpp \
@@ -1076,13 +1076,13 @@ CMakeFiles/PhysicsMotion.dir/Articulated/ArticulatedVisualizer.cpp.o: \
  /usr/include/boost/smart_ptr/detail/operator_bool.hpp \
  /usr/include/boost/functional/hash.hpp \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Pragma.h \
- /home/yxh/yxh/SDRS_LRI/Utils/SparseUtils.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Pragma.h \
- /home/yxh/yxh/SDRS_LRI/Utils/DebugGradient.h \
- /home/yxh/yxh/SDRS_LRI/Utils/ParallelVector.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Zero.h /usr/include/eigen3/Eigen/Sparse \
- /usr/include/eigen3/Eigen/SparseCore \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/SparseUtils.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/DebugGradient.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/ParallelVector.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Zero.h \
+ /usr/include/eigen3/Eigen/Sparse /usr/include/eigen3/Eigen/SparseCore \
  /usr/include/eigen3/Eigen/src/SparseCore/SparseUtil.h \
  /usr/include/eigen3/Eigen/src/SparseCore/SparseMatrixBase.h \
  /usr/include/eigen3/Eigen/src/SparseCore/../plugins/CommonCwiseUnaryOps.h \
@@ -1154,33 +1154,34 @@ CMakeFiles/PhysicsMotion.dir/Articulated/ArticulatedVisualizer.cpp.o: \
  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h \
  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h \
  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h \
- /home/yxh/yxh/SDRS_LRI/Utils/IO.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Serializable.h /usr/include/c++/11/fstream \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/IO.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Serializable.h \
+ /usr/include/c++/11/fstream \
  /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
  /usr/include/c++/11/bits/fstream.tcc /usr/include/c++/11/unordered_set \
  /usr/include/c++/11/bits/unordered_set.h \
- /home/yxh/yxh/SDRS_LRI/Environment/MeshExact.h \
- /home/yxh/yxh/SDRS_LRI/Environment/ShapeExact.h \
- /home/yxh/yxh/SDRS_LRI/Environment/TriangleExact.h \
- /home/yxh/yxh/SDRS_LRI/Environment/BBoxExact.h /usr/include/tinyxml2.h \
- /usr/local/include/TinyVisualizer/Drawer.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/MeshExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ShapeExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/TriangleExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BBoxExact.h \
+ /usr/include/tinyxml2.h /usr/local/include/TinyVisualizer/Drawer.h \
  /usr/local/include/TinyVisualizer/Background.h \
  /usr/local/include/TinyVisualizer/DrawerUtility.h \
  /usr/local/include/glad/gl.h /usr/local/include/KHR/khrplatform.h \
  /usr/local/include/GLFW/glfw3.h /usr/include/eigen3/Eigen/Eigen \
  /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Sparse \
- /home/yxh/yxh/SDRS_LRI/Articulated/ArticulatedLoader.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedLoader.h \
  /usr/include/c++/11/filesystem /usr/include/c++/11/bits/fs_fwd.h \
  /usr/include/c++/11/bits/fs_path.h /usr/include/c++/11/codecvt \
  /usr/include/c++/11/bits/fs_dir.h /usr/include/c++/11/bits/fs_ops.h \
- /home/yxh/yxh/SDRS_LRI/Environment/ConvexHullExact.h \
- /home/yxh/yxh/SDRS_LRI/Environment/EdgeExact.h \
- /home/yxh/yxh/SDRS_LRI/Environment/MeshExact.h \
- /home/yxh/yxh/SDRS_LRI/Environment/EnvironmentVisualizer.h \
- /home/yxh/yxh/SDRS_LRI/Environment/Environment.h \
- /home/yxh/yxh/SDRS_LRI/Environment/ContactGenerator.h \
- /home/yxh/yxh/SDRS_LRI/Articulated/ArticulatedBody.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ConvexHullExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EdgeExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/MeshExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EnvironmentVisualizer.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/Environment.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ContactGenerator.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedBody.h \
  /usr/local/include/TinyVisualizer/MeshShape.h \
  /usr/local/include/TinyVisualizer/VBO.h \
  /usr/local/include/TinyVisualizer/Texture.h \

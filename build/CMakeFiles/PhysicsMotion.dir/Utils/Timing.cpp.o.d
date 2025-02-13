@@ -1,6 +1,8 @@
 CMakeFiles/PhysicsMotion.dir/Utils/Timing.cpp.o: \
- /home/yxh/yxh/SDRS_LRI/Utils/Timing.cpp /usr/include/stdc-predef.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Timing.h /usr/include/c++/11/iostream \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Timing.cpp \
+ /usr/include/stdc-predef.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Timing.h \
+ /usr/include/c++/11/iostream \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -163,8 +165,8 @@ CMakeFiles/PhysicsMotion.dir/Utils/Timing.cpp.o: \
  /usr/include/string.h /usr/include/strings.h \
  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
- /home/yxh/yxh/SDRS_LRI/Utils/Pragma.h /usr/include/c++/11/vector \
- /usr/include/c++/11/bits/stl_uninitialized.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
+ /usr/include/c++/11/vector /usr/include/c++/11/bits/stl_uninitialized.h \
  /usr/include/c++/11/bits/stl_vector.h \
  /usr/include/c++/11/bits/stl_bvector.h \
  /usr/include/c++/11/bits/vector.tcc /usr/include/c++/11/chrono \
