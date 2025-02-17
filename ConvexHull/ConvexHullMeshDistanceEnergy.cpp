@@ -292,46 +292,101 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::evalBvh(std::shared_ptr<MeshExact> c1,std:
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierMeshEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward) const {
   MAll m;
+  T P=0;
+  Mat3X4T DTG1,DTG2;
   const auto& bvh1=_p1.getBVH();
   const auto& bvh2=_p2.getBVH();
   //T P1=0,P2=0,P=0;
   int id1=bvh1.size()-1;
   int id2=bvh2.size()-1;
-  ComputePotential(id1,id2);
-  
+  ComputePotential(id1,id2,&P,&DTG1,&DTG2,m);
+  for(int r=0; r<3; r++)
+    for(int c=0; c<4; c++) {
+      parallelAdd(grad._DTG(r,c+_p1.jid()*4),DTG1(r,c));
+      parallelAdd(grad._DTG(r,c+_p1.jid()*4),DTG2(r,c));
+    }
+        
   
   return true;
 }
 template <typename T,typename PFunc,typename TH>
-typename CCBarrierMeshEnergy<T,PFunc,TH>::EPair CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(int id1,int id2) const {
-  EPair res,res1,res2;
+void CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(int id1, int id2, T* P, Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m) const {
+  DTG1->setZero();
+  DTG2->setZero();
+  *P=0;
+  Mat3X4T subDTG1,subDTG2;
+  T subP;
+  T P1=0;
   const auto& bvh1=_p1.getBVH();
   const auto& bvh2=_p2.getBVH();
   Vec3T x1=bvh1[id1]._bb.center();
   Vec3T x2=bvh2[id2]._bb.center();
-  T dist=((x1-x2).norm()-_d1)/(_d2-_d1);
-  T alpha=bvh1[id1]._num*bvh2[id2]._num;
-  res2._P=12*alpha*pow((1+sqrt((x1-x2).norm())),2);
+  T d1=bvh1[id1]._bb._rad+bvh2[id2]._bb._rad;
+  T d2=(1.0+eps)*d1;
+  T dist=((x1-x2).norm()-d1)/(d2-d1);
+  T alpha=12*_coef;//*bvh1[id1]._num*bvh2[id2]._num;
+  T Q=sqrt((x1-x2).norm())+_p.template _x0;
   T phi=0;
-  if(dist>1) return res2;
+  T P2=alpha*pow((1+Q),2);
+  if(dist>1) {
+    *P=P2;
+    parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x1-x2)/sqrt((x1-x2).norm()),x1));
+    parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x2-x1)/sqrt((x1-x2).norm()),x2));
+    return ;
+  }
   else if(dist>0) phi=6*pow(dist,5)-15*pow(dist,4)+10*pow(dist,3);
-  if(bvh1[id1]._cell>=0 && bvh2[id2]._cell>=0) return res2;
+  if(bvh1[id1]._cell>=0 && bvh2[id2]._cell>=0) {
+    *P=P2;
+    parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x1-x2)/sqrt((x1-x2).norm()),x1));
+    parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x2-x1)/sqrt((x1-x2).norm()),x2));
+    return ;
+  }
   else if(bvh1[id1]._cell>=0) {
-    res1=res1+ComputePotential(id1,bvh2[id2]._l);
-    res1=res1+ComputePotential(id1,bvh2[id2]._r);
+    ComputePotential(id1,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,m);
+    P1+=subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
+    ComputePotential(id1,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,m);
+    P1+=subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
   }
   else if(bvh2[id2]._cell>=0) {
-    res1=res1+ComputePotential(bvh1[id1]._l,id2);
-    res1=res1+ComputePotential(bvh1[id1]._r,id2);
+    ComputePotential(bvh1[id1]._l,id2,&subP,&subDTG1,&subDTG2,m);
+    P1+=subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
+    ComputePotential(bvh1[id1]._r,id2,&subP,&subDTG1,&subDTG2,m);
+    P1+=subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
   }
   else {
-    res1=res1+ComputePotential(bvh1[id1]._l,bvh2[id2]._l);
-    res1=res1+ComputePotential(bvh1[id1]._l,bvh2[id2]._r);
-    res1=res1+ComputePotential(bvh1[id1]._r,bvh2[id2]._l);
-    res1=res1+ComputePotential(bvh1[id1]._r,bvh2[id2]._r);
+    ComputePotential(bvh1[id1]._l,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,m);
+    P1+=subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
+    ComputePotential(bvh1[id1]._l,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,m);
+    P1+=subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
+    ComputePotential(bvh1[id1]._r,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,m);
+    P1+=subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
+    ComputePotential(bvh1[id1]._r,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,m);
+    P1+=subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
   }
   //return P=(1-phi)*P1+phi*P2;
-  return res=res1*(1-phi)+res2*phi;
+  //return res=res1*(1-phi)+res2*phi;
+  *P=(1-phi)*P1+phi*P2;
+  *DTG1*=(1-phi);
+  *DTG2*=(1-phi);
+  parallelAdd<T,3,4>(*DTG1,0,0,phi*computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x1-x2)/sqrt((x1-x2).norm()),x1));
+  parallelAdd<T,3,4>(*DTG2,0,0,phi*computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x2-x1)/sqrt((x1-x2).norm()),x2));
+  return ;
 }
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierMeshEnergy<T,PFunc,TH>::evalEE(GJKPolytopePtr pss[4],int vid[4],T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,MAll& m,bool backward) const {

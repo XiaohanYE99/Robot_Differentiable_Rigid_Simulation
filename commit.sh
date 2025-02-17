@@ -1,4 +1,6 @@
 rm *.user
+rm data
+rm build
 
 cd Main
 rm knitro.log
@@ -6,7 +8,6 @@ rm imgui.ini
 rm *.trajopt
 rm *.gif
 rm *.mp2
-rm data
 cd .. 
 
 git add --all
