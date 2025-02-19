@@ -110,7 +110,9 @@ void ConvexHullExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
     _bvh.assign(_iss.size(),Node<int,BBoxExact>());
     for(int i=0; i<(int)_bvh.size(); i++) {
       Node<int,BBoxExact>& n=_bvh[i];
-      n._bb=BBoxExact(_tss[i].getBB());
+      //n._bb=BBoxExact(_tss[i].getBB());
+      Vec4T SBB=_tss[i].getSBB();
+      n._bb=BBoxExact(SBB.segment<3>(0),SBB[3]);
       n._nrCell=1;
       n._cell=i;
     }

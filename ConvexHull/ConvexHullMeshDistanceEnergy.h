@@ -51,7 +51,7 @@ class CCBarrierMeshEnergy : public CCBarrierEnergy<T,PFunc,TH> {
   void computeDTGH(GJKPolytopePtr pss[4],const int vid[4],const ArticulatedBody& body,CollisionGradInfo<T>& grad,const Vec12T& G,const Mat12T& H,MAll& m) const;
   void computeHBackward(GJKPolytopePtr pss[4],const int vid[4],const ArticulatedBody& body,CollisionGradInfo<T>& grad,const Vec12T& G,const Mat12T& H,MAll& m) const;
   void contractHAll(const ArticulatedBody& body,CollisionGradInfo<T>& grad,const MAll& m) const;
-  void ComputePotential(int id1, int id2, T* P, Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m) const;
+  void ComputePotential(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,int id1, int id2, T* P, Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m) const;
   bool _useBVH=true;
   bool _useLRI=true;
   T _eps=1.0;

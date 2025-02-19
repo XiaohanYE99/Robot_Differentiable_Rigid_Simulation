@@ -13,7 +13,7 @@ void MeshBasedPBDSimulator::detectContact(const Mat3XT& t) {
   _manifolds.clear();
   if(!_contact)
     _contact.reset(new ContactGenerator(_body,_shapes));
-  GEOMETRY_SCALAR x0=10000;//_barrier._x0+_d0;
+  GEOMETRY_SCALAR x0=_barrier._x0+_d0;
   _contact->generateManifolds(x0,true,_manifolds,t.template cast<GEOMETRY_SCALAR>());
 }
 MeshBasedPBDSimulator::T MeshBasedPBDSimulator::normalEnergy(GradInfo& grad,Vec* DE,bool backward) {

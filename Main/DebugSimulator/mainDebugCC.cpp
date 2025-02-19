@@ -21,14 +21,14 @@ void debugCCBarrierConvexEnergy() {
 
   std::shared_ptr<ArticulatedBody> body(new ArticulatedBody(ArticulatedLoader::readURDF("../data/kuka_lwr/kuka.urdf",true,false)));
   ArticulatedUtils(*body).tessellate(true);
-  ArticulatedUtils(*body).BBApproxiate(true);
-  ArticulatedUtils(*body).makeConvex();
+  //ArticulatedUtils(*body).BBApproxiate(true);
+  //ArticulatedUtils(*body).makeConvex();
 
   Px barrier;
-  barrier._x0=1.0;
+  barrier._x0=1000.0;
   T d0=1e-3;
   GJKPolytope<T> p(mesh);
-  CCEnergyType::debugGradient(p,*body,7,barrier._x0,d0);
+  //CCEnergyType::debugGradient(p,*body,7,barrier._x0,d0);
   CCEnergyType::debugGradient(*body,4,7,barrier._x0,d0);
 }
 template <typename T,typename CCEnergyType>
@@ -102,10 +102,10 @@ void debugCCBarrierFrictionEnergy() {
 int main() {
   typedef FLOAT T;
   DECL_MAT_VEC_MAP_TYPES_T
-  debugCCBarrierEnergy<T,CCBarrierEnergy<T,Px>>();
-  debugCCBarrierEnergy<T,CCBarrierConvexEnergy<T,Px>>();
+  //debugCCBarrierEnergy<T,CCBarrierEnergy<T,Px>>();
+  //debugCCBarrierEnergy<T,CCBarrierConvexEnergy<T,Px>>();
   debugCCBarrierConvexEnergy<T,CCBarrierMeshEnergy<T,Px>>();
-  debugCCBarrierFrictionEnergy<T,CCBarrierFrictionEnergy<T,Px>>();
-  debugCCBarrierConvexFrictionEnergy<T,CCBarrierMeshFrictionEnergy<T,Px>>();
+  //debugCCBarrierFrictionEnergy<T,CCBarrierFrictionEnergy<T,Px>>();
+  //debugCCBarrierConvexFrictionEnergy<T,CCBarrierMeshFrictionEnergy<T,Px>>();
   return 0;
 }

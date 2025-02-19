@@ -9,7 +9,7 @@ BBoxExact::BBoxExact()
 BBoxExact::BBoxExact(T halfX,T halfY,T halfZ):_minC(-halfX,-halfY,-halfZ),_maxC(halfX,halfY,halfZ),_rad(-1),_center(Vec3T::Zero()) {}
 BBoxExact::BBoxExact(const Vec3T& a,const Vec3T& b):_minC(a.cwiseMin(b)),_maxC(a.cwiseMax(b)),_rad(-1),_center(Vec3T::Zero()) {}
 BBoxExact::BBoxExact(const Vec3T& a,const Vec3T& b,const Vec3T& c) {
-  Vec3T center=(a+b+c)/2.0;
+  Vec3T center=(a+b+c)/3.0;
   T rad=std::max(std::max((center-a).norm(),(center-b).norm()),(center-c).norm());
   _center=center;
   _rad=rad;
@@ -131,7 +131,7 @@ void BBoxExact::setUnion(const BBoxExact& other) {
     _minC[d]=std::min<T>(_minC[d],other._minC[d]);
     _maxC[d]=std::max<T>(_maxC[d],other._maxC[d]);
   }*/
-  if(_rad<0) {
+  if(_rad<=0) {
     _center=other._center;
     _rad=other._rad;
     _minC=other._minC;
@@ -151,9 +151,22 @@ BBoxExact BBoxExact::setUnionSphere(const BBoxExact& other) {
   return BBoxExact(center,rad);
 }
 void BBoxExact::setUnion(const Vec3T& other) {
-  for(int d=0; d<3; d++) {
+  /*for(int d=0; d<3; d++) {
     _minC[d]=std::min<T>(_minC[d],other[d]);
     _maxC[d]=std::max<T>(_maxC[d],other[d]);
+  }*/
+ if(_rad<=0) {
+    _center=other;
+    _rad=1e-6;
+    _minC=other;
+    _maxC=other;
+  }
+  else {
+    Vec3T center=(_center+other)*.5;
+    _rad=(center-_center).norm()+_rad;
+    _center=center;
+    _minC=_center-Vec3T(_rad,_rad,_rad);
+    _maxC=_center+Vec3T(_rad,_rad,_rad);
   }
 }
 void BBoxExact::extendUnion(const T x0){
@@ -176,6 +189,12 @@ BBoxExact::Vec3T& BBoxExact::maxCorner() {
   return _maxC;
 }
 const BBoxExact::Vec3T& BBoxExact::center() const {
+  return _center;
+}
+const BBoxExact::T BBoxExact::rad() const{
+  return _rad;
+}
+BBoxExact::Vec3T& BBoxExact::center() {
   return _center;
 }
 BBoxExact::T BBoxExact::rad() {

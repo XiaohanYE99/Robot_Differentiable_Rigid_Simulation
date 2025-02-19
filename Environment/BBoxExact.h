@@ -45,7 +45,9 @@ struct BBoxExact : public ShapeExact {
   //for SAT
   Vec2T project(const Vec3T& d) const override;
   const Vec3T& center() const;
-  T rad();
+  const T rad() const;
+  Vec3T& center() ;
+  T rad() ;
   std::vector<Facet> facets() const override;
   std::vector<Edge> edges() const override;
   void writeVTK(VTKWriter<double>& os,const Mat3X4T& trans) const override;

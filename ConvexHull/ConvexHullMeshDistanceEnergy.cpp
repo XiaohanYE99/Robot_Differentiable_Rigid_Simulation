@@ -292,100 +292,115 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::evalBvh(std::shared_ptr<MeshExact> c1,std:
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierMeshEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward) const {
   MAll m;
-  T P=0;
   Mat3X4T DTG1,DTG2;
   const auto& bvh1=_p1.getBVH();
   const auto& bvh2=_p2.getBVH();
   //T P1=0,P2=0,P=0;
   int id1=bvh1.size()-1;
   int id2=bvh2.size()-1;
-  ComputePotential(id1,id2,&P,&DTG1,&DTG2,m);
+  ComputePotential(c1,c2,id1,id2,E,&DTG1,&DTG2,m);
   for(int r=0; r<3; r++)
     for(int c=0; c<4; c++) {
-      parallelAdd(grad._DTG(r,c+_p1.jid()*4),DTG1(r,c));
-      parallelAdd(grad._DTG(r,c+_p1.jid()*4),DTG2(r,c));
+      parallelAdd(grad->_DTG(r,c+_p1.jid()*4),DTG1(r,c));
+      parallelAdd(grad->_DTG(r,c+_p2.jid()*4),DTG2(r,c));
     }
-        
-  
   return true;
 }
 template <typename T,typename PFunc,typename TH>
-void CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(int id1, int id2, T* P, Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m) const {
+void CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,int id1, int id2, T* P, Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m) const {
   DTG1->setZero();
   DTG2->setZero();
   *P=0;
   Mat3X4T subDTG1,subDTG2;
   T subP;
-  T P1=0;
   const auto& bvh1=_p1.getBVH();
   const auto& bvh2=_p2.getBVH();
   Vec3T x1=bvh1[id1]._bb.center();
   Vec3T x2=bvh2[id2]._bb.center();
-  T d1=bvh1[id1]._bb._rad+bvh2[id2]._bb._rad;
-  T d2=(1.0+eps)*d1;
+  T d1=bvh1[id1]._bb.rad()+bvh2[id2]._bb.rad();
+  T d2=(1.0+_eps)*d1;
   T dist=((x1-x2).norm()-d1)/(d2-d1);
   T alpha=12*_coef;//*bvh1[id1]._num*bvh2[id2]._num;
-  T Q=sqrt((x1-x2).norm())+_p.template _x0;
-  T phi=0;
-  T P2=alpha*pow((1+Q),2);
+  T Q=sqrt((x1-x2).norm())+_d0;
+  T phi=0,dphi=0;
+  T P2=alpha*pow((1+1.0/Q),2);
+  Vec3T vl1=c1->getBVH()[id1]._bb.center();
+  Vec3T vl2=c2->getBVH()[id2]._bb.center();
   if(dist>1) {
     *P=P2;
-    parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x1-x2)/sqrt((x1-x2).norm()),x1));
-    parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x2-x1)/sqrt((x1-x2).norm()),x2));
+    parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(-alpha*(2.0/(Q*Q)+2.0/(Q*Q*Q))*(x1-x2)/(2*pow((x1-x2).norm(),1.5)),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-alpha*(2.0/(Q*Q)+2.0/(Q*Q*Q))*(x2-x1)/(2*pow((x1-x2).norm(),1.5)),vl2));
     return ;
   }
-  else if(dist>0) phi=6*pow(dist,5)-15*pow(dist,4)+10*pow(dist,3);
+  else if(dist>0) {
+    phi=6*pow(dist,5)-15*pow(dist,4)+10*pow(dist,3);
+    dphi=30*pow(dist,4)-60*pow(dist,3)+30*pow(dist,2);
+  }
   if(bvh1[id1]._cell>=0 && bvh2[id2]._cell>=0) {
     *P=P2;
-    parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x1-x2)/sqrt((x1-x2).norm()),x1));
-    parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x2-x1)/sqrt((x1-x2).norm()),x2));
+    parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(-alpha*(2.0/(Q*Q)+2.0/(Q*Q*Q))*(x1-x2)/(2*pow((x1-x2).norm(),1.5)),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-alpha*(2.0/(Q*Q)+2.0/(Q*Q*Q))*(x2-x1)/(2*pow((x1-x2).norm(),1.5)),vl2));
     return ;
   }
   else if(bvh1[id1]._cell>=0) {
-    ComputePotential(id1,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,m);
-    P1+=subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
-    ComputePotential(id1,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,m);
-    P1+=subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
+    ComputePotential(c1,c2,id1,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,m);
+    *P+=(1-phi)*subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*(x1-x2)/((d2-d1)*(x1-x2).norm()),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(-dphi*(x2-x1)/((d2-d1)*(x1-x2).norm()),vl2));
+    ComputePotential(c1,c2,id1,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,m);
+    *P+=(1-phi)*subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*(x1-x2)/((d2-d1)*(x1-x2).norm()),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(-dphi*(x2-x1)/((d2-d1)*(x1-x2).norm()),vl2));
   }
   else if(bvh2[id2]._cell>=0) {
-    ComputePotential(bvh1[id1]._l,id2,&subP,&subDTG1,&subDTG2,m);
-    P1+=subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
-    ComputePotential(bvh1[id1]._r,id2,&subP,&subDTG1,&subDTG2,m);
-    P1+=subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
+    ComputePotential(c1,c2,bvh1[id1]._l,id2,&subP,&subDTG1,&subDTG2,m);
+    *P+=(1-phi)*subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*(x1-x2)/((d2-d1)*(x1-x2).norm()),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(-dphi*(x2-x1)/((d2-d1)*(x1-x2).norm()),vl2));
+    ComputePotential(c1,c2,bvh1[id1]._r,id2,&subP,&subDTG1,&subDTG2,m);
+    *P+=(1-phi)*subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*(x1-x2)/((d2-d1)*(x1-x2).norm()),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(-dphi*(x2-x1)/((d2-d1)*(x1-x2).norm()),vl2));
   }
   else {
-    ComputePotential(bvh1[id1]._l,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,m);
-    P1+=subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
-    ComputePotential(bvh1[id1]._l,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,m);
-    P1+=subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
-    ComputePotential(bvh1[id1]._r,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,m);
-    P1+=subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
-    ComputePotential(bvh1[id1]._r,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,m);
-    P1+=subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,subDTG2);
+    ComputePotential(c1,c2,bvh1[id1]._l,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,m);
+    *P+=(1-phi)*subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*(x1-x2)/((d2-d1)*(x1-x2).norm()),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(-dphi*(x2-x1)/((d2-d1)*(x1-x2).norm()),vl2));
+    ComputePotential(c1,c2,bvh1[id1]._l,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,m);
+    *P+=(1-phi)*subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*(x1-x2)/((d2-d1)*(x1-x2).norm()),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(-dphi*(x2-x1)/((d2-d1)*(x1-x2).norm()),vl2));
+    ComputePotential(c1,c2,bvh1[id1]._r,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,m);
+    *P+=(1-phi)*subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*(x1-x2)/((d2-d1)*(x1-x2).norm()),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(-dphi*(x2-x1)/((d2-d1)*(x1-x2).norm()),vl2));
+    ComputePotential(c1,c2,bvh1[id1]._r,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,m);
+    *P+=(1-phi)*subP;
+    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*(x1-x2)/((d2-d1)*(x1-x2).norm()),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(-dphi*(x2-x1)/((d2-d1)*(x1-x2).norm()),vl2));
   }
-  //return P=(1-phi)*P1+phi*P2;
-  //return res=res1*(1-phi)+res2*phi;
-  *P=(1-phi)*P1+phi*P2;
-  *DTG1*=(1-phi);
-  *DTG2*=(1-phi);
-  parallelAdd<T,3,4>(*DTG1,0,0,phi*computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x1-x2)/sqrt((x1-x2).norm()),x1));
-  parallelAdd<T,3,4>(*DTG2,0,0,phi*computeDTG<T>(-(2.0/(Q*Q)+1.0/(Q*Q*Q))*(x2-x1)/sqrt((x1-x2).norm()),x2));
+  *P+=phi*P2;
+  parallelAdd<T,3,4>(*DTG1,0,0,P2*computeDTG<T>(dphi*(x1-x2)/((d2-d1)*(x1-x2).norm()),vl1));
+  parallelAdd<T,3,4>(*DTG2,0,0,P2*computeDTG<T>(dphi*(x2-x1)/((d2-d1)*(x1-x2).norm()),vl2));
+  parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(-phi*alpha*(2.0/(Q*Q)+2.0/(Q*Q*Q))*(x1-x2)/(2*pow((x1-x2).norm(),1.5)),vl1));
+  parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-phi*alpha*(2.0/(Q*Q)+2.0/(Q*Q*Q))*(x2-x1)/(2*pow((x1-x2).norm(),1.5)),vl2));
   return ;
 }
 template <typename T,typename PFunc,typename TH>
