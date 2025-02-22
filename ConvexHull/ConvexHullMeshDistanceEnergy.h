@@ -36,6 +36,13 @@ class CCBarrierMeshEnergy : public CCBarrierEnergy<T,PFunc,TH> {
   struct MAll {
     MPair _m11,_m12,_m21,_m22;
   };
+  struct GPair {
+    Vec3T _w=Vec3T::Zero();
+    Vec3T _t=Vec3T::Zero();
+  };
+  struct GAll {
+    GPair _g1,_g2;
+  };
   CCBarrierMeshEnergy(const GJKPolytope<T>& p1,const GJKPolytope<T>& p2,const PFunc& p,T d0,const CollisionGradInfo<T>* grad,T coef,bool implicit=true);
   virtual bool eval(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<Mat3X4T>* DNDX,Vec* GTheta,MatT* HTheta,Vec4T* x=NULL);
   virtual bool evalbackward(T *E,const ArticulatedBody* body,CollisionGradInfo<T>* grad);
@@ -51,10 +58,18 @@ class CCBarrierMeshEnergy : public CCBarrierEnergy<T,PFunc,TH> {
   void computeDTGH(GJKPolytopePtr pss[4],const int vid[4],const ArticulatedBody& body,CollisionGradInfo<T>& grad,const Vec12T& G,const Mat12T& H,MAll& m) const;
   void computeHBackward(GJKPolytopePtr pss[4],const int vid[4],const ArticulatedBody& body,CollisionGradInfo<T>& grad,const Vec12T& G,const Mat12T& H,MAll& m) const;
   void contractHAll(const ArticulatedBody& body,CollisionGradInfo<T>& grad,const MAll& m) const;
-  void ComputePotential(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,int id1, int id2, T* P, Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m) const;
+  void contractMAll(MAll& m,Mat3T Rxi,Mat3T Rxj,Mat3T rxi,Mat3T rxj,Mat6T H) const;
+  void contractGAll(GAll& g,Mat3T Rxi,Mat3T Rxj,Vec3T L) const;
+  void ComputePotential(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,int id1, int id2, T* P,
+                        Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,CollisionGradInfo<T>& grad) const;
+  void addMAll(MAll& m1,MAll& m2,T alpha) const;
+  void addGAll(GAll& g1,GAll& g2,T alpha) const;
+  void clearMAll(MAll& m) const;
+  void clearGAll(GAll& g) const;
+  void mergeGAll(GAll& g1,GAll& g2,MAll& m) const;
   bool _useBVH=true;
   bool _useLRI=true;
-  T _eps=1.0;
+  T _eps=1.;
 };
 }
 #endif

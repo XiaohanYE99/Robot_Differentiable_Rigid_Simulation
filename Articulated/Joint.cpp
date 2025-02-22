@@ -142,7 +142,7 @@ std::string Joint::typeToString(JOINT_TYPE type) {
 #undef T2S
 }
 BBoxExact Joint::getBB(const Mat3X4T& t) const {
-  std::vector<Eigen::Matrix<double,3,1>> vss;
+  /*std::vector<Eigen::Matrix<double,3,1>> vss;
   std::vector<Eigen::Matrix<int,3,1>> iss;
   if(_mesh)
     _mesh->getMesh(vss,iss);
@@ -155,6 +155,14 @@ BBoxExact Joint::getBB(const Mat3X4T& t) const {
   for(const Eigen::Matrix<double,3,1>& v:vss)
     rad=std::max(rad,((ROT(t)*v.template cast<T>()+CTR(t)).template cast<BBoxExact::T>()-center).norm());
   BBoxExact bb(center,rad);
+  return bb;*/
+  std::vector<Eigen::Matrix<double,3,1>> vss;
+  std::vector<Eigen::Matrix<int,3,1>> iss;
+  if(_mesh)
+    _mesh->getMesh(vss,iss);
+  BBoxExact bb;
+  for(const Eigen::Matrix<double,3,1>& v:vss)
+    bb.setUnion((ROT(t)*v.template cast<T>()+CTR(t)).template cast<BBoxExact::T>());
   return bb;
 }
 Joint::Mat3XT Joint::getAxes(bool& markX,bool& markY,bool& markZ,const Mat3XT* t) const {

@@ -53,7 +53,7 @@ class ConvHullPBDSimulator : public Simulator {
   void setPos(const Vec& pos) override;
   Vec vel() const override;
   void setVel(const Vec& vel) override;
-  void setclass(Vec c);
+  void setclass(Eigen::Matrix<int,-1,1> c);
   void setCoefBarrier(T coefBarrier);
   void debugEnergy(T scale,const T* customDelta=NULL);
   void debugBackward(T scale,const T* customDelta=NULL);

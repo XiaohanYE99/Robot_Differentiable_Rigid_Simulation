@@ -72,5 +72,8 @@
                 "typeinfo": "cpp",
                 "valarray": "cpp",
                 "variant": "cpp"
-        }
+        },
+        "cmake.configureArgs": [
+                "-DFLOAT_PRECISION=double"
+        ]
 }

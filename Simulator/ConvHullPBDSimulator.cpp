@@ -19,7 +19,7 @@ void setMesh(Joint& J,const Eigen::Matrix<GEOMETRY_SCALAR,-1,1>& X) {
   mesh->setMesh(X);
   mesh->init(mesh->vss(),mesh->iss(),true);
 }
-ConvHullPBDSimulator::ConvHullPBDSimulator(T dt):Simulator(dt),_gTol(1e-4f),_alpha(1e-6f),_epsV(1e-1f),_coefBarrier(1e-2),_hardLimit(false),_maxIt(1e4) {
+ConvHullPBDSimulator::ConvHullPBDSimulator(T dt):Simulator(dt),_gTol(1e-4f),_alpha(1e-6f),_epsV(1e-1f),_coefBarrier(1e-16),_hardLimit(false),_maxIt(1e4) {
   _barrier._x0=10000;//0.01
   _sol.reset(new PBDMatrixSolverEigen(_body));
 }
@@ -106,7 +106,7 @@ ConvHullPBDSimulator::Vec ConvHullPBDSimulator::getGlobalPoints(bool backward) {
   }
   return ConvexPoints;
 }
-void ConvHullPBDSimulator::setclass(Vec c){
+void ConvHullPBDSimulator::setclass(Eigen::Matrix<int,-1,1> c){
   for(int k=0; k<=_body->nrJ(); k++) {
     //control
     Joint& J=_body->joint(k);
