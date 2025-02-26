@@ -97,7 +97,7 @@ ContactGenerator& Simulator::getContact() {
     _contact.reset(new ContactGenerator(_body,_shapes));
   PBDArticulatedGradientInfo<T> info(*_body,pos());
   ContactGenerator::Mat3XT t=info._TM.template cast<GEOMETRY_SCALAR>();
-  _contact->updateBVH(t);
+  //_contact->updateBVH(t);
   return *_contact;
 }
 void Simulator::setGravity(const Vec3T& g) {

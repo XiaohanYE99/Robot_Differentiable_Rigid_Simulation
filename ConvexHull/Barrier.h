@@ -73,17 +73,17 @@ struct Px {
 };
 struct Logx {
   template <typename T>
-  T eval(T d,T*D,T* DD,T d0,T coef) const {
+  T eval(T d,T* D,T* DD,T d0,T coef) const {
     T P;
     T x=d-d0;
     if(x<0)
       return std::numeric_limits<T>::infinity();
     else {
-      P=-coef*log(x);
+      P=1.0/x;
       if(D)
-        *D=-coef/x;
+        *D=-1.0/(x*x);
       if(DD)
-        *DD=coef/(x*x);
+        *DD=2.0/(x*x*x);
     }
     return P;
   }

@@ -1187,8 +1187,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceConvexEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullMeshDistanceEnergy.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceFrictionEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceConvexEnergy.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceFrictionEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullMeshDistanceFrictionEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullMeshDistanceEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedUtils.h \

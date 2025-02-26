@@ -25,10 +25,10 @@ void debugCCBarrierConvexEnergy() {
   //ArticulatedUtils(*body).makeConvex();
 
   Px barrier;
-  barrier._x0=1000.0;
+  barrier._x0=.1;
   T d0=1e-3;
   GJKPolytope<T> p(mesh);
-  //CCEnergyType::debugGradient(p,*body,7,barrier._x0,d0);
+  CCEnergyType::debugGradient(p,*body,7,barrier._x0,d0);
   CCEnergyType::debugGradient(*body,4,7,barrier._x0,d0);
 }
 template <typename T,typename CCEnergyType>
@@ -104,7 +104,7 @@ int main() {
   DECL_MAT_VEC_MAP_TYPES_T
   //debugCCBarrierEnergy<T,CCBarrierEnergy<T,Px>>();
   //debugCCBarrierEnergy<T,CCBarrierConvexEnergy<T,Px>>();
-  debugCCBarrierConvexEnergy<T,CCBarrierMeshEnergy<T,Px>>();
+  debugCCBarrierConvexEnergy<T,CCBarrierMeshEnergy<T,Logx>>();
   //debugCCBarrierFrictionEnergy<T,CCBarrierFrictionEnergy<T,Px>>();
   //debugCCBarrierConvexFrictionEnergy<T,CCBarrierMeshFrictionEnergy<T,Px>>();
   return 0;

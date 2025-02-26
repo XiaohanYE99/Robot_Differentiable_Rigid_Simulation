@@ -45,6 +45,24 @@ class CCBarrierEnergy : public CCDistanceEnergy<T> {
   typedef Eigen::Matrix<TH,4,4> Mat4TH;
   using CCDistanceEnergy<T>::_p1;
   using CCDistanceEnergy<T>::_p2;
+  struct MPair {
+    Mat3T _Mww=Mat3T::Zero();
+    Mat3T _Mwt=Mat3T::Zero();
+    Mat3T _Mtw=Mat3T::Zero();
+    Mat3T _Mtt=Mat3T::Zero();
+    Mat3T _DMwt=Mat3T::Zero();
+    Mat3T _DMww=Mat3T::Zero();
+  };
+  struct MAll {
+    MPair _m11,_m12,_m21,_m22;
+  };
+  struct GPair {
+    Vec3T _w=Vec3T::Zero();
+    Vec3T _t=Vec3T::Zero();
+  };
+  struct GAll {
+    GPair _g1,_g2;
+  };
   CCBarrierEnergy(const GJKPolytope<T>& p1,const GJKPolytope<T>& p2,const PFunc& p,T d0,const CollisionGradInfo<T>* grad,T coef,bool implicit=true);
   virtual ~CCBarrierEnergy() {}
   bool update(Vec4T* res);
@@ -52,6 +70,8 @@ class CCBarrierEnergy : public CCDistanceEnergy<T> {
   virtual bool initialize(Vec4T* res,const ArticulatedBody* body);
   void initialize(const Vec4T& x);
   virtual bool eval(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<Mat3X4T>* DNDX,Vec* GTheta,MatT* HTheta,Vec4T* x=NULL);
+  bool evalLRI(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<Mat3X4T>* DNDX,Vec* GTheta,MatT* HTheta,
+               Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,Vec4T* x=NULL);
   virtual bool evalBackward(const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<MatX3T>* HThetaD1,std::vector<MatX3T>* HThetaD2);
   static void debugGradient(bool implicit,const GJKPolytope<T>& p,const ArticulatedBody& body,int JID,T x0,T d0=0.01,bool output=false);
   static void debugGradient(bool implicit,const ArticulatedBody& body,int JID,int JID2,T x0,T d0=0.01,bool output=false);
@@ -68,10 +88,13 @@ class CCBarrierEnergy : public CCDistanceEnergy<T> {
   virtual void sensitivity(const Vec4T& x,const Vec4T& G,const Mat4T& H,Mat4T& invH) const;
   virtual void energyPDTGH(const Vec3T& v,const Vec3T& vl,const Vec4T& x,Mat3X4T* DTG,
                            const Vec3T& Rvl,Mat3X4T* LRH,Mat3X4T* wLRH,
-                           Mat3T* Mww,Mat3T* Mtw,Mat3T* Mwt,Mat3T* Mtt) const;
+                           Mat3T* Mww,Mat3T* Mtw,Mat3T* Mwt,Mat3T* Mtt,GAll* g=NULL) const;
   virtual void energyNDTGH(const Vec3T& v,const Vec3T& vl,const Vec4T& x,Mat3X4T* DTG,
                            const Vec3T& Rvl,Mat3X4T* LRH,Mat3X4T* wLRH,
-                           Mat3T* Mww,Mat3T* Mtw,Mat3T* Mwt,Mat3T* Mtt) const;
+                           Mat3T* Mww,Mat3T* Mtw,Mat3T* Mwt,Mat3T* Mtt,GAll* g=NULL) const;
+  void computeDTGHLRI(const ArticulatedBody& body,CollisionGradInfo<T>& info,
+                      const Vec4T& x,const Vec4T* G,const Mat4T* H,std::vector<Mat3X4T>* DNDX,
+                      Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g) const;
   virtual void computeDTGH(const ArticulatedBody& body,CollisionGradInfo<T>& info,
                            const Vec4T& x,const Vec4T* G,const Mat4T* H,std::vector<Mat3X4T>* DNDX) const;
   void computeHBackward(const ArticulatedBody& body,CollisionGradInfo<T>& info,
@@ -91,6 +114,7 @@ class CCBarrierEnergy : public CCDistanceEnergy<T> {
   bool _implicit;
   bool _output;
   Vec4TH _x;
+  const CollisionGradInfo<T>* _grad;
 };
 }
 #endif

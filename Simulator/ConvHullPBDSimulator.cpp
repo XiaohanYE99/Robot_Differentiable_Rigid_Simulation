@@ -19,8 +19,8 @@ void setMesh(Joint& J,const Eigen::Matrix<GEOMETRY_SCALAR,-1,1>& X) {
   mesh->setMesh(X);
   mesh->init(mesh->vss(),mesh->iss(),true);
 }
-ConvHullPBDSimulator::ConvHullPBDSimulator(T dt):Simulator(dt),_gTol(1e-4f),_alpha(1e-6f),_epsV(1e-1f),_coefBarrier(1e-16),_hardLimit(false),_maxIt(1e4) {
-  _barrier._x0=10000;//0.01
+ConvHullPBDSimulator::ConvHullPBDSimulator(T dt):Simulator(dt),_gTol(1e-4f),_alpha(1e-6f),_epsV(1e-1f),_coefBarrier(1e-8),_hardLimit(false),_maxIt(1e4) {
+  _barrier._x0=0.01;
   _sol.reset(new PBDMatrixSolverEigen(_body));
 }
 void ConvHullPBDSimulator::clearShape() {
@@ -759,19 +759,20 @@ void ConvHullPBDSimulator::detectContact(const Mat3XT& t) {
   _manifolds.clear();
   if(!_contact)
     _contact.reset(new ContactGenerator(_body,_shapes));
-  GEOMETRY_SCALAR x0=10000;//2*(_barrier._x0+_d0)/(1-_barrier._x0);
+  GEOMETRY_SCALAR x0=2*(_barrier._x0+_d0)/(1-_barrier._x0);
   _contact->generateManifolds(x0,true,_manifolds,t.template cast<GEOMETRY_SCALAR>());
 }
 bool ConvHullPBDSimulator::detectLastContact() {
   detectContact(_pos._info._TM);
-  Vec DE;
+  /*Vec DE;
   T e=normalEnergy(_pos,&DE,false);
   if(!isfinite(e))
     return false;
   _manifoldsLast.clear();
   for(auto &m:_manifolds)
     _manifoldsLast.push_back(m);
-  return !_manifoldsLast.empty();
+  return !_manifoldsLast.empty();*/
+  return true;
 }
 void ConvHullPBDSimulator::update(const GradInfo& newPos,GradInfo& newPos2,Vec& D,const Vec& DE,const MatT& DDE,T alpha) const {
   MatT DDER=DDE;
@@ -803,7 +804,7 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(GradInfo& grad,Vec* DE) {
   grad._centre.resize(nrJ);
   //contact
   E+=normalEnergy(grad,DE);
-  E+=tangentEnergy(grad,DE);
+  //E+=tangentEnergy(grad,DE);
   for(int k=0; k<nrJ; k++) {
     const Joint& J=_body->joint(k);
     nrD=J.nrDOF();
@@ -829,10 +830,10 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(GradInfo& grad,Vec* DE) {
     //PD controller
     E+=energyPDController(mapV2CV(grad._info._xM),mapV2CV(_pos._info._xM),k,J,nrD,DE,&(grad._HTheta));
     //joint limit
-    if(_hardLimit) {
+    /*if(_hardLimit) {
       if(!JointLimit::energy(mapV2CV(grad._info._xM),J,nrD,E,DE,&(grad._HTheta),_barrier))
         return std::numeric_limits<double>::infinity();
-    } else E+=JointLimit::energy(mapV2CV(grad._info._xM),J,nrD,DE,&(grad._HTheta));
+    } else*/ E+=JointLimit::energy(mapV2CV(grad._info._xM),J,nrD,DE,&(grad._HTheta));
   }
   if(!isfinite(E))
     return E;

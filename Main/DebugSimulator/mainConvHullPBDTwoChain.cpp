@@ -12,7 +12,7 @@ int main(int argc,char** argv) {
   //create body
   std::vector<ArticulatedBody> bodies(2);
   std::shared_ptr<ArticulatedBody> body(new ArticulatedBody);
-  std::shared_ptr<ShapeExact> floor(new BBoxExact(BBoxExact::Vec3T(-150,-150,-8),BBoxExact::Vec3T(30,30,-1)));
+  std::shared_ptr<ShapeExact> floor(new BBoxExact(BBoxExact::Vec3T(-15,-15,-8),BBoxExact::Vec3T(30,30,-1)));
   {
     tinyxml2::XMLDocument pt;
     pt.InsertEndChild(pt.NewElement("root"));
@@ -30,8 +30,8 @@ int main(int argc,char** argv) {
   ArticulatedUtils(*body).combine(bodies);
   CTR(body->joint(7)._trans)=Vec3T(0,0,.5).template cast<ArticulatedBody::T>();
   //simulator
-  //MeshBasedPBDSimulator sim(0.01f);
-  ConvHullPBDSimulator sim(0.01f);
+  MeshBasedPBDSimulator sim(0.01f);
+  //ConvHullPBDSimulator sim(0.01f);
   sim.setArticulatedBody(body);
   sim.addShape(floor);
   sim.setGravity(Vec3T(0,0,-9.81f));

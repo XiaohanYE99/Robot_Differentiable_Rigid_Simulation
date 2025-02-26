@@ -18,7 +18,8 @@ void MeshBasedPBDSimulator::detectContact(const Mat3XT& t) {
 }
 MeshBasedPBDSimulator::T MeshBasedPBDSimulator::normalEnergy(GradInfo& grad,Vec* DE,bool backward) {
   T E=0;
-  OMP_PARALLEL_FOR_
+  //std::cout<<_manifolds.size()<<std::endl;
+  //OMP_PARALLEL_FOR_
   for(int id=0; id<(int)_manifolds.size(); id++) {
     if(!isfinite(E))
       continue;

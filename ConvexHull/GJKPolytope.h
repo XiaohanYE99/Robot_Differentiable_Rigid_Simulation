@@ -15,6 +15,7 @@ class GJKPolytope : public SerializableBase {
   using SerializableBase::write;
   GJKPolytope();
   GJKPolytope(int JID,const ArticulatedBody& body,const CollisionGradInfo<T>& info);
+  GJKPolytope(int JID,std::shared_ptr<MeshExact> mesh,const CollisionGradInfo<T>& info);
   GJKPolytope(std::shared_ptr<MeshExact> mesh);
   bool read(std::istream& is,IOData* dat) override;
   bool write(std::ostream& os,IOData* dat) const override;
@@ -27,7 +28,7 @@ class GJKPolytope : public SerializableBase {
   const Mat3X4T& trans() const;
   std::shared_ptr<MeshExact> mesh() const;
   const std::vector<Node<int,BBoxExact>>& getBVH() const;
-  void resetGlobalVss(const CollisionGradInfo<T>* info);
+  void resetGlobalVss(const CollisionGradInfo<T>* info,bool buildBVH=true);
   void writeVTK(const std::string& path) const;
   void writeVTK(VTKWriter<double>& os) const;
   static void writeConfigVTK(const std::string& path,

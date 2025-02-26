@@ -12,7 +12,7 @@ struct MeshExact : public ShapeExact {
   MeshExact(const std::string& path,bool buildBVH=true);
   MeshExact(const aiScene* scene,bool buildBVH=true);
   MeshExact(std::vector<Eigen::Matrix<double,3,1>>& vss,
-            std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBSH=true,bool buildBVH=false);
+            std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH=true,bool buildBSH=true);
   MeshExact(std::vector<Eigen::Matrix<double,3,1>>& vss,
             std::vector<Eigen::Matrix<double,2,1>>& tcss,
             std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH=true);
@@ -21,7 +21,7 @@ struct MeshExact : public ShapeExact {
             std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH=true);
   template <typename T2>
   void init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
-            const std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBSH=true,bool buildBVH=false);
+            const std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH=true,bool buildBSH=true);
   template <typename T2>
   void init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
             const std::vector<Eigen::Matrix<T2,2,1>>& tcss,

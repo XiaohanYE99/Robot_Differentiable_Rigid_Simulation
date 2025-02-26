@@ -26,8 +26,8 @@ class CCBarrierMeshFrictionEnergy : public CCBarrierMeshEnergy<T,PFunc,TH> {
   using CCBarrierEnergy<T,PFunc,TH>::initialize;
   using CCBarrierEnergy<T,PFunc,TH>::debugEnergy;
   typedef GJKPolytope<T> const* GJKPolytopePtr;
-  using typename CCBarrierMeshEnergy<T,PFunc,TH>::MAll;
-  using typename CCBarrierMeshEnergy<T,PFunc,TH>::MPair;
+  using typename CCBarrierEnergy<T,PFunc,TH>::MAll;
+  using typename CCBarrierEnergy<T,PFunc,TH>::MPair;
   struct FrictionTerm {
     FrictionTerm();
     FrictionTerm(const Eigen::Matrix<int,4,1>& pss,const Eigen::Matrix<int,4,1>& vid,const Vec3T V[4],const Vec4T& bary,const Vec3T& n,T D);

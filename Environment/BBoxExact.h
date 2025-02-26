@@ -2,6 +2,7 @@
 #define BBOX_EXACT_H
 
 #include "ShapeExact.h"
+#include <unordered_set>
 
 namespace PHYSICSMOTION {
 struct BBoxExact : public ShapeExact {
@@ -11,7 +12,8 @@ struct BBoxExact : public ShapeExact {
   BBoxExact(T halfX,T halfY,T halfZ);
   BBoxExact(const Vec3T& a,const Vec3T& b);
   BBoxExact(const Vec3T& a,const Vec3T& b,const Vec3T& c);
-  BBoxExact(const Vec3T& center,const T rad); //External BBox
+  BBoxExact(const Vec3T& a,const Vec3T& b,const Vec3T& c,int iss0,int iss1,int iss2);
+  BBoxExact(const Vec3T& center,const T rad,int iss0,int iss1,int iss2); //External BBox
   virtual bool read(std::istream& is,IOData* dat) override;
   virtual bool write(std::ostream& os,IOData* dat) const override;
   virtual std::shared_ptr<SerializableBase> copy() const override;
@@ -25,7 +27,8 @@ struct BBoxExact : public ShapeExact {
                     std::vector<Vec3T>* history=NULL) const override;
   void scale(T coef) override;
   void setUnion(const BBoxExact& other);
-  BBoxExact setUnionSphere(const BBoxExact& other);
+  //BBoxExact setUnionSphere(const BBoxExact& other);
+  void setUnion(const Vec3T& other,int iss);
   void setUnion(const Vec3T& other);
   void extendUnion(const T x0);
   const Vec3T& minCorner() const;
@@ -45,12 +48,14 @@ struct BBoxExact : public ShapeExact {
   //for SAT
   Vec2T project(const Vec3T& d) const override;
   const Vec3T& center() const;
+  void set_center(Vec3T c);
   const T rad() const;
   Vec3T& center() ;
   T rad() ;
   std::vector<Facet> facets() const override;
   std::vector<Edge> edges() const override;
   void writeVTK(VTKWriter<double>& os,const Mat3X4T& trans) const override;
+  std::unordered_map<int,Vec3T> _points;
  protected:
   static void makeGrid(std::vector<Eigen::Matrix<double,3,1>>& vss,std::vector<Eigen::Matrix<int,3,1>>& iss,
                        int RESX,int RESY,const Eigen::Matrix<double,3,1>& ctr,const Eigen::Matrix<double,3,1>& d0,const Eigen::Matrix<double,3,1>& d1);
@@ -63,6 +68,7 @@ struct BBoxExact : public ShapeExact {
   Vec3T vertex(int id) const;
   Vec3T _minC,_maxC,_center;
   T _rad;
+  int _num;
 };
 }
 

@@ -16,7 +16,7 @@ bool CCDistanceEnergy<T>::eval(T* E,Vec12T* G,Mat12T* H) {
 //CCBarrierEnergy
 template <typename T,typename PFunc,typename TH>
 CCBarrierEnergy<T,PFunc,TH>::CCBarrierEnergy(const GJKPolytope<T>& p1,const GJKPolytope<T>& p2,const PFunc& p,T d0,const CollisionGradInfo<T>* grad,T coef,bool implicit)
-  :CCDistanceEnergy<T>(p1,p2),_p(p),_d0(d0),_d0Half(d0/2),_coef(coef),_implicit(implicit),_output(false) {}
+  :CCDistanceEnergy<T>(p1,p2),_p(p),_d0(d0),_d0Half(d0/2),_coef(coef),_implicit(implicit),_output(false),_grad(grad) {}
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierEnergy<T,PFunc,TH>::update(Vec4T* res) {
   TH E;
@@ -82,7 +82,7 @@ bool CCBarrierEnergy<T,PFunc,TH>::eval(T* E,const ArticulatedBody* body,Collisio
     }
     //optimize
     if(!optimize(_x,E2,G2,H2)) {
-      std::cout<<"Cannot optimize"<<std::endl;
+      //std::cout<<"Cannot optimize"<<std::endl;
       return false;
     }
     if(E)
@@ -129,13 +129,62 @@ bool CCBarrierEnergy<T,PFunc,TH>::eval(T* E,const ArticulatedBody* body,Collisio
   return true;
 }
 template <typename T,typename PFunc,typename TH>
+bool CCBarrierEnergy<T,PFunc,TH>::evalLRI(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<Mat3X4T>* DNDX,Vec* GTheta,MatT* HTheta,
+     Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,Vec4T* x) {
+  TH E2;
+  Vec4TH G2;
+  Mat4TH H2;
+  if(_implicit) {
+    if(!initialize(NULL,body)) {
+      //std::cout<<"Cannot initialize"<<std::endl;
+      return false;
+    }
+    //optimize
+    if(!optimize(_x,E2,G2,H2)) {
+      std::cout<<"Cannot optimize"<<std::endl;
+      return false;
+    }
+    if(E)
+      *E=_coef*(T)E2;
+    if(E2==0) {
+      if(GTheta)
+        GTheta->setZero(body->nrDOF());
+      return true;
+    }
+  } else {
+    //initialize(NULL,body);
+    //compute energy
+    if(!energy(_x,E2,NULL,NULL))
+      return false;
+    if(E)
+      *E=_coef*(T)E2;
+    if(E2==0) {
+      if(GTheta)
+        GTheta->setZero(body->nrDOF());
+      return true;
+    }
+  }
+  if(x)
+    (*x)=_x.template cast<T>();
+  //compute gradient and hessian
+  if(body && grad) {
+    Vec4T G=G2.template cast<T>();
+    Mat4T H=H2.template cast<T>();
+    bool hessian=grad && grad->_HTheta.size()>0;
+    computeDTGHLRI(*body,*grad,_x.template cast<T>(),
+                hessian? &G: NULL,hessian? &H: NULL,DNDX,
+                DTG1,DTG2,m,g);
+  }
+  return true;
+}
+template <typename T,typename PFunc,typename TH>
 bool CCBarrierEnergy<T,PFunc,TH>::evalBackward(const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<MatX3T>* HThetaD1,std::vector<MatX3T>* HThetaD2) {
   TH E2;
   Vec4TH G2;
   Mat4TH H2;
   if(_implicit) {
     if(!initialize(NULL,body)) {
-      std::cout<<"Cannot initialize"<<std::endl;
+      //std::cout<<"Cannot initialize"<<std::endl;
       return false;
     }
     //optimize
@@ -458,7 +507,7 @@ void CCBarrierEnergy<T,PFunc,TH>::sensitivity(const Vec4T& x,const Vec4T& G,cons
 template <typename T,typename PFunc,typename TH>
 void CCBarrierEnergy<T,PFunc,TH>::energyPDTGH(const Vec3T& v,const Vec3T& vl,const Vec4T& x,Mat3X4T* DTG,
     const Vec3T& Rvl,Mat3X4T* LRH,Mat3X4T* wLRH,
-    Mat3T* Mww,Mat3T* Mtw,Mat3T* Mwt,Mat3T* Mtt) const {
+    Mat3T* Mww,Mat3T* Mtw,Mat3T* Mwt,Mat3T* Mtt,GAll* g) const {
   Mat3T nntDD,C=cross<T>(Rvl);
   Mat3X4T DDEDXDTheta;
   T D=0,DD=0,d=v.dot(x.template segment<3>(0))-x[3];
@@ -467,6 +516,10 @@ void CCBarrierEnergy<T,PFunc,TH>::energyPDTGH(const Vec3T& v,const Vec3T& vl,con
     return;
   if(DTG)
     parallelAdd<T,3,4>(*DTG,0,0,computeDTG<T>(x.template segment<3>(0)*D*_coef,vl));
+  if(g){
+    g->_g1._w+=C*(x.template segment<3>(0)*D*_coef);
+    g->_g1._t+=(x.template segment<3>(0)*D*_coef);
+  }
   if(LRH && wLRH) {
     ROT(DDEDXDTheta)=(x.template segment<3>(0)*v.transpose())*DD+Mat3T::Identity()*D;
     CTR(DDEDXDTheta)=-x.template segment<3>(0)*DD;
@@ -484,7 +537,7 @@ void CCBarrierEnergy<T,PFunc,TH>::energyPDTGH(const Vec3T& v,const Vec3T& vl,con
 template <typename T,typename PFunc,typename TH>
 void CCBarrierEnergy<T,PFunc,TH>::energyNDTGH(const Vec3T& v,const Vec3T& vl,const Vec4T& x,Mat3X4T* DTG,
     const Vec3T& Rvl,Mat3X4T* LRH,Mat3X4T* wLRH,
-    Mat3T* Mww,Mat3T* Mtw,Mat3T* Mwt,Mat3T* Mtt) const {
+    Mat3T* Mww,Mat3T* Mtw,Mat3T* Mwt,Mat3T* Mtt,GAll* g) const {
   Mat3T nntDD,C=cross<T>(Rvl);
   Mat3X4T DDEDXDTheta;
   T D=0,DD=0,d=x[3]-v.dot(x.template segment<3>(0));
@@ -493,6 +546,10 @@ void CCBarrierEnergy<T,PFunc,TH>::energyNDTGH(const Vec3T& v,const Vec3T& vl,con
     return;
   if(DTG)
     parallelAdd<T,3,4>(*DTG,0,0,computeDTG<T>(-x.template segment<3>(0)*D*_coef,vl));
+  if(g){
+    g->_g2._w+=C*(-x.template segment<3>(0)*D*_coef);
+    g->_g2._t+=(-x.template segment<3>(0)*D*_coef);
+  }
   if(LRH && wLRH) {
     ROT(DDEDXDTheta)=(x.template segment<3>(0)*v.transpose())*DD-Mat3T::Identity()*D;
     CTR(DDEDXDTheta)=-x.template segment<3>(0)*DD;
@@ -688,6 +745,93 @@ void CCBarrierEnergy<T,PFunc,TH>::computeHBackward(const ArticulatedBody& body,C
       for(int i=0; i<body.nrDOF(); i++)
         for(int j=0; j<3; j++)
           parallelAdd(info._HThetaD(i,j+(_p2.getVertexId()[0]+c)*3),HThetaD2->at(c)(i,j));
+    }
+  }
+}
+template <typename T,typename PFunc,typename TH>
+void CCBarrierEnergy<T,PFunc,TH>::computeDTGHLRI(const ArticulatedBody& body,CollisionGradInfo<T>& info,
+    const Vec4T& x,const Vec4T* G,const Mat4T* H,std::vector<Mat3X4T>* DNDX,
+    Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g) const {
+  Mat3X4T wDDEDXDTheta1,tDDEDXDTheta1;
+  Mat3X4T wDDEDXDTheta2,tDDEDXDTheta2;
+  Mat3T Mww,Mtw,Mwt,Mtt,R;
+  Mat4T S,Hxx;
+  if(DNDX) DNDX->resize(4);
+  if(G && H && _implicit) {
+    sensitivity(x,*G,*H,S);
+    Hxx=-S*_coef;
+  }
+  //positive
+  if(_p1.jid()>=0) {
+    if(G && H) {
+      wDDEDXDTheta1.setZero();
+      tDDEDXDTheta1.setZero();
+      Mww=Mtw=Mwt=Mtt=Mat3T::Zero();
+      R=ROTI(info._info._TM,_p1.jid());
+      Mat3X4T trans1=TRANSI(info._info._TM,_p1.jid());
+    }
+    //stage 1
+    DTG1->setZero();
+    std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(_p1.mesh());
+    for(int c=0; c<_p1.globalVss().cols(); c++)
+      energyPDTGH(_p1.globalVss().col(c),local->vss()[c].template cast<T>(),x,DTG1,
+                  R*local->vss()[c].template cast<T>(),(G && H && _implicit)? &tDDEDXDTheta1: NULL,&wDDEDXDTheta1,
+                  (G && H)? &(m._m11._Mww): NULL,&(m._m11._Mtw),&(m._m11._Mwt),&(m._m11._Mtt),&g);
+    //stage 2
+    if(G && H) {
+      if(_implicit) {
+        m._m11._Mww+=wDDEDXDTheta1*(Hxx*wDDEDXDTheta1.transpose());
+        m._m11._Mtw+=tDDEDXDTheta1*(Hxx*wDDEDXDTheta1.transpose());
+        m._m11._Mwt+=wDDEDXDTheta1*(Hxx*tDDEDXDTheta1.transpose());
+        m._m11._Mtt+=tDDEDXDTheta1*(Hxx*tDDEDXDTheta1.transpose());
+        if(DNDX){
+          DNDX->at(0)=wDDEDXDTheta1*Hxx;
+          DNDX->at(1)=tDDEDXDTheta1*Hxx;
+        } 
+      }
+    }
+  }
+  //negative
+  if(_p2.jid()>=0) {
+    if(G && H) {
+      wDDEDXDTheta2.setZero();
+      tDDEDXDTheta2.setZero();
+      Mww=Mtw=Mwt=Mtt=Mat3T::Zero();
+      R=ROTI(info._info._TM,_p2.jid());
+    }
+    //stage 1
+    DTG2->setZero();
+    std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(_p2.mesh());
+    for(int c=0; c<_p2.globalVss().cols(); c++)
+      energyNDTGH(_p2.globalVss().col(c),local->vss()[c].template cast<T>(),x,DTG2,
+                  R*local->vss()[c].template cast<T>(),(G && H && _implicit)? &tDDEDXDTheta2: NULL,&wDDEDXDTheta2,
+                  (G && H)? &(m._m22._Mww): NULL,&(m._m22._Mtw),&(m._m22._Mwt),&(m._m22._Mtt),&g);
+    //stage 2
+    if(G && H) {
+      if(_implicit) {
+        m._m22._Mww+=wDDEDXDTheta2*(Hxx*wDDEDXDTheta2.transpose());
+        m._m22._Mtw+=tDDEDXDTheta2*(Hxx*wDDEDXDTheta2.transpose());
+        m._m22._Mwt+=wDDEDXDTheta2*(Hxx*tDDEDXDTheta2.transpose());
+        m._m22._Mtt+=tDDEDXDTheta2*(Hxx*tDDEDXDTheta2.transpose());
+        if(DNDX){
+          DNDX->at(2)=wDDEDXDTheta2*Hxx;
+          DNDX->at(3)=tDDEDXDTheta2*Hxx;
+        } 
+      }
+    }
+  }
+  //positive/negative
+  if(_p1.jid()>=0 && _p2.jid()>=0 && _implicit) {
+    //stage 2
+    if(G && H) {
+      m._m12._Mww=wDDEDXDTheta1*Hxx*wDDEDXDTheta2.transpose();
+      m._m12._Mtw=tDDEDXDTheta1*Hxx*wDDEDXDTheta2.transpose();
+      m._m12._Mwt=wDDEDXDTheta1*Hxx*tDDEDXDTheta2.transpose();
+      m._m12._Mtt=tDDEDXDTheta1*Hxx*tDDEDXDTheta2.transpose();
+      m._m21._Mww=(wDDEDXDTheta1*Hxx*wDDEDXDTheta2.transpose()).transpose();
+      m._m21._Mwt=(tDDEDXDTheta1*Hxx*wDDEDXDTheta2.transpose()).transpose();
+      m._m21._Mtw=(wDDEDXDTheta1*Hxx*tDDEDXDTheta2.transpose()).transpose();
+      m._m21._Mtt=(tDDEDXDTheta1*Hxx*tDDEDXDTheta2.transpose()).transpose();
     }
   }
 }

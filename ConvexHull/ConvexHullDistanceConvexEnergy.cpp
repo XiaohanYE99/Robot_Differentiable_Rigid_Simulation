@@ -25,14 +25,14 @@ bool CCBarrierConvexEnergy<T,PFunc,TH>::initialize(Vec4T* res,const ArticulatedB
     _x=Vec4TH((TH)-n[0],(TH)-n[1],(TH)-n[2],(TH)-(r1[1]+r2[0])/2);
   } else {
     if(r2[1]>=r1[0]-_d0) {
-      /*OMP_CRITICAL_{
+      OMP_CRITICAL_{
         std::cout<<"Strange error, GJK predicts separation by "<<dist
                  <<" but the projected intervals are not separate, "
                  <<"range=["<<r1[0]<<","<<r1[1]<<"] and ["<<r2[0]<<","<<r2[1]<<"]"<<std::endl;
         GJKPolytope<T>::writeConfigVTK("GJKConfig.vtk",_p1,_p2,p1,p2);
         GJKPolytope<T>::writeConfig("GJKConfig.dat",_p1,_p2);
         //ASSERT(false)
-      }*/
+      }
       return false;
     }
     _x=Vec4TH((TH)n[0],(TH)n[1],(TH)n[2],(TH)(r2[1]+r1[0])/2);

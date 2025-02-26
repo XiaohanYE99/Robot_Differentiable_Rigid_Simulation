@@ -19291,6 +19291,7 @@ CMakeFiles/PhysicsMotion.dir/ConvexHull/ConvexHullMeshDistanceEnergy.cpp.o: ../C
   ../Utils/VTKWriter.h \
   ../Utils/Utils.h \
   ../Environment/BBoxExact.h \
+  ../ConvexHull/ConvexHullDistanceConvexEnergy.h \
   ../Environment/ConvexHullExact.h \
   ../Environment/EdgeExact.h \
   ../Environment/MeshExact.h \
@@ -20601,6 +20602,7 @@ CMakeFiles/PhysicsMotion.dir/ConvexHull/ConvexHullMeshDistanceFrictionEnergy.cpp
   ../Utils/VTKWriter.h \
   ../Utils/Utils.h \
   ../Environment/BBoxExact.h \
+  ../ConvexHull/ConvexHullDistanceConvexEnergy.h \
   ../Environment/DistanceFunction.h \
   ../Utils/Interp.h \
   ../Utils/CrossSpatialUtils.h \
@@ -25638,6 +25640,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/BBoxExact.cpp.o: ../Environment/BBoxExa
   /usr/include/boost/functional/hash.hpp \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Utils/IO.h \
   ../Utils/Serializable.h \
   /usr/include/eigen3/Eigen/Sparse \
@@ -25717,8 +25721,6 @@ CMakeFiles/PhysicsMotion.dir/Environment/BBoxExact.cpp.o: ../Environment/BBoxExa
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h \
   ../Utils/VTKWriter.h \
   ../Utils/Pragma.h \
   ../Utils/Utils.h \
@@ -26913,6 +26915,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/BVHNode.cpp.o: ../Environment/BVHNode.c
   ../Environment/BBoxExact.h \
   ../Environment/ShapeExact.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Utils/Heap.h \
   ../Utils/IO.h \
   ../Utils/Serializable.h \
@@ -26993,8 +26997,6 @@ CMakeFiles/PhysicsMotion.dir/Environment/BVHNode.cpp.o: ../Environment/BVHNode.c
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h \
   /usr/include/c++/11/stack \
   /usr/include/c++/11/bits/stl_stack.h
 
@@ -29438,6 +29440,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/CompositeShapeExact.cpp.o: ../Environme
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
   ../Environment/BBoxExact.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Environment/MeshExact.h \
   ../Environment/TriangleExact.h \
   ../Environment/ConvexHullExact.h \
@@ -29522,8 +29526,6 @@ CMakeFiles/PhysicsMotion.dir/Environment/CompositeShapeExact.cpp.o: ../Environme
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h \
   ../Utils/Utils.h \
   ../Utils/Pragma.h \
   ../Utils/DebugGradient.h \
@@ -32032,6 +32034,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/ConvexDecomposition.cpp.o: ../Environme
   ../Utils/Pragma.h \
   ../Environment/TriangleExact.h \
   ../Environment/BBoxExact.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Articulated/ArticulatedBody.h \
   ../Articulated/Joint.h \
   ../Environment/ShapeExact.h \
@@ -32119,8 +32123,6 @@ CMakeFiles/PhysicsMotion.dir/Environment/ConvexDecomposition.cpp.o: ../Environme
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h \
   ../Environment/MeshExact.h \
   /usr/include/tinyxml2.h \
   ../Articulated/ArticulatedUtils.h \
@@ -33326,6 +33328,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/ConvexHullExact.cpp.o: ../Environment/C
   /usr/include/boost/functional/hash.hpp \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Environment/MeshExact.h \
   ../Environment/TriangleExact.h \
   ../Utils/DebugGradient.h \
@@ -33421,8 +33425,6 @@ CMakeFiles/PhysicsMotion.dir/Environment/ConvexHullExact.cpp.o: ../Environment/C
   /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h \
   /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h \
   /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h \
   /usr/include/assimp/scene.h \
   /usr/include/assimp/types.h \
   /usr/include/assimp/defs.h \
@@ -34639,6 +34641,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/DeformedEnvironment.cpp.o: ../Environme
   /usr/include/boost/functional/hash.hpp \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Environment/MeshExact.h \
   ../Environment/TriangleExact.h \
   ../Utils/SparseUtils.h \
@@ -34736,9 +34740,7 @@ CMakeFiles/PhysicsMotion.dir/Environment/DeformedEnvironment.cpp.o: ../Environme
   ../Environment/BBoxExact.h \
   ../Utils/Interp.h \
   ../Utils/IO.h \
-  ../Utils/Serializable.h \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h
+  ../Utils/Serializable.h
 
 CMakeFiles/PhysicsMotion.dir/Environment/DistanceFunction.cpp.o: ../Environment/DistanceFunction.cpp \
   /usr/include/stdc-predef.h \
@@ -36014,7 +36016,9 @@ CMakeFiles/PhysicsMotion.dir/Environment/DistanceFunction.cpp.o: ../Environment/
   ../Environment/BVHNode.h \
   ../Environment/EnvironmentUtils.h \
   ../Utils/Serializable.h \
-  ../Utils/Pragma.h
+  ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h
 
 CMakeFiles/PhysicsMotion.dir/Environment/EdgeExact.cpp.o: ../Environment/EdgeExact.cpp \
   /usr/include/stdc-predef.h \
@@ -37198,6 +37202,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/EdgeExact.cpp.o: ../Environment/EdgeExa
   /usr/include/boost/functional/hash.hpp \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Utils/IO.h \
   ../Utils/Serializable.h \
   /usr/include/eigen3/Eigen/Sparse \
@@ -37276,9 +37282,7 @@ CMakeFiles/PhysicsMotion.dir/Environment/EdgeExact.cpp.o: ../Environment/EdgeExa
   /usr/include/c++/11/fstream \
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
-  /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h
+  /usr/include/c++/11/bits/fstream.tcc
 
 CMakeFiles/PhysicsMotion.dir/Environment/Environment.cpp.o: ../Environment/Environment.cpp \
   /usr/include/stdc-predef.h \
@@ -38462,6 +38466,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/Environment.cpp.o: ../Environment/Envir
   /usr/include/boost/functional/hash.hpp \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Environment/MeshExact.h \
   ../Environment/TriangleExact.h \
   ../Utils/DebugGradient.h \
@@ -38545,8 +38551,6 @@ CMakeFiles/PhysicsMotion.dir/Environment/Environment.cpp.o: ../Environment/Envir
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h \
   /usr/include/c++/11/random \
   /usr/include/c++/11/bits/random.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/opt_random.h \
@@ -39738,6 +39742,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/EnvironmentUtils.cpp.o: ../Environment/
   /usr/include/boost/functional/hash.hpp \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Environment/MeshExact.h \
   ../Environment/TriangleExact.h \
   ../Utils/RotationUtils.h \
@@ -39884,8 +39890,6 @@ CMakeFiles/PhysicsMotion.dir/Environment/EnvironmentUtils.cpp.o: ../Environment/
   /usr/include/boost/predef/hardware/simd/ppc.h \
   /usr/include/boost/predef/hardware/simd/ppc/versions.h \
   /usr/include/boost/predef/version.h \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h \
   /usr/include/c++/11/thread \
   /usr/include/c++/11/bits/std_thread.h \
   /usr/include/c++/11/bits/this_thread_sleep.h \
@@ -42573,6 +42577,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/EnvironmentVisualizer.cpp.o: ../Environ
   /usr/include/boost/functional/hash.hpp \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Environment/MeshExact.h \
   ../Environment/TriangleExact.h \
   ../Environment/ContactGenerator.h \
@@ -42663,8 +42669,6 @@ CMakeFiles/PhysicsMotion.dir/Environment/EnvironmentVisualizer.cpp.o: ../Environ
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h \
   ../Environment/MeshExact.h \
   /usr/include/tinyxml2.h \
   /usr/local/include/TinyVisualizer/Drawer.h \
@@ -43878,6 +43882,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/GJK.cpp.o: ../Environment/GJK.cpp \
   ../Utils/Pragma.h \
   ../Environment/TriangleExact.h \
   ../Environment/BBoxExact.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Environment/PointCloudExact.h \
   ../Environment/MeshExact.h \
   /usr/include/c++/11/stack \
@@ -45162,6 +45168,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/MeshExact.cpp.o: ../Environment/MeshExa
   ../Utils/Pragma.h \
   ../Environment/TriangleExact.h \
   ../Environment/BBoxExact.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Utils/VTKWriter.h \
   ../Utils/Pragma.h \
   ../Utils/Utils.h \
@@ -45254,8 +45262,6 @@ CMakeFiles/PhysicsMotion.dir/Environment/MeshExact.cpp.o: ../Environment/MeshExa
   /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h \
   /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h \
   /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h \
   /usr/include/assimp/scene.h \
   /usr/include/assimp/types.h \
   /usr/include/assimp/defs.h \
@@ -46471,6 +46477,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/PointCloudExact.cpp.o: ../Environment/P
   /usr/include/boost/functional/hash.hpp \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Environment/MeshExact.h \
   ../Environment/TriangleExact.h \
   ../Utils/VTKWriter.h \
@@ -46565,9 +46573,7 @@ CMakeFiles/PhysicsMotion.dir/Environment/PointCloudExact.cpp.o: ../Environment/P
   /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/LeastSquareConjugateGradient.h \
   /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h \
   /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h \
-  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h
+  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h
 
 CMakeFiles/PhysicsMotion.dir/Environment/SAT.cpp.o: ../Environment/SAT.cpp \
   /usr/include/stdc-predef.h \
@@ -49048,7 +49054,9 @@ CMakeFiles/PhysicsMotion.dir/Environment/ShapeExact.cpp.o: ../Environment/ShapeE
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  ../Environment/BBoxExact.h
+  ../Environment/BBoxExact.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h
 
 CMakeFiles/PhysicsMotion.dir/Environment/SphericalBBoxExact.cpp.o: ../Environment/SphericalBBoxExact.cpp \
   /usr/include/stdc-predef.h \
@@ -50232,6 +50240,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/SphericalBBoxExact.cpp.o: ../Environmen
   /usr/include/boost/functional/hash.hpp \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Utils/IO.h \
   ../Utils/Serializable.h \
   /usr/include/eigen3/Eigen/Sparse \
@@ -50310,9 +50320,7 @@ CMakeFiles/PhysicsMotion.dir/Environment/SphericalBBoxExact.cpp.o: ../Environmen
   /usr/include/c++/11/fstream \
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
-  /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h
+  /usr/include/c++/11/bits/fstream.tcc
 
 CMakeFiles/PhysicsMotion.dir/Environment/TriangleExact.cpp.o: ../Environment/TriangleExact.cpp \
   /usr/include/stdc-predef.h \
@@ -51496,6 +51504,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/TriangleExact.cpp.o: ../Environment/Tri
   /usr/include/boost/functional/hash.hpp \
   /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
   ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../Utils/IO.h \
   ../Utils/Serializable.h \
   /usr/include/eigen3/Eigen/Sparse \
@@ -51574,9 +51584,7 @@ CMakeFiles/PhysicsMotion.dir/Environment/TriangleExact.cpp.o: ../Environment/Tri
   /usr/include/c++/11/fstream \
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
-  /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/unordered_set \
-  /usr/include/c++/11/bits/unordered_set.h
+  /usr/include/c++/11/bits/fstream.tcc
 
 CMakeFiles/PhysicsMotion.dir/Simulator/ConvHullPBDSimulator.cpp.o: ../Simulator/ConvHullPBDSimulator.cpp \
   /usr/include/stdc-predef.h \
@@ -70454,7 +70462,9 @@ CMakeFiles/PhysicsMotion.dir/Utils/VTKWriter.cpp.o: ../Utils/VTKWriter.cpp \
   /usr/include/eigen3/Eigen/src/Eigenvalues/RealQZ.h \
   /usr/include/eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
   ../Utils/Serializable.h \
-  ../Utils/Pragma.h
+  ../Utils/Pragma.h \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h
 
 
 ../Utils/VTKWriter.cpp:

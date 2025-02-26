@@ -1185,6 +1185,7 @@ CMakeFiles/PhysicsMotion.dir/ConvexHull/ConvexHullMeshDistanceEnergy.cpp.o: \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/VTKWriter.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Utils.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BBoxExact.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceConvexEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ConvexHullExact.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EdgeExact.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/MeshExact.h \

@@ -161,8 +161,8 @@ BBoxExact Joint::getBB(const Mat3X4T& t) const {
   if(_mesh)
     _mesh->getMesh(vss,iss);
   BBoxExact bb;
-  for(const Eigen::Matrix<double,3,1>& v:vss)
-    bb.setUnion((ROT(t)*v.template cast<T>()+CTR(t)).template cast<BBoxExact::T>());
+  for(int i=0;i<vss.size();i++)
+    bb.setUnion((ROT(t)*vss[i].template cast<T>()+CTR(t)).template cast<BBoxExact::T>(),i);
   return bb;
 }
 Joint::Mat3XT Joint::getAxes(bool& markX,bool& markY,bool& markZ,const Mat3XT* t) const {

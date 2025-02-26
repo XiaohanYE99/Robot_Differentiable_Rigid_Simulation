@@ -19,7 +19,7 @@ class ConvHullPBDSimulator : public Simulator {
  public:
   typedef CollisionGradInfo<T> GradInfo;
   typedef GJKPolytope<T> GJ;
-  typedef CLogx Barrier;
+  typedef Logx Barrier;
   DECL_MAP_FUNCS
   ConvHullPBDSimulator(T dt);
   virtual void clearShape() override;

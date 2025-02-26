@@ -99,7 +99,7 @@ ContactGenerator::ContactGenerator(std::shared_ptr<ArticulatedBody> body,std::ve
   Node<int,BBoxExact>::buildBVHBottomUp(_dynamicBVH,edgeMap,true);
 }
 void ContactGenerator::generateManifolds(T x0,bool useCCD,std::vector<ContactManifold>& manifolds,Mat3XT t,int status) {
-  updateBVH(t,x0);
+  //updateBVH(t,x0);
   std::stack<std::pair<int,int>> ss;
   //static-static
   if((status&STATIC_STATIC) && !_staticBVH.empty()) {

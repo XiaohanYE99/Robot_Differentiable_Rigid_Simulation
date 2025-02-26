@@ -20,6 +20,14 @@ GJKPolytope<T>::GJKPolytope(int JID,const ArticulatedBody& body,const CollisionG
   resetGlobalVss(&info);
 }
 template <typename T>
+GJKPolytope<T>::GJKPolytope(int JID,std::shared_ptr<MeshExact> mesh,const CollisionGradInfo<T>& info){
+  _jid=JID;
+  _jidP=-1;
+  _mesh=mesh;
+  if(_jid>=0) resetGlobalVss(&info);
+  else resetGlobalVss(NULL);
+}
+template <typename T>
 GJKPolytope<T>::GJKPolytope(std::shared_ptr<MeshExact> mesh) {
   _jid=-1;
   _jidP=-1;
@@ -81,25 +89,29 @@ const std::vector<Node<int,BBoxExact>>& GJKPolytope<T>::getBVH() const {
   return _bvh;
 }
 template <typename T>
-void GJKPolytope<T>::resetGlobalVss(const CollisionGradInfo<T>* info) {
+void GJKPolytope<T>::resetGlobalVss(const CollisionGradInfo<T>* info,bool buildBVH) {
   if(info) _trans=TRANSI(info->_info._TM,_jid);
   else _trans.setIdentity();
   _globalVss.resize(3,_mesh->vss().size());
   for(int i=0; i<(int)_mesh->vss().size(); i++)
     _globalVss.col(i)=ROT(_trans)*_mesh->vss()[i].template cast<T>()+CTR(_trans);
   //update bvh
-  _bvh=_mesh->getBVH();
-  for(int i=0; i<(int)_bvh.size(); i++)
-    if(_bvh[i]._cell>=0) {
-      Eigen::Matrix<int,3,1> iss=_mesh->iss()[_bvh[i]._cell];
-      _bvh[i]._bb=BBoxExact(_globalVss.col(iss[0]).template cast<GEOMETRY_SCALAR>(),
-                            _globalVss.col(iss[1]).template cast<GEOMETRY_SCALAR>(),
-                            _globalVss.col(iss[2]).template cast<GEOMETRY_SCALAR>());
-    } else if(_bvh[i]._cell<0) {
-      _bvh[i]._bb=BBoxExact();
-      _bvh[i]._bb.setUnion(_bvh[_bvh[i]._l]._bb);
-      _bvh[i]._bb.setUnion(_bvh[_bvh[i]._r]._bb);
+  if(buildBVH){
+    _bvh=_mesh->getBVH();
+    for(int i=0; i<(int)_bvh.size(); i++){
+      /*if(_bvh[i]._cell>=0) {
+        Eigen::Matrix<int,3,1> iss=_mesh->iss()[_bvh[i]._cell];
+        _bvh[i]._bb=BBoxExact(_globalVss.col(iss[0]).template cast<GEOMETRY_SCALAR>(),
+                              _globalVss.col(iss[1]).template cast<GEOMETRY_SCALAR>(),
+                              _globalVss.col(iss[2]).template cast<GEOMETRY_SCALAR>());
+      } else if(_bvh[i]._cell<0) {
+        _bvh[i]._bb=BBoxExact();
+        _bvh[i]._bb.setUnion(_bvh[_bvh[i]._l]._bb);
+        _bvh[i]._bb.setUnion(_bvh[_bvh[i]._r]._bb);
+      }*/
+     _bvh[i]._bb.set_center(ROT(_trans)*_bvh[i]._bb.center()+CTR(_trans));
     }
+  }
 }
 template <typename T>
 void GJKPolytope<T>::writeVTK(const std::string& path) const {

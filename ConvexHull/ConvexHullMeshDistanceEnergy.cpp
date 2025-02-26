@@ -293,26 +293,34 @@ template <typename T,typename PFunc,typename TH>
 bool CCBarrierMeshEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward) const {
   MAll m;
   GAll g;
+  bool flag=true;
   Mat3X4T DTG1,DTG2;
-  Mat3T G1,G2;
   const auto& bvh1=_p1.getBVH();
   const auto& bvh2=_p2.getBVH();
   //T P1=0,P2=0,P=0;
   int id1=bvh1.size()-1;
   int id2=bvh2.size()-1;
-  ComputePotential(c1,c2,id1,id2,E,&DTG1,&DTG2,m,g,*grad);
-  for(int r=0; r<3; r++)
-    for(int c=0; c<4; c++) {
-      parallelAdd(grad->_DTG(r,c+_p1.jid()*4),DTG1(r,c));
-      parallelAdd(grad->_DTG(r,c+_p2.jid()*4),DTG2(r,c));
-    }
+  ComputePotential(c1,c2,id1,id2,E,&DTG1,&DTG2,m,g,grad,*body,&flag);
+  if(!flag) return false;
+  if(body && grad) {
+    if(_p1.jid()>=0)
+      for(int r=0; r<3; r++)
+        for(int c=0; c<4; c++)
+          parallelAdd(grad->_DTG(r,c+_p1.jid()*4),DTG1(r,c));
+    if(_p2.jid()>=0)
+      for(int r=0; r<3; r++)
+        for(int c=0; c<4; c++)
+          parallelAdd(grad->_DTG(r,c+_p2.jid()*4),DTG2(r,c));
+  }
   if(body && grad && !backward)
     contractHAll(*body,*grad,m);
   return true;
 }
 template <typename T,typename PFunc,typename TH>
-void CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,int id1, int id2, T* P,
-     Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,CollisionGradInfo<T>& grad) const {
+bool CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,int id1, int id2, T* P,
+     Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,CollisionGradInfo<T>* grad,
+     const ArticulatedBody& body,bool* flag) const {
+  if(!(*flag)) return false;
   clearMAll(m);
   clearGAll(g);
   DTG1->setZero();
@@ -323,6 +331,9 @@ void CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact
   GAll tmpg;
   Mat3X4T subDTG1,subDTG2;
   Vec3T D1,D2;
+  Mat3T Rxi,Rxj;
+  Rxi.setZero();
+  Rxj.setZero();
   T subP;
   const auto& bvh1=_p1.getBVH();
   const auto& bvh2=_p2.getBVH();
@@ -331,9 +342,10 @@ void CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact
   Vec3T deltax=x1-x2;
   T d1=bvh1[id1]._bb.rad()+bvh2[id2]._bb.rad();
   T d2=(1.0+_eps)*d1;
+  //T d=deltax.norm()+_d0;
   T dist=(deltax.norm()-d1)/(d2-d1);
   T alpha=12*_coef;//*bvh1[id1]._num*bvh2[id2]._num;
-  T Q=sqrt(deltax.norm())+_d0;
+  T Q=sqrt(deltax.norm());//-_d0;
   T phi=0,dphi=0,ddphi=0;
   T P2=alpha*pow((1+1.0/Q),2);
   T D=-2.0/(Q*Q)-2.0/(Q*Q*Q);
@@ -347,23 +359,28 @@ void CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact
   DDPhi.setZero();
   Vec3T vl1=c1->getBVH()[id1]._bb.center();
   Vec3T vl2=c2->getBVH()[id2]._bb.center();
-  Mat3T Rxi=cross<T>(ROTI(grad._info._TM,_p1.jid())*vl1);
-  Mat3T Rxj=cross<T>(ROTI(grad._info._TM,_p2.jid())*vl2);
-  Mat3T rxi,rxj;
+  //if(_p1.jid()==-1) std::cout<<x1;
+  if(grad){
+    if(_p1.jid()>=0) Rxi=cross<T>(ROTI(grad->_info._TM,_p1.jid())*vl1);
+    if(_p2.jid()>=0) Rxj=cross<T>(ROTI(grad->_info._TM,_p2.jid())*vl2);
+  }
   if(dist>1) {
     *P=P2;
-    parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl2));
-    contractGAll(g,Rxi,Rxj,alpha*D*deltax/(2*pow(deltax.norm(),1.5)));
-    DQ=deltax/(2*pow(deltax.norm(),1.5));
-    DDP=DD*DQ*DQ.transpose()+D*(Mat3T::Identity()/(2*pow(deltax.norm(),1.5))-3*deltax*deltax.transpose()/(4*pow(deltax.norm(),3.5)));
-    h=alpha*DDP;
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
-    return ;
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl2));
+      contractGAll(g,Rxi,Rxj,alpha*D*deltax/(2*pow(deltax.norm(),1.5)));
+      DQ=deltax/(2*pow(deltax.norm(),1.5));
+      DDP=DD*DQ*DQ.transpose()+D*(Mat3T::Identity()/(2*pow(deltax.norm(),1.5))-3*deltax*deltax.transpose()/(4*pow(deltax.norm(),3.5)));
+      h=alpha*DDP;
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+    }
+    return *flag;
   }
   else if(dist>0) {
     phi=6*pow(dist,5)-15*pow(dist,4)+10*pow(dist,3);
@@ -371,207 +388,280 @@ void CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact
     ddphi=120*pow(dist,3)-180*pow(dist,2)+60*dist;
   }
   if(bvh1[id1]._cell>=0 && bvh2[id2]._cell>=0) {
-    *P=P2;
-    parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl2));
-    contractGAll(g,Rxi,Rxj,alpha*D*deltax/(2*pow(deltax.norm(),1.5)));
-    DQ=deltax/(2*pow(deltax.norm(),1.5));
-    DDP=DD*DQ*DQ.transpose()+D*(Mat3T::Identity()/(2*pow(deltax.norm(),1.5))-3*deltax*deltax.transpose()/(4*pow(deltax.norm(),3.5)));
-    h=alpha*DDP;
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
-    return ;
+    *P+=phi*P2;
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,P2*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,P2*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+      parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(phi*alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-phi*alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl2));
+      contractGAll(g,Rxi,Rxj,P2*dphi*deltax/((d2-d1)*deltax.norm())+phi*alpha*D*deltax/(2*pow(deltax.norm(),1.5)));
+      DQ=deltax/(2*pow(deltax.norm(),1.5));
+      DDP=DD*DQ*DQ.transpose()+D*(Mat3T::Identity()/(2*pow(deltax.norm(),1.5))-3*deltax*deltax.transpose()/(4*pow(deltax.norm(),3.5)));
+      DDPhi=ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1);
+      h=alpha*(DDPhi*P2/alpha+dphi*deltax/((d2-d1)*deltax.norm())*D*DQ.transpose()
+              +D*DQ*dphi*deltax.transpose()/((d2-d1)*deltax.norm())+DDP*phi);
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+    }
+
+    std::vector<Vec3T> vssA,vssB;
+    std::vector<Eigen::Matrix<int,3,1>> iss;
+    iss.push_back(Eigen::Matrix<int,3,1>(0,1,2));
+    for(auto &pair : c1->getBVH()[id1]._bb._points) vssA.push_back(pair.second);
+    for(auto &pair : c2->getBVH()[id2]._bb._points) vssB.push_back(pair.second);   
+    std::shared_ptr<MeshExact> m1(new MeshExact(vssA,iss,false,false));
+    std::shared_ptr<MeshExact> m2(new MeshExact(vssB,iss,false,false));
+    GJKPolytope<T>mA=GJKPolytope<T>(_p1.jid(),m1,*_grad);
+    GJKPolytope<T>mB=GJKPolytope<T>(_p2.jid(),m2,*_grad);
+    CCBarrierConvexEnergy<T,PFunc> cc(mA,mB,_p,_d0,_grad,_coef);
+    T val=0;
+    clearMAll(subm);
+    clearGAll(subg);
+    subDTG1.setZero();
+    subDTG2.setZero();
+    if(!cc.evalLRI(&val,&body,grad,NULL,NULL,NULL,&subDTG1,&subDTG2,subm,subg)) *flag=false;
+    *P+=(1-phi)*val;
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+      parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+      parallelAdd<T,3,4>(*DTG1,0,0,val*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,val*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+      addGAll(g,subg,1-phi);
+      contractGAll(g,Rxi,Rxj,val*-dphi*deltax/((d2-d1)*deltax.norm()));
+      DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
+      h=DDPhi*val;
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+      clearGAll(tmpg);
+      contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
+      mergeGAll(tmpg,subg,m);
+      mergeGAll(subg,tmpg,m);
+      addMAll(m,subm,1-phi);
+    }
+    return *flag;
   }
   else if(bvh1[id1]._cell>=0) {
-    ComputePotential(c1,c2,id1,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,subm,subg,grad);
+    ComputePotential(c1,c2,id1,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,subm,subg,grad,body,flag);
     *P+=(1-phi)*subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
-    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-    addGAll(g,subg,1-phi);
-    contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
-    DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
-    h=DDPhi*subP;
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
-    clearGAll(tmpg);
-    contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
-    mergeGAll(tmpg,subg,m);
-    mergeGAll(subg,tmpg,m);
-    addMAll(m,subm,1-phi);
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+      parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+      parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+      addGAll(g,subg,1-phi);
+      contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
+      DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
+      h=DDPhi*subP;
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+      clearGAll(tmpg);
+      contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
+      mergeGAll(tmpg,subg,m);
+      mergeGAll(subg,tmpg,m);
+      addMAll(m,subm,1-phi);
+    }
 
-    ComputePotential(c1,c2,id1,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,subm,subg,grad);
+    ComputePotential(c1,c2,id1,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,subm,subg,grad,body,flag);
     *P+=(1-phi)*subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
-    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-    addGAll(g,subg,1-phi);
-    contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
-    DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
-    h=DDPhi*subP;
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
-    clearGAll(tmpg);
-    contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
-    mergeGAll(tmpg,subg,m);
-    mergeGAll(subg,tmpg,m);
-    addMAll(m,subm,1-phi);
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+      parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+      parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+      addGAll(g,subg,1-phi);
+      contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
+      DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
+      h=DDPhi*subP;
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+      clearGAll(tmpg);
+      contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
+      mergeGAll(tmpg,subg,m);
+      mergeGAll(subg,tmpg,m);
+      addMAll(m,subm,1-phi);
+    }
   }
   else if(bvh2[id2]._cell>=0) {
-    ComputePotential(c1,c2,bvh1[id1]._l,id2,&subP,&subDTG1,&subDTG2,subm,subg,grad);
+    ComputePotential(c1,c2,bvh1[id1]._l,id2,&subP,&subDTG1,&subDTG2,subm,subg,grad,body,flag);
     *P+=(1-phi)*subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
-    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-    addGAll(g,subg,1-phi);
-    contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
-    DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
-    h=DDPhi*subP;
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
-    clearGAll(tmpg);
-    contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
-    mergeGAll(tmpg,subg,m);
-    mergeGAll(subg,tmpg,m);
-    addMAll(m,subm,1-phi);
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+      parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+      parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+      addGAll(g,subg,1-phi);
+      contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
+      DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
+      h=DDPhi*subP;
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+      clearGAll(tmpg);
+      contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
+      mergeGAll(tmpg,subg,m);
+      mergeGAll(subg,tmpg,m);
+      addMAll(m,subm,1-phi);
+    }
 
-    ComputePotential(c1,c2,bvh1[id1]._r,id2,&subP,&subDTG1,&subDTG2,subm,subg,grad);
+    ComputePotential(c1,c2,bvh1[id1]._r,id2,&subP,&subDTG1,&subDTG2,subm,subg,grad,body,flag);
     *P+=(1-phi)*subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
-    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-    addGAll(g,subg,1-phi);
-    contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
-    DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
-    h=DDPhi*subP;
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
-    clearGAll(tmpg);
-    contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
-    mergeGAll(tmpg,subg,m);
-    mergeGAll(subg,tmpg,m);
-    addMAll(m,subm,1-phi);
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+      parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+      parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+      addGAll(g,subg,1-phi);
+      contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
+      DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
+      h=DDPhi*subP;
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+      clearGAll(tmpg);
+      contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
+      mergeGAll(tmpg,subg,m);
+      mergeGAll(subg,tmpg,m);
+      addMAll(m,subm,1-phi);
+    }
   }
   else {
-    ComputePotential(c1,c2,bvh1[id1]._l,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,subm,subg,grad);
+    ComputePotential(c1,c2,bvh1[id1]._l,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,subm,subg,grad,body,flag);
     *P+=(1-phi)*subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
-    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-    addGAll(g,subg,1-phi);
-    contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
-    DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
-    h=DDPhi*subP;
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
-    clearGAll(tmpg);
-    contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
-    mergeGAll(tmpg,subg,m);
-    mergeGAll(subg,tmpg,m);
-    addMAll(m,subm,1-phi);
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+      parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+      parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+      addGAll(g,subg,1-phi);
+      contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
+      DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
+      h=DDPhi*subP;
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+      clearGAll(tmpg);
+      contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
+      mergeGAll(tmpg,subg,m);
+      mergeGAll(subg,tmpg,m);
+      addMAll(m,subm,1-phi);
+    }
 
-    ComputePotential(c1,c2,bvh1[id1]._l,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,subm,subg,grad);
+    ComputePotential(c1,c2,bvh1[id1]._l,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,subm,subg,grad,body,flag);
     *P+=(1-phi)*subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
-    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-    addGAll(g,subg,1-phi);
-    contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
-    DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
-    h=DDPhi*subP;
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
-    clearGAll(tmpg);
-    contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
-    mergeGAll(tmpg,subg,m);
-    mergeGAll(subg,tmpg,m);
-    addMAll(m,subm,1-phi);
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+      parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+      parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+      addGAll(g,subg,1-phi);
+      contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
+      DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
+      h=DDPhi*subP;
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+      clearGAll(tmpg);
+      contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
+      mergeGAll(tmpg,subg,m);
+      mergeGAll(subg,tmpg,m);
+      addMAll(m,subm,1-phi);
+    }
 
-    ComputePotential(c1,c2,bvh1[id1]._r,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,subm,subg,grad);
+    ComputePotential(c1,c2,bvh1[id1]._r,bvh2[id2]._l,&subP,&subDTG1,&subDTG2,subm,subg,grad,body,flag);
     *P+=(1-phi)*subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
-    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-    addGAll(g,subg,1-phi);
-    contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
-    DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
-    h=DDPhi*subP;
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
-    clearGAll(tmpg);
-    contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
-    mergeGAll(tmpg,subg,m);
-    mergeGAll(subg,tmpg,m);
-    addMAll(m,subm,1-phi);
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+      parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+      parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+      addGAll(g,subg,1-phi);
+      contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
+      DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
+      h=DDPhi*subP;
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+      clearGAll(tmpg);
+      contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
+      mergeGAll(tmpg,subg,m);
+      mergeGAll(subg,tmpg,m);
+      addMAll(m,subm,1-phi);
+    }
 
-    ComputePotential(c1,c2,bvh1[id1]._r,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,subm,subg,grad);
+    ComputePotential(c1,c2,bvh1[id1]._r,bvh2[id2]._r,&subP,&subDTG1,&subDTG2,subm,subg,grad,body,flag);
     *P+=(1-phi)*subP;
-    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
-    parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-    addGAll(g,subg,1-phi);
-    contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
-    DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
-    h=DDPhi*subP;
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
-    clearGAll(tmpg);
-    contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
-    mergeGAll(tmpg,subg,m);
-    mergeGAll(subg,tmpg,m);
-    addMAll(m,subm,1-phi);
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+      parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+      parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+      parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+      addGAll(g,subg,1-phi);
+      contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
+      DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
+      h=DDPhi*subP;
+      H.setZero();
+      H.template block<3,3>(0,0)=h;
+      H.template block<3,3>(0,3)=-h;
+      H.template block<3,3>(3,0)=-h;
+      H.template block<3,3>(3,3)=h;
+      contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+      clearGAll(tmpg);
+      contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
+      mergeGAll(tmpg,subg,m);
+      mergeGAll(subg,tmpg,m);
+      addMAll(m,subm,1-phi);
+    }
   }
   *P+=phi*P2;
-  parallelAdd<T,3,4>(*DTG1,0,0,P2*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl1));
-  parallelAdd<T,3,4>(*DTG2,0,0,P2*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-  parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(phi*alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl1));
-  parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-phi*alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl2));
-  contractGAll(g,Rxi,Rxj,P2*dphi*deltax/((d2-d1)*deltax.norm())+phi*alpha*D*deltax/(2*pow(deltax.norm(),1.5)));
-  DQ=deltax/(2*pow(deltax.norm(),1.5));
-  DDP=DD*DQ*DQ.transpose()+D*(Mat3T::Identity()/(2*pow(deltax.norm(),1.5))-3*deltax*deltax.transpose()/(4*pow(deltax.norm(),3.5)));
-  DDPhi=ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1);
-  h=alpha*(DDPhi*P2/alpha+dphi*deltax/((d2-d1)*deltax.norm())*D*DQ.transpose()
-          +D*DQ*dphi*deltax.transpose()/((d2-d1)*deltax.norm())+DDP*phi);
-  H.template block<3,3>(0,0)=h;
-  H.template block<3,3>(0,3)=-h;
-  H.template block<3,3>(3,0)=-h;
-  H.template block<3,3>(3,3)=h;
-  contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+  if(grad){
+    parallelAdd<T,3,4>(*DTG1,0,0,P2*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,P2*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+    parallelAdd<T,3,4>(*DTG1,0,0,computeDTG<T>(phi*alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,computeDTG<T>(-phi*alpha*D*deltax/(2*pow(deltax.norm(),1.5)),vl2));
+    contractGAll(g,Rxi,Rxj,P2*dphi*deltax/((d2-d1)*deltax.norm())+phi*alpha*D*deltax/(2*pow(deltax.norm(),1.5)));
+    DQ=deltax/(2*pow(deltax.norm(),1.5));
+    DDP=DD*DQ*DQ.transpose()+D*(Mat3T::Identity()/(2*pow(deltax.norm(),1.5))-3*deltax*deltax.transpose()/(4*pow(deltax.norm(),3.5)));
+    DDPhi=ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1);
+    h=alpha*(DDPhi*P2/alpha+dphi*deltax/((d2-d1)*deltax.norm())*D*DQ.transpose()
+            +D*DQ*dphi*deltax.transpose()/((d2-d1)*deltax.norm())+DDP*phi);
+    H.setZero();
+    H.template block<3,3>(0,0)=h;
+    H.template block<3,3>(0,3)=-h;
+    H.template block<3,3>(3,0)=-h;
+    H.template block<3,3>(3,3)=h;
+    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+  }
   /*Vec dx=Vec::Random(3);
   Vec3T g=dphi*deltax/deltax.norm()/(d2-d1)*pow((1+1.0/Q),2)+deltax/(2*pow(deltax.norm(),1.5))*phi;
   deltax+=dx*1e-8;
@@ -581,7 +671,7 @@ void CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact
   Q=sqrt(deltax.norm())+_d0;
   Vec3T g2=dphi*deltax/deltax.norm()/(d2-d1)*pow((1+1.0/Q),2)+deltax/(2*pow(deltax.norm(),1.5))*phi;
   std::cout<<(H*dx).norm()<<" "<<((H*dx)-(g2-g)/1e-8).norm()<<std::endl;*/
-  return ;
+  return *flag;
 }
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierMeshEnergy<T,PFunc,TH>::evalEE(GJKPolytopePtr pss[4],int vid[4],T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,MAll& m,bool backward) const {

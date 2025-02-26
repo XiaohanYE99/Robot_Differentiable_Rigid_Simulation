@@ -25,8 +25,8 @@ MeshExact::MeshExact(const aiScene* scene,bool buildBVH) {
   init(scene,NULL,vss,iss,buildBVH);
 }
 MeshExact::MeshExact(std::vector<Eigen::Matrix<double,3,1>>& vss,
-                     std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBSH,bool buildBVH) {
-  ASSERT_MSG(!(buildBVH && buildBSH),"Cannot build BVH and BSH simultaneously !")
+                     std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH,bool buildBSH) {
+  //ASSERT_MSG(!(buildBVH && buildBSH),"Cannot build BVH and BSH simultaneously !")
   if(buildBVH || buildBSH) {
     makeUniform(iss);
     if(volume(vss,iss)<0)
@@ -102,7 +102,7 @@ void MeshExact::init(const aiScene* scene,const aiNode* node,
 }
 template <typename T2>
 void MeshExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
-                     const std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBSH,bool buildBVH) {
+                     const std::vector<Eigen::Matrix<int,3,1>>& iss,bool buildBVH,bool buildBSH) {
   //vss
   if(vss.empty() || iss.empty())
     return;
@@ -122,26 +122,11 @@ void MeshExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
     _bvh.assign(_iss.size(),Node<int,BBoxExact>());
     for(int i=0; i<(int)_bvh.size(); i++) {
       Node<int,BBoxExact>& n=_bvh[i];
-      n._bb=BBoxExact(_tss[i].getBB());
+      n._bb=BBoxExact(_vss[_iss[i][0]],_vss[_iss[i][1]],_vss[_iss[i][2]],_iss[i][0],_iss[i][1],_iss[i][2]);
       n._nrCell=1;
       n._cell=i;
     }
     Node<int,BBoxExact>::buildBVHTriangleBottomUp(_bvh,iss,true);
-  } else if (buildBSH){
-    //tss
-    _tss.resize(_iss.size());
-    for(int i=0; i<(int)_tss.size(); i++)
-      _tss[i]=TriangleExact(_vss[_iss[i][0]],_vss[_iss[i][1]],_vss[_iss[i][2]]);
-    //bsh
-    _bvh.assign(_iss.size(),Node<int,BBoxExact>());
-    for(int i=0; i<(int)_bvh.size(); i++) {
-      Node<int,BBoxExact>& n=_bvh[i];
-      Vec4T SBB=_tss[i].getSBB();
-      n._bb=BBoxExact(SBB.segment<3>(0),SBB[3]);
-      n._nrCell=1;
-      n._cell=i;
-    }
-    Node<int,BBoxExact>::buildBVHTriangleBottomUp(_bvh,iss,true);//BSH
   } else {
     //tss
     _tss.clear();
@@ -150,9 +135,8 @@ void MeshExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,
     ASSERT_MSG(_vss.size()>=3,"We do not accept mesh having <= 3 vertices!")
     _bvh[0]._bb=BBoxExact(_vss[0],_vss[1],_vss[2]);
     for(int i=3; i<(int)_vss.size(); i++)
-      _bvh[0]._bb.setUnion(_vss[i]);
+      _bvh[0]._bb.setUnion(_vss[i],i);
   }
-  
 }
 template <typename T2>
 void MeshExact::init(const std::vector<Eigen::Matrix<T2,3,1>>& vss,

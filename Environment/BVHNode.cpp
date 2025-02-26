@@ -171,7 +171,7 @@ void Node<T,BBOX>::buildBSHBottomUp(std::vector<Node<T,BBOX>>& bsh,const std::un
     ess.push_back(e.second);
     BBOX bb=bsh[e.second.first]._bb;
     if(e.second.second>=0)
-      bb=bb.setUnionSphere(bsh[e.second.second]._bb);
+      bb.setUnion(bsh[e.second.second]._bb);
     typename BBOX::Vec3T::Scalar c=SurfaceArea<3>::area(bb);
     cost.push_back(c);
   }
@@ -195,7 +195,7 @@ void Node<T,BBOX>::buildBSHBottomUp(std::vector<Node<T,BBOX>>& bsh,const std::un
       continue;
     //merge
     BBOX bb=bsh[t0]._bb;
-    bb=bb.setUnionSphere(bsh[t1]._bb);
+    bb.setUnion(bsh[t1]._bb);
     typename BBOX::Vec3T::Scalar c=SurfaceArea<3>::area(bb);
     if(c>cost[i]) {
       cost[i]=c;
