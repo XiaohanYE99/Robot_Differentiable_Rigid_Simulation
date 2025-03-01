@@ -105,7 +105,7 @@ MeshBasedPBDSimulator::T MeshBasedPBDSimulator::tangentEnergy(GradInfo& grad,Vec
     cf.setX(m._x);
     //ASSERT(!backward)
     if(!backward) {
-      if(!cf.eval(&val,_body.get(),DE?&grad:NULL,NULL,NULL))
+      if(!cf.evalLRI(&val,_body.get(),DE?&grad:NULL,NULL,NULL))
         parallelAdd<T>(E,std::numeric_limits<T>::infinity());
       else parallelAdd<T>(E,val);
     } else cf.evalbackward(NULL,_body.get(),&grad);

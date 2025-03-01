@@ -66,8 +66,8 @@ void debugCCBarrierConvexFrictionEnergy() {
 
   std::shared_ptr<ArticulatedBody> body(new ArticulatedBody(ArticulatedLoader::readURDF("../data/kuka_lwr/kuka.urdf",true,false)));
   ArticulatedUtils(*body).tessellate(true);
-  ArticulatedUtils(*body).BBApproxiate(true);
-  ArticulatedUtils(*body).makeConvex();
+  //ArticulatedUtils(*body).BBApproxiate(true);
+  //ArticulatedUtils(*body).makeConvex();
 
   Px barrier;
   barrier._x0=1.0;
@@ -104,8 +104,8 @@ int main() {
   DECL_MAT_VEC_MAP_TYPES_T
   //debugCCBarrierEnergy<T,CCBarrierEnergy<T,Px>>();
   //debugCCBarrierEnergy<T,CCBarrierConvexEnergy<T,Px>>();
-  debugCCBarrierConvexEnergy<T,CCBarrierMeshEnergy<T,Logx>>();
+  //debugCCBarrierConvexEnergy<T,CCBarrierMeshEnergy<T,Logx>>();
   //debugCCBarrierFrictionEnergy<T,CCBarrierFrictionEnergy<T,Px>>();
-  //debugCCBarrierConvexFrictionEnergy<T,CCBarrierMeshFrictionEnergy<T,Px>>();
+  debugCCBarrierConvexFrictionEnergy<T,CCBarrierMeshFrictionEnergy<T,Px>>();
   return 0;
 }

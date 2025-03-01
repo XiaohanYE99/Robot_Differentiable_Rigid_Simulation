@@ -137,7 +137,7 @@ void CCBarrierMeshFrictionEnergy<T,PFunc,TH>::debugGradient(const GJKPolytope<T>
         continue;
       CCBarrierMeshFrictionEnergy<T,PFunc,TH> e(pass?p:p2,pass?p2:p,pass?pl:pl2,pass?pl2:pl,barrier,d0,&info,coef,dt);
       e.setOutput(output);
-      if(!e.eval(&E,&body,&info,&GTheta,&HTheta))
+      if(!e.evalLRI(&E,&body,&info,&GTheta,&HTheta))
         continue;
       //eval forward
       info.reset(body,x+dx*DELTA);
@@ -145,7 +145,7 @@ void CCBarrierMeshFrictionEnergy<T,PFunc,TH>::debugGradient(const GJKPolytope<T>
       //calculate separating plane
       CCBarrierMeshFrictionEnergy<T,PFunc,TH> e2(pass?p:p2,pass?p2:p,pass?pl:pl2,pass?pl2:pl,barrier,d0,&info,coef,dt);
       e2.setOutput(output);
-      if(!e2.eval(&E2,&body,&info,&GTheta2,NULL))
+      if(!e2.evalLRI(&E2,&body,&info,&GTheta2,NULL))
         continue;
       DEBUG_GRADIENT("dE",GTheta.dot(dx),GTheta.dot(dx)-(E2-E)/DELTA)
       DEBUG_GRADIENT("dG",(HTheta*dx).norm(),(HTheta*dx-(GTheta2-GTheta)/DELTA).norm())
@@ -185,7 +185,7 @@ void CCBarrierMeshFrictionEnergy<T,PFunc,TH>::debugGradient(const ArticulatedBod
       continue;
     CCBarrierMeshFrictionEnergy<T,PFunc,TH> e(p,p2,pl,pl2,barrier,d0,&info,coef,dt);
     e.setOutput(output);
-    if(!e.eval(&E,&body,&info,&GTheta,&HTheta))
+    if(!e.evalLRI(&E,&body,&info,&GTheta,&HTheta))
       continue;
     //eval forward
     info.reset(body,x+dx*DELTA);
@@ -197,7 +197,7 @@ void CCBarrierMeshFrictionEnergy<T,PFunc,TH>::debugGradient(const ArticulatedBod
     //calculate separating plane
     CCBarrierMeshFrictionEnergy<T,PFunc,TH> e2(p,p2,pl,pl2,barrier,d0,&info,coef,dt);
     e2.setOutput(output);
-    if(!e2.eval(&E2,&body,&info,&GTheta2,NULL))
+    if(!e2.evalLRI(&E2,&body,&info,&GTheta2,NULL))
       continue;
     DEBUG_GRADIENT("dE",GTheta.dot(dx),GTheta.dot(dx)-(E2-E)/DELTA)
     DEBUG_GRADIENT("dG",(HTheta*dx).norm(),(HTheta*dx-(GTheta2-GTheta)/DELTA).norm())
@@ -275,7 +275,7 @@ bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<M
   T rad2=std::max(std::max((x2-_p2.globalVss().col(0)).norm(),(x2-_p2.globalVss().col(1)).norm()),(x2-_p2.globalVss().col(2)).norm());
   Vec3T deltax=x1-x2;
   T d1=rad1+rad2;
-  T d2=(1.0+_eps)*d1;
+  T d2=(1.0+_ep)*d1;
   //T d=deltax.norm()+_d0;
   T dist=(deltax.norm()-d1)/(d2-d1);
   T phi=0,dphi=0,ddphi=0;

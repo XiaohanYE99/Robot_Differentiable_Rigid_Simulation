@@ -27,6 +27,7 @@ class CCBarrierMeshFrictionEnergy : public CCBarrierMeshEnergy<T,PFunc,TH> {
   using CCBarrierEnergy<T,PFunc,TH>::_grad;
   using CCBarrierEnergy<T,PFunc,TH>::initialize;
   using CCBarrierEnergy<T,PFunc,TH>::debugEnergy;
+  using CCBarrierMeshEnergy<T,PFunc,TH>::_ep;
   using CCBarrierMeshEnergy<T,PFunc,TH>::_useLRI;
   using CCBarrierMeshEnergy<T,PFunc,TH>::addMAll;
   using CCBarrierMeshEnergy<T,PFunc,TH>::addGAll;

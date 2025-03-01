@@ -60,7 +60,7 @@ class CCBarrierMeshEnergy : public CCBarrierEnergy<T,PFunc,TH> {
   void mergeGAll(GAll& g1,GAll& g2,MAll& m) const;
   bool _useBVH=true;
   bool _useLRI=true;
-  T _eps=.1;
+  T _ep=.1;
   Vec4T _h;
 };
 }

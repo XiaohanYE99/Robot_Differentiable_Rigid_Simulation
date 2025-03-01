@@ -356,7 +356,7 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact
   Vec3T x2=bvh2[id2]._bb.center();
   Vec3T deltax=x1-x2;
   T d1=bvh1[id1]._bb.rad()+bvh2[id2]._bb.rad();
-  T d2=(1.0+_eps)*d1;
+  T d2=(1.0+_ep)*d1;
   //T d=deltax.norm()+_d0;
   T dist=(deltax.norm()-d1)/(d2-d1);
   T alpha=12*_coef;//*bvh1[id1]._num*bvh2[id2]._num;
