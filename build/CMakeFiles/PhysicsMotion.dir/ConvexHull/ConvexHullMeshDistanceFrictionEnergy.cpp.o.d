@@ -1187,6 +1187,8 @@ CMakeFiles/PhysicsMotion.dir/ConvexHull/ConvexHullMeshDistanceFrictionEnergy.cpp
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Utils.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BBoxExact.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceConvexEnergy.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ContactGenerator.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceFrictionEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/DistanceFunction.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Interp.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/CrossSpatialUtils.h \

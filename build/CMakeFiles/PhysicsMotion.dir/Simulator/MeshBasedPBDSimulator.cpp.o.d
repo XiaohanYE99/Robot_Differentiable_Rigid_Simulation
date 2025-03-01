@@ -1197,6 +1197,7 @@ CMakeFiles/PhysicsMotion.dir/Simulator/MeshBasedPBDSimulator.cpp.o: \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceConvexEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullMeshDistanceFrictionEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullMeshDistanceEnergy.h \
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceFrictionEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullMeshDistanceEnergy.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ConvexHullExact.h \
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EdgeExact.h \

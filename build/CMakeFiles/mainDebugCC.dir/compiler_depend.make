@@ -1303,9 +1303,11 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
   ../ConvexHull/ConvexHullDistanceEnergy.h \
   ../ConvexHull/ConvexHullMeshDistanceEnergy.h \
   ../ConvexHull/ConvexHullDistanceConvexEnergy.h \
+  ../Environment/ContactGenerator.h \
   ../ConvexHull/ConvexHullDistanceFrictionEnergy.h \
   ../ConvexHull/ConvexHullMeshDistanceFrictionEnergy.h \
   ../ConvexHull/ConvexHullMeshDistanceEnergy.h \
+  ../ConvexHull/ConvexHullDistanceFrictionEnergy.h \
   ../Articulated/ArticulatedUtils.h \
   ../Environment/CompositeShapeExact.h \
   ../Environment/MeshExact.h \
@@ -1326,6 +1328,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 ../ConvexHull/ConvexHullMeshDistanceFrictionEnergy.h:
 
 ../ConvexHull/ConvexHullDistanceFrictionEnergy.h:
+
+../Environment/ContactGenerator.h:
 
 /usr/include/c++/11/bits/fs_ops.h:
 

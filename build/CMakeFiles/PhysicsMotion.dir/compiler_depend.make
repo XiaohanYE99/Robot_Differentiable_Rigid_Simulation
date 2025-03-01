@@ -19292,6 +19292,7 @@ CMakeFiles/PhysicsMotion.dir/ConvexHull/ConvexHullMeshDistanceEnergy.cpp.o: ../C
   ../Utils/Utils.h \
   ../Environment/BBoxExact.h \
   ../ConvexHull/ConvexHullDistanceConvexEnergy.h \
+  ../Environment/ContactGenerator.h \
   ../Environment/ConvexHullExact.h \
   ../Environment/EdgeExact.h \
   ../Environment/MeshExact.h \
@@ -20603,6 +20604,8 @@ CMakeFiles/PhysicsMotion.dir/ConvexHull/ConvexHullMeshDistanceFrictionEnergy.cpp
   ../Utils/Utils.h \
   ../Environment/BBoxExact.h \
   ../ConvexHull/ConvexHullDistanceConvexEnergy.h \
+  ../Environment/ContactGenerator.h \
+  ../ConvexHull/ConvexHullDistanceFrictionEnergy.h \
   ../Environment/DistanceFunction.h \
   ../Utils/Interp.h \
   ../Utils/CrossSpatialUtils.h \
@@ -55502,6 +55505,7 @@ CMakeFiles/PhysicsMotion.dir/Simulator/MeshBasedPBDSimulator.cpp.o: ../Simulator
   ../ConvexHull/ConvexHullDistanceConvexEnergy.h \
   ../ConvexHull/ConvexHullMeshDistanceFrictionEnergy.h \
   ../ConvexHull/ConvexHullMeshDistanceEnergy.h \
+  ../ConvexHull/ConvexHullDistanceFrictionEnergy.h \
   ../ConvexHull/ConvexHullMeshDistanceEnergy.h \
   ../Environment/ConvexHullExact.h \
   ../Environment/EdgeExact.h \

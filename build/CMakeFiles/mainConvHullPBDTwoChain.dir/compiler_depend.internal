@@ -1342,4 +1342,5 @@ CMakeFiles/mainConvHullPBDTwoChain.dir/Main/DebugSimulator/mainConvHullPBDTwoCha
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Simulator/ConvHullPBDSimulator.h
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullMeshDistanceFrictionEnergy.h
  /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullMeshDistanceEnergy.h
+ /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/ConvexHull/ConvexHullDistanceFrictionEnergy.h
 

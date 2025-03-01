@@ -1340,7 +1340,8 @@ CMakeFiles/mainConvHullPBDTwoChain.dir/Main/DebugSimulator/mainConvHullPBDTwoCha
   ../Simulator/MeshBasedPBDSimulator.h \
   ../Simulator/ConvHullPBDSimulator.h \
   ../ConvexHull/ConvexHullMeshDistanceFrictionEnergy.h \
-  ../ConvexHull/ConvexHullMeshDistanceEnergy.h
+  ../ConvexHull/ConvexHullMeshDistanceEnergy.h \
+  ../ConvexHull/ConvexHullDistanceFrictionEnergy.h
 
 
 ../ConvexHull/ConvexHullMeshDistanceFrictionEnergy.h:
