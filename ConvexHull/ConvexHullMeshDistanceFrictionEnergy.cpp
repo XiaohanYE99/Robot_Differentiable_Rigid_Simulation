@@ -18,89 +18,91 @@ CCBarrierMeshFrictionEnergy<T,PFunc,TH>::FrictionTerm::FrictionTerm(const Eigen:
 template <typename T,typename PFunc,typename TH>
 CCBarrierMeshFrictionEnergy<T,PFunc,TH>::CCBarrierMeshFrictionEnergy(const GJKPolytope<T>& p1,const GJKPolytope<T>& p2,const GJKPolytope<T>& pl1,const GJKPolytope<T>& pl2,const PFunc& p,T d0,const CollisionGradInfo<T>* grad,T coef,T dt,const std::vector<FrictionTerm>* terms)
   :CCBarrierMeshEnergy<T,PFunc,TH>(p1,p2,p,d0,grad,coef,false),_pl1(pl1),_pl2(pl2),_dt(dt),_eps(1e-4f),_fri(1.f) {
-  if(terms) {
-    _terms=*terms;
-    return;
-  }
-  std::shared_ptr<MeshExact> c1=_p1.mesh();
-  std::shared_ptr<MeshExact> c2=_p2.mesh();
-  //triangle to triangle
-  for(int i=0; i<(int)c1->iss().size(); i++) {
-    for(int j=0; j<(int)c2->iss().size(); j++) {
-      //edge to edge
-      for(int ei=0,cnti=3; ei<3; ei++,cnti++) {
-        for(int ej=0,cntj=3; ej<3; ej++,cntj++) {
-          int v0=c1->iss()[i][ei];
-          int v1=c1->iss()[i][(ei+1)%3];
-          //edge does not belong here
+  if(!_useLRI){
+    if(terms) {
+      _terms=*terms;
+      return;
+    }
+    std::shared_ptr<MeshExact> c1=_p1.mesh();
+    std::shared_ptr<MeshExact> c2=_p2.mesh();
+    //triangle to triangle
+    for(int i=0; i<(int)c1->iss().size(); i++) {
+      for(int j=0; j<(int)c2->iss().size(); j++) {
+        //edge to edge
+        for(int ei=0,cnti=3; ei<3; ei++,cnti++) {
+          for(int ej=0,cntj=3; ej<3; ej++,cntj++) {
+            int v0=c1->iss()[i][ei];
+            int v1=c1->iss()[i][(ei+1)%3];
+            //edge does not belong here
+            if((c1->bss()[i]&(1<<cnti))==0)
+              continue;
+            int v2=c2->iss()[j][ej];
+            int v3=c2->iss()[j][(ej+1)%3];
+            //edge does not belong here
+            if((c2->bss()[j]&(1<<cntj))==0)
+              continue;
+            Vec2T bary;
+            Vec3T cpa,cpb,n,V[4]= {
+              _pl1.globalVss().col(v0),
+              _pl1.globalVss().col(v1),
+              _pl2.globalVss().col(v2),
+              _pl2.globalVss().col(v3),
+            };
+            T dSqr=distToSqrLineSegment<T>(V,V+2,Eigen::Map<Vec2T>(bary.data()),cpa,cpb,NULL),d=sqrt(dSqr),D=0;
+            if(_p.template eval<T>(d,&D,NULL,_d0,_coef)==0)
+              continue;
+            //construct term
+            Vec4T b(1-bary[0],bary[0],-(1-bary[1]),-bary[1]);
+            n=V[0]*b[0]+V[1]*b[1]+V[2]*b[2]+V[3]*b[3];
+            _terms.push_back(FrictionTerm(Eigen::Matrix<int,4,1>(1,1,2,2),Eigen::Matrix<int,4,1>(v0,v1,v2,v3),V,b,n.normalized(),abs(D)));
+          }
+        }
+        //vertex to triangle
+        for(int vi=0,cnti=0; vi<3; vi++,cnti++) {
+          //vertex does not belong here
           if((c1->bss()[i]&(1<<cnti))==0)
             continue;
-          int v2=c2->iss()[j][ej];
-          int v3=c2->iss()[j][(ej+1)%3];
-          //edge does not belong here
-          if((c2->bss()[j]&(1<<cntj))==0)
-            continue;
-          Vec2T bary;
-          Vec3T cpa,cpb,n,V[4]= {
+          int v0=c1->iss()[i][vi];
+          int v1=c2->iss()[j][0];
+          int v2=c2->iss()[j][1];
+          int v3=c2->iss()[j][2];
+          Vec3T bary,cp,n,V[4]= {
             _pl1.globalVss().col(v0),
-            _pl1.globalVss().col(v1),
+            _pl2.globalVss().col(v1),
             _pl2.globalVss().col(v2),
             _pl2.globalVss().col(v3),
           };
-          T dSqr=distToSqrLineSegment<T>(V,V+2,Eigen::Map<Vec2T>(bary.data()),cpa,cpb,NULL),d=sqrt(dSqr),D=0;
+          T dSqr=distToSqrTriangle<T>(V[0],V+1,Eigen::Map<Vec3T>(bary.data()),cp,NULL),d=sqrt(dSqr),D=0;
           if(_p.template eval<T>(d,&D,NULL,_d0,_coef)==0)
             continue;
           //construct term
-          Vec4T b(1-bary[0],bary[0],-(1-bary[1]),-bary[1]);
+          Vec4T b(-1,bary[0],bary[1],bary[2]);
           n=V[0]*b[0]+V[1]*b[1]+V[2]*b[2]+V[3]*b[3];
-          _terms.push_back(FrictionTerm(Eigen::Matrix<int,4,1>(1,1,2,2),Eigen::Matrix<int,4,1>(v0,v1,v2,v3),V,b,n.normalized(),abs(D)));
+          _terms.push_back(FrictionTerm(Eigen::Matrix<int,4,1>(1,2,2,2),Eigen::Matrix<int,4,1>(v0,v1,v2,v3),V,b,n.normalized(),abs(D)));
         }
-      }
-      //vertex to triangle
-      for(int vi=0,cnti=0; vi<3; vi++,cnti++) {
-        //vertex does not belong here
-        if((c1->bss()[i]&(1<<cnti))==0)
-          continue;
-        int v0=c1->iss()[i][vi];
-        int v1=c2->iss()[j][0];
-        int v2=c2->iss()[j][1];
-        int v3=c2->iss()[j][2];
-        Vec3T bary,cp,n,V[4]= {
-          _pl1.globalVss().col(v0),
-          _pl2.globalVss().col(v1),
-          _pl2.globalVss().col(v2),
-          _pl2.globalVss().col(v3),
-        };
-        T dSqr=distToSqrTriangle<T>(V[0],V+1,Eigen::Map<Vec3T>(bary.data()),cp,NULL),d=sqrt(dSqr),D=0;
-        if(_p.template eval<T>(d,&D,NULL,_d0,_coef)==0)
-          continue;
-        //construct term
-        Vec4T b(-1,bary[0],bary[1],bary[2]);
-        n=V[0]*b[0]+V[1]*b[1]+V[2]*b[2]+V[3]*b[3];
-        _terms.push_back(FrictionTerm(Eigen::Matrix<int,4,1>(1,2,2,2),Eigen::Matrix<int,4,1>(v0,v1,v2,v3),V,b,n.normalized(),abs(D)));
-      }
-      //triangle to vertex
-      for(int vj=0,cntj=0; vj<3; vj++,cntj++) {
-        //vertex does not belong here
-        if((c2->bss()[j]&(1<<cntj))==0)
-          continue;
-        int v0=c2->iss()[j][vj];
-        int v1=c1->iss()[i][0];
-        int v2=c1->iss()[i][1];
-        int v3=c1->iss()[i][2];
-        Vec3T bary,cp,n,V[4]= {
-          _pl2.globalVss().col(v0),
-          _pl1.globalVss().col(v1),
-          _pl1.globalVss().col(v2),
-          _pl1.globalVss().col(v3),
-        };
-        T dSqr=distToSqrTriangle<T>(V[0],V+1,Eigen::Map<Vec3T>(bary.data()),cp,NULL),d=sqrt(dSqr),D=0;
-        if(_p.template eval<T>(d,&D,NULL,_d0,_coef)==0)
-          continue;
-        //construct term
-        Vec4T b(-1,bary[0],bary[1],bary[2]);
-        n=V[0]*b[0]+V[1]*b[1]+V[2]*b[2]+V[3]*b[3];
-        _terms.push_back(FrictionTerm(Eigen::Matrix<int,4,1>(2,1,1,1),Eigen::Matrix<int,4,1>(v0,v1,v2,v3),V,b,n.normalized(),abs(D)));
+        //triangle to vertex
+        for(int vj=0,cntj=0; vj<3; vj++,cntj++) {
+          //vertex does not belong here
+          if((c2->bss()[j]&(1<<cntj))==0)
+            continue;
+          int v0=c2->iss()[j][vj];
+          int v1=c1->iss()[i][0];
+          int v2=c1->iss()[i][1];
+          int v3=c1->iss()[i][2];
+          Vec3T bary,cp,n,V[4]= {
+            _pl2.globalVss().col(v0),
+            _pl1.globalVss().col(v1),
+            _pl1.globalVss().col(v2),
+            _pl1.globalVss().col(v3),
+          };
+          T dSqr=distToSqrTriangle<T>(V[0],V+1,Eigen::Map<Vec3T>(bary.data()),cp,NULL),d=sqrt(dSqr),D=0;
+          if(_p.template eval<T>(d,&D,NULL,_d0,_coef)==0)
+            continue;
+          //construct term
+          Vec4T b(-1,bary[0],bary[1],bary[2]);
+          n=V[0]*b[0]+V[1]*b[1]+V[2]*b[2]+V[3]*b[3];
+          _terms.push_back(FrictionTerm(Eigen::Matrix<int,4,1>(2,1,1,1),Eigen::Matrix<int,4,1>(v0,v1,v2,v3),V,b,n.normalized(),abs(D)));
+        }
       }
     }
   }
@@ -201,6 +203,132 @@ void CCBarrierMeshFrictionEnergy<T,PFunc,TH>::debugGradient(const ArticulatedBod
     DEBUG_GRADIENT("dG",(HTheta*dx).norm(),(HTheta*dx-(GTheta2-GTheta)/DELTA).norm())
     break;
   }
+}
+template <typename T,typename PFunc,typename TH>
+bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::evalLRI(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,Vec* GTheta,MatT* HTheta) {
+  if(E)
+    *E=0;
+  std::shared_ptr<MeshExact> c1=_p1.mesh();
+  std::shared_ptr<MeshExact> c2=_p2.mesh();
+  //energy computation
+  if(!evalBsh(c1,c2,E,body,grad))
+    return false;
+  //compute gradient and hessian
+  if(body && grad) {
+    Mat3XT DTG;
+    if(GTheta) {
+      GTheta->setZero(body->nrDOF());
+      grad->_info.DTG(*body,mapM(DTG=grad->_DTG),mapV(*GTheta));
+    }
+    if(HTheta) {
+      *HTheta=grad->_HTheta;
+      grad->_info.toolB(*body,mapM(DTG=grad->_DTG),[&](int r,int c,T val) {
+        (*HTheta)(r,c)+=val;
+      });
+    }
+  }
+  return true;
+}
+template <typename T,typename PFunc,typename TH>
+bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward) const {
+  MAll m;
+  GAll g;
+  bool flag=true;
+  Mat3X4T DTG1,DTG2;
+  ComputePotential(c1,c2,E,&DTG1,&DTG2,m,g,grad,*body,&flag);
+  if(!flag) return false;
+  if(body && grad) {
+    if(_p1.jid()>=0)
+      for(int r=0; r<3; r++)
+        for(int c=0; c<4; c++)
+          parallelAdd(grad->_DTG(r,c+_p1.jid()*4),DTG1(r,c));
+    if(_p2.jid()>=0)
+      for(int r=0; r<3; r++)
+        for(int c=0; c<4; c++)
+          parallelAdd(grad->_DTG(r,c+_p2.jid()*4),DTG2(r,c));
+  }
+  if(body && grad && !backward)
+    contractHAll(*body,*grad,m);
+  return true;
+}
+template <typename T,typename PFunc,typename TH>
+bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2, T* P,
+     Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,CollisionGradInfo<T>* grad,
+     const ArticulatedBody& body,bool* flag) const {
+  if(!(*flag)) return false;
+  clearMAll(m);
+  clearGAll(g);
+  DTG1->setZero();
+  DTG2->setZero();
+  *P=0;
+  MAll subm;
+  GAll subg;
+  GAll tmpg;
+  Mat3X4T subDTG1,subDTG2;
+  Vec3T D1,D2;
+  Mat3T Rxi,Rxj;
+  Rxi.setZero();
+  Rxj.setZero();
+  Vec3T x1=(_p1.globalVss().col(0)+_p1.globalVss().col(1)+_p1.globalVss().col(2))/3.0;
+  Vec3T x2=(_p2.globalVss().col(0)+_p2.globalVss().col(1)+_p2.globalVss().col(2))/3.0;
+  T rad1=std::max(std::max((x1-_p1.globalVss().col(0)).norm(),(x1-_p1.globalVss().col(1)).norm()),(x1-_p1.globalVss().col(2)).norm());
+  T rad2=std::max(std::max((x2-_p2.globalVss().col(0)).norm(),(x2-_p2.globalVss().col(1)).norm()),(x2-_p2.globalVss().col(2)).norm());
+  Vec3T deltax=x1-x2;
+  T d1=rad1+rad2;
+  T d2=(1.0+_eps)*d1;
+  //T d=deltax.norm()+_d0;
+  T dist=(deltax.norm()-d1)/(d2-d1);
+  T phi=0,dphi=0,ddphi=0;
+  Vec3T DQ;
+  Mat3T h,DDP,DDPhi;
+  Mat6T H;
+  h.setZero();
+  H.setZero();
+  DDP.setZero();
+  DDPhi.setZero();
+  Vec3T vl1=(c1->vss()[0]+c1->vss()[1]+c1->vss()[2])/3.0;
+  Vec3T vl2=(c2->vss()[0]+c2->vss()[1]+c2->vss()[2])/3.0;
+  //if(_p1.jid()==-1) std::cout<<x1;
+  if(grad){
+    if(_p1.jid()>=0) Rxi=cross<T>(ROTI(grad->_info._TM,_p1.jid())*vl1);
+    if(_p2.jid()>=0) Rxj=cross<T>(ROTI(grad->_info._TM,_p2.jid())*vl2);
+  }
+  if(dist>1) return *flag;
+  else if(dist>0) {
+    phi=6*pow(dist,5)-15*pow(dist,4)+10*pow(dist,3);
+    dphi=30*pow(dist,4)-60*pow(dist,3)+30*pow(dist,2);
+    ddphi=120*pow(dist,3)-180*pow(dist,2)+60*dist;
+  }
+  CCBarrierFrictionEnergy<T,PFunc> cf(_p1,_p2,_pl1,_pl2,_x.template cast<T>(),_p,_d0,_grad,_coef,_dt);
+  T val=0;
+  clearMAll(subm);
+  clearGAll(subg);
+  subDTG1.setZero();
+  subDTG2.setZero();
+  if(!cf.evalLRI(&val,&body,grad,NULL,NULL,&subDTG1,&subDTG2,subm,subg)) return *flag=false;
+  *P+=(1-phi)*val;
+  if(grad){
+    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+    parallelAdd<T,3,4>(*DTG1,0,0,val*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
+    parallelAdd<T,3,4>(*DTG2,0,0,val*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
+    addGAll(g,subg,1-phi);
+    contractGAll(g,Rxi,Rxj,val*-dphi*deltax/((d2-d1)*deltax.norm()));
+    DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
+    h=DDPhi*val;
+    H.setZero();
+    H.template block<3,3>(0,0)=h;
+    H.template block<3,3>(0,3)=-h;
+    H.template block<3,3>(3,0)=-h;
+    H.template block<3,3>(3,3)=h;
+    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+    clearGAll(tmpg);
+    contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
+    mergeGAll(tmpg,subg,m);
+    mergeGAll(subg,tmpg,m);
+    addMAll(m,subm,1-phi);
+  }
+  return *flag;
 }
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::eval(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,Vec* GTheta,MatT* HTheta) {
@@ -353,6 +481,10 @@ void CCBarrierMeshFrictionEnergy<T,PFunc,TH>::computeHBackward(const FrictionTer
         }
     }
   }
+}
+template <typename T,typename PFunc,typename TH>
+void CCBarrierMeshFrictionEnergy<T,PFunc,TH>::setX(Vec4T x) {
+  _x=Vec4TH((TH)x[0],(TH)x[1],(TH)x[2],(TH)x[3]);
 }
 //instance
 template class CCBarrierMeshFrictionEnergy<FLOAT,Px>;

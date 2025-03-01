@@ -43,6 +43,7 @@ void ConvHullPBDSimulator::setCustomEnergy(std::shared_ptr<CustomPBDEnergy<T>> c
 }
 void ConvHullPBDSimulator::setArticulatedBody(std::shared_ptr<ArticulatedBody> body) {
   ArticulatedUtils(*body).tessellate(true); //tessellate the mesh
+  //ArticulatedUtils(*body).makeConvex();
   Simulator::setArticulatedBody(body);
   //setGravity(Vec3T::Zero());
   _JRCF.setZero(3,4*_body->nrJ());
@@ -763,7 +764,7 @@ void ConvHullPBDSimulator::detectContact(const Mat3XT& t) {
   _contact->generateManifolds(x0,true,_manifolds,t.template cast<GEOMETRY_SCALAR>());
 }
 bool ConvHullPBDSimulator::detectLastContact() {
-  detectContact(_pos._info._TM);
+  //detectContact(_pos._info._TM);
   /*Vec DE;
   T e=normalEnergy(_pos,&DE,false);
   if(!isfinite(e))
@@ -804,7 +805,7 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(GradInfo& grad,Vec* DE) {
   grad._centre.resize(nrJ);
   //contact
   E+=normalEnergy(grad,DE);
-  //E+=tangentEnergy(grad,DE);
+  E+=tangentEnergy(grad,DE);
   for(int k=0; k<nrJ; k++) {
     const Joint& J=_body->joint(k);
     nrD=J.nrDOF();

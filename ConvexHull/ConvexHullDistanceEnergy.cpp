@@ -130,15 +130,16 @@ bool CCBarrierEnergy<T,PFunc,TH>::eval(T* E,const ArticulatedBody* body,Collisio
 }
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierEnergy<T,PFunc,TH>::evalLRI(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<Mat3X4T>* DNDX,Vec* GTheta,MatT* HTheta,
-     Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,Vec4T* x) {
+     Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,const Vec4TH x) {
   TH E2;
   Vec4TH G2;
   Mat4TH H2;
+  _x=x;
   if(_implicit) {
-    if(!initialize(NULL,body)) {
+    //if(!initialize(NULL,body)) {
       //std::cout<<"Cannot initialize"<<std::endl;
-      return false;
-    }
+    //  return false;
+    //}
     //optimize
     if(!optimize(_x,E2,G2,H2)) {
       std::cout<<"Cannot optimize"<<std::endl;
@@ -164,8 +165,6 @@ bool CCBarrierEnergy<T,PFunc,TH>::evalLRI(T* E,const ArticulatedBody* body,Colli
       return true;
     }
   }
-  if(x)
-    (*x)=_x.template cast<T>();
   //compute gradient and hessian
   if(body && grad) {
     Vec4T G=G2.template cast<T>();

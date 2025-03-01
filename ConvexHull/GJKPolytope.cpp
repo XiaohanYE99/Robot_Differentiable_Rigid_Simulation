@@ -24,8 +24,8 @@ GJKPolytope<T>::GJKPolytope(int JID,std::shared_ptr<MeshExact> mesh,const Collis
   _jid=JID;
   _jidP=-1;
   _mesh=mesh;
-  if(_jid>=0) resetGlobalVss(&info);
-  else resetGlobalVss(NULL);
+  if(_jid>=0) resetGlobalVss(&info,false);
+  else resetGlobalVss(NULL,false);
 }
 template <typename T>
 GJKPolytope<T>::GJKPolytope(std::shared_ptr<MeshExact> mesh) {

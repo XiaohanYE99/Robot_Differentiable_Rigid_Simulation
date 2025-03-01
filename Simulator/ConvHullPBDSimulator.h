@@ -63,7 +63,7 @@ class ConvHullPBDSimulator : public Simulator {
   void updateConvexPoints(const Vec& X);
  protected:
   void detectContact(const Mat3XT& t) override;
-  bool detectLastContact();
+  virtual bool detectLastContact();
   virtual void update(const GradInfo& newPos,GradInfo& newPos2,Vec& D,const Vec& DE,const MatT& DDE,T alpha) const;
   virtual T energy(GradInfo& grad,Vec* DE);
   virtual T normalEnergy(GradInfo& grad,Vec* DE,bool backward=false);

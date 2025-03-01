@@ -71,7 +71,7 @@ class CCBarrierEnergy : public CCDistanceEnergy<T> {
   void initialize(const Vec4T& x);
   virtual bool eval(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<Mat3X4T>* DNDX,Vec* GTheta,MatT* HTheta,Vec4T* x=NULL);
   bool evalLRI(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<Mat3X4T>* DNDX,Vec* GTheta,MatT* HTheta,
-               Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,Vec4T* x=NULL);
+               Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,const Vec4TH x);
   virtual bool evalBackward(const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<MatX3T>* HThetaD1,std::vector<MatX3T>* HThetaD2);
   static void debugGradient(bool implicit,const GJKPolytope<T>& p,const ArticulatedBody& body,int JID,T x0,T d0=0.01,bool output=false);
   static void debugGradient(bool implicit,const ArticulatedBody& body,int JID,int JID2,T x0,T d0=0.01,bool output=false);
