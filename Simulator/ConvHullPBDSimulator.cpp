@@ -5,6 +5,7 @@
 #include <Utils/RotationUtils.h>
 #include <Utils/CrossSpatialUtils.h>
 #include <Articulated/ArticulatedUtils.h>
+#include <Environment/ConvexHullExact.h>
 #include <time.h>
 
 namespace PHYSICSMOTION {
@@ -35,6 +36,7 @@ void ConvHullPBDSimulator::addShape(std::shared_ptr<ShapeExact> shape) {
   std::vector<Eigen::Matrix<int,3,1>> iss;
   shape->getMesh(vss,iss);
   std::shared_ptr<MeshExact> mesh(new MeshExact(vss,iss,true));
+  //std::shared_ptr<ConvexHullExact> mesh(new ConvexHullExact(vss));
   _obs.push_back(GJKPolytope<T>(mesh));
   _contact=NULL;
 }
@@ -216,6 +218,7 @@ void ConvHullPBDSimulator::step() {
         break;
     }
   }
+  //backward(newPos,false);
   //update
   _lastPos=_pos;
   _pos=newPos;
@@ -471,7 +474,7 @@ void ConvHullPBDSimulator::debugEnergy(T scale,const T* customDelta) {
     newPos.reset(*_body,setKinematic(Vec::Random(_body->nrDOF())*scale,_t));
     pos=_pos;
     lastPos=_lastPos;
-
+    
     if(!detectLastContact())
       continue;
     pos.reset(*_body,_pos._info._xM);

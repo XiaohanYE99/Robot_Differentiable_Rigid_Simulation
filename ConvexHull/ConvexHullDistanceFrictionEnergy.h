@@ -29,7 +29,7 @@ class CCBarrierFrictionEnergy : public CCBarrierEnergy<T,PFunc,TH> {
   using typename CCBarrierEnergy<T,PFunc,TH>::MPair;
   using typename CCBarrierEnergy<T,PFunc,TH>::GAll;
   using typename CCBarrierEnergy<T,PFunc,TH>::GPair;
-  CCBarrierFrictionEnergy(const GJKPolytope<T>& p1,const GJKPolytope<T>& p2,const GJKPolytope<T>& pl1,const GJKPolytope<T>& pl2,const Vec4T& x,const PFunc& p,T d0,const CollisionGradInfo<T>* grad,T coef,T dt,bool implicit=true);
+  CCBarrierFrictionEnergy(const GJKPolytope<T>& p1,const GJKPolytope<T>& p2,const GJKPolytope<T>& pl1,const GJKPolytope<T>& pl2,const Vec4T& x,const PFunc& p,T d0,const CollisionGradInfo<T>* grad,T coef,T dt,bool implicit=false);
   bool initialize(Vec4T* res,const ArticulatedBody* body) override;
   static void debugGradient(bool implicit,const GJKPolytope<T>& p,const ArticulatedBody& body,int JID,T x0,T d0=0.01,bool output=false);
   static void debugGradient(bool implicit,const ArticulatedBody& body,int JID,int JID2,T x0,T d0=0.01,bool output=false);
@@ -38,6 +38,8 @@ class CCBarrierFrictionEnergy : public CCBarrierEnergy<T,PFunc,TH> {
                Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g);
   bool evalBackward(const ArticulatedBody* body,CollisionGradInfo<T>* grad,CollisionGradInfo<T>* Pos,
                     std::vector<Mat3X4T>* DNDX,std::vector<MatX3T>* HThetaD1,std::vector<MatX3T>* HThetaD2);
+  bool evalBackwardLRI(const ArticulatedBody* body,CollisionGradInfo<T>* grad,CollisionGradInfo<T>* Pos,
+                    std::vector<Mat3X4T>* DNDX,std::vector<MatX3T>* HThetaD1,std::vector<MatX3T>* HThetaD2,GAll& gl,const T alpha);
   virtual void debugEnergyP(const Vec3TH& v,const Vec3TH& vLast,const Vec3TH& u,const Vec4TH& x,T perturbRange)const;
   virtual void debugEnergyN(const Vec3TH& v,const Vec3TH& vLast,const Vec3TH& u,const Vec4TH& x,T perturbRange)const;
   virtual void debugEnergy(const Vec3TH& x) const;
@@ -64,7 +66,7 @@ class CCBarrierFrictionEnergy : public CCBarrierEnergy<T,PFunc,TH> {
                    const Vec3T& u,const Vec4T& x,const Vec3T* G,const Mat3T* H,
                    Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g) const;
   void computeHLBackward(const ArticulatedBody& body,CollisionGradInfo<T>& info,CollisionGradInfo<T>& infoL,
-                         const Vec3T& u,const Vec4T& x,const Vec3T* G,const Mat3T* H,const std::vector<Mat3X4T>* DNDX) const;
+                         const Vec3T& u,const Vec4T& x,const Vec3T* G,const Mat3T* H,const std::vector<Mat3X4T>* DNDX,GAll* gl=NULL,const T* alpha=NULL) const;
   void computeHBackward(const ArticulatedBody& body,CollisionGradInfo<T>& info,
                         const Vec3T& u,const Vec4T& x,const Vec3T& G,const Mat3T& H,
                         std::vector<MatX3T>* HThetaD1,std::vector<MatX3T>* HThetaD2) const;

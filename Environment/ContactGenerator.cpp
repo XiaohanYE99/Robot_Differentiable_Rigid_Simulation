@@ -56,9 +56,6 @@ bool ContactGenerator::ContactManifold::operator<(const ContactManifold& other) 
 //ContactGenerator
 ContactGenerator::ContactGenerator(std::shared_ptr<ArticulatedBody> body,std::vector<std::shared_ptr<ShapeExact>> shapes,bool buildBVH):_body(body),_staticShapes(shapes),_buildBVH(buildBVH) {
   Node<int,BBoxExact> n;
-  if(buildBVH){
-    
-  }
   //static BVH
   for(int i=0; i<(int)_staticShapes.size(); i++) {
     n._nrCell=1;

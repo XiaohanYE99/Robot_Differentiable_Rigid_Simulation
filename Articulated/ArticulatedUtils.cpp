@@ -712,7 +712,7 @@ void ArticulatedUtils::convexDecompose(T rho) {
   std::vector<Eigen::Matrix<int,3,1>> iss;
   _body.joint(meshJointId)._mesh->getMesh(vss,iss);
   MeshExact mesh;
-  mesh.init(vss,iss);
+  //mesh.init(vss,iss);
   ConvexDecomposition decompose(mesh);
   _body=ArticulatedLoader::createDummy();
   for(int i=0; i<(int)decompose.getConvexHulls().size(); i++) {
@@ -752,9 +752,9 @@ void ArticulatedUtils::convexDecompose(std::vector<int> jid, int maxConvexHulls,
     std::vector<Eigen::Matrix<double,3,1>> vss;
     std::vector<Eigen::Matrix<int,3,1>> iss;
     _body.joint(meshJointId)._mesh->getMesh(vss,iss);
-    MeshExact mesh;
-    mesh.init(vss,iss);
-    Mesh.push_back(mesh);
+    //MeshExact mesh;
+    //mesh.init(vss,iss);
+    //Mesh.push_back(mesh);
   }
   for(uint k=0;k<Mesh.size();k++){
     int meshJointId=jid[k];//transMesh

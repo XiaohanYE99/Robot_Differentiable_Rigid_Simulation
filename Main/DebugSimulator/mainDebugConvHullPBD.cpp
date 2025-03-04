@@ -3,6 +3,7 @@
 #include <Simulator/PBDSimulator.h>
 #include <Simulator/SimulatorVisualizer.h>
 #include <Simulator/ConvHullPBDSimulator.h>
+#include <Simulator/MeshBasedPBDSimulator.h>
 
 using namespace PHYSICSMOTION;
 
@@ -33,7 +34,8 @@ int main(int argc,char** argv) {
   CTR(body->joint(11)._trans)=Vec3T(0,0,1).template cast<ArticulatedBody::T>();
 
   //PBDSimulator
-  ConvHullPBDSimulator sim(0.01f);
+  //ConvHullPBDSimulator sim(0.01f);
+  MeshBasedPBDSimulator sim(0.01f);
   sim.setArticulatedBody(body);
   sim.setGravity(Vec3T(0,0,-9.81f));
   sim.addShape(floor);
@@ -41,11 +43,11 @@ int main(int argc,char** argv) {
   sim.setX0(0.9f);
   sim.setOutput(true);
 
-  std::shared_ptr<CustomPBDEnergy<T>> custom(new CustomPBDEnergy<T>(body->nrDOF()));
-  sim.setCustomEnergy(custom);
+  //std::shared_ptr<CustomPBDEnergy<T>> custom(new CustomPBDEnergy<T>(body->nrDOF()));
+  //sim.setCustomEnergy(custom);
 
-  T customDelta=1e-8f;
-  sim.debugBackward(0.1,&customDelta);
+  //T customDelta=1e-8f;
+  //sim.debugBackward(0.1,&customDelta);
   sim.debugEnergy(0.01);
   return 0;
 }

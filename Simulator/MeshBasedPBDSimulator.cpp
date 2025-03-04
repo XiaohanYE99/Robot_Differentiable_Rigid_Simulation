@@ -17,7 +17,7 @@ void MeshBasedPBDSimulator::detectContact(const Mat3XT& t) {
   _contact->generateManifolds(x0,true,_manifolds,t.template cast<GEOMETRY_SCALAR>());
 }
 bool MeshBasedPBDSimulator::detectLastContact() {
-  //detectContact(_pos._info._TM);
+  detectContact(_pos._info._TM);
   Vec DE;
   _manifoldsLast.clear();
   T e=normalLastEnergy(_pos,&DE,false);
@@ -80,11 +80,11 @@ MeshBasedPBDSimulator::T MeshBasedPBDSimulator::normalLastEnergy(GradInfo& grad,
         _manifoldsLast.insert(_manifoldsLast.end(), manifoldsLast.begin(), manifoldsLast.end());
     }
   }
-  //std::cout<<_manifoldsLast.size()<<std::endl;
   return E;
 }
 MeshBasedPBDSimulator::T MeshBasedPBDSimulator::tangentEnergy(GradInfo& grad,Vec* DE,bool backward) {
   T E=0;
+  //std::cout<<_manifoldsLast.size()<<std::endl;
   OMP_PARALLEL_FOR_
   for(int id=0; id<(int)_manifoldsLast.size(); id++) {
     if(!isfinite(E))
@@ -108,7 +108,7 @@ MeshBasedPBDSimulator::T MeshBasedPBDSimulator::tangentEnergy(GradInfo& grad,Vec
       if(!cf.evalLRI(&val,_body.get(),DE?&grad:NULL,NULL,NULL))
         parallelAdd<T>(E,std::numeric_limits<T>::infinity());
       else parallelAdd<T>(E,val);
-    } else cf.evalbackward(NULL,_body.get(),&grad);
+    } else cf.evalbackwardLRI(_body.get(),&grad,&_pos,&m._DNDX);
   }
   return E;
 }

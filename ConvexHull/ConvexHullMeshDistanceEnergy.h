@@ -33,7 +33,7 @@ class CCBarrierMeshEnergy : public CCBarrierEnergy<T,PFunc,TH> {
   using typename CCBarrierEnergy<T,PFunc,TH>::MPair;
   using typename CCBarrierEnergy<T,PFunc,TH>::GAll;
   using typename CCBarrierEnergy<T,PFunc,TH>::GPair;
-  CCBarrierMeshEnergy(const GJKPolytope<T>& p1,const GJKPolytope<T>& p2,const PFunc& p,T d0,const CollisionGradInfo<T>* grad,T coef,bool implicit=true);
+  CCBarrierMeshEnergy(const GJKPolytope<T>& p1,const GJKPolytope<T>& p2,const PFunc& p,T d0,const CollisionGradInfo<T>* grad,T coef,bool implicit=false);
   virtual bool eval(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,std::vector<Mat3X4T>* DNDX,Vec* GTheta,MatT* HTheta,std::vector<ContactManifold>* m=NULL);
   virtual bool evalbackward(T *E,const ArticulatedBody* body,CollisionGradInfo<T>* grad);
   static void debugGradient(const GJKPolytope<T>& p,const ArticulatedBody& body,int JID,T x0,T d0=0.01,bool output=false);

@@ -230,14 +230,25 @@ bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::evalLRI(T* E,const ArticulatedBody
   return true;
 }
 template <typename T,typename PFunc,typename TH>
-bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward) const {
+bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::evalbackwardLRI(const ArticulatedBody* body,CollisionGradInfo<T>* grad,CollisionGradInfo<T>* Pos,
+                    std::vector<Mat3X4T>* DNDX) {
+  std::shared_ptr<MeshExact> c1=_p1.mesh();
+  std::shared_ptr<MeshExact> c2=_p2.mesh();
+  //energy computation
+  if(!evalBsh(c1,c2,NULL,body,grad,true,Pos,DNDX))
+    return false;
+  return true;
+}
+template <typename T,typename PFunc,typename TH>
+bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,
+                                bool backward,CollisionGradInfo<T>* Pos,std::vector<Mat3X4T>* DNDX) const {
   MAll m;
   GAll g;
   bool flag=true;
   Mat3X4T DTG1,DTG2;
-  ComputePotential(c1,c2,E,&DTG1,&DTG2,m,g,grad,*body,&flag);
+  ComputePotential(c1,c2,E,&DTG1,&DTG2,m,g,grad,*body,&flag,backward,Pos,DNDX);
   if(!flag) return false;
-  if(body && grad) {
+  if(body && grad && !backward) {
     if(_p1.jid()>=0)
       for(int r=0; r<3; r++)
         for(int c=0; c<4; c++)
@@ -249,30 +260,41 @@ bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact>
   }
   if(body && grad && !backward)
     contractHAll(*body,*grad,m);
+  if(body && grad && backward){
+    if(_p1.jid()>=0)
+      CCBarrierEnergy<T,PFunc,TH>::contractHThetaL(_p1.jid(),_p1.jid(),*body,*grad,*Pos,m._m11._Mww,m._m11._Mtw,m._m11._Mwt,m._m11._Mtt);
+    if(_p2.jid()>=0)
+      CCBarrierEnergy<T,PFunc,TH>::contractHThetaL(_p2.jid(),_p2.jid(),*body,*grad,*Pos,m._m22._Mww,m._m22._Mtw,m._m22._Mwt,m._m22._Mtt);
+    if(_p1.jid()>=0 && _p2.jid()>=0) {
+      CCBarrierEnergy<T,PFunc,TH>::contractHThetaL(_p1.jid(),_p2.jid(),*body,*grad,*Pos,m._m12._Mww,m._m12._Mtw,m._m12._Mwt,m._m12._Mtt);
+      CCBarrierEnergy<T,PFunc,TH>::contractHThetaL(_p2.jid(),_p1.jid(),*body,*grad,*Pos,m._m21._Mww,m._m21._Mtw,m._m21._Mwt,m._m21._Mtt);
+    }
+  }
   return true;
 }
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2, T* P,
      Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,CollisionGradInfo<T>* grad,
-     const ArticulatedBody& body,bool* flag) const {
+     const ArticulatedBody& body,bool* flag,
+     bool backward,CollisionGradInfo<T>* Pos,std::vector<Mat3X4T>* DNDX) const {
   if(!(*flag)) return false;
   clearMAll(m);
   clearGAll(g);
   DTG1->setZero();
   DTG2->setZero();
-  *P=0;
+  if(P) *P=0;
   MAll subm;
   GAll subg;
   GAll tmpg;
   Mat3X4T subDTG1,subDTG2;
   Vec3T D1,D2;
-  Mat3T Rxi,Rxj;
-  Rxi.setZero();
-  Rxj.setZero();
-  Vec3T x1=(_p1.globalVss().col(0)+_p1.globalVss().col(1)+_p1.globalVss().col(2))/3.0;
-  Vec3T x2=(_p2.globalVss().col(0)+_p2.globalVss().col(1)+_p2.globalVss().col(2))/3.0;
-  T rad1=std::max(std::max((x1-_p1.globalVss().col(0)).norm(),(x1-_p1.globalVss().col(1)).norm()),(x1-_p1.globalVss().col(2)).norm());
-  T rad2=std::max(std::max((x2-_p2.globalVss().col(0)).norm(),(x2-_p2.globalVss().col(1)).norm()),(x2-_p2.globalVss().col(2)).norm());
+  Mat3T rxi,rxj;
+  rxi.setZero();
+  rxj.setZero();
+  Vec3T x1=(_pl1.globalVss().col(0)+_pl1.globalVss().col(1)+_pl1.globalVss().col(2))/3.0;
+  Vec3T x2=(_pl2.globalVss().col(0)+_pl2.globalVss().col(1)+_pl2.globalVss().col(2))/3.0;
+  T rad1=std::max(std::max((x1-_pl1.globalVss().col(0)).norm(),(x1-_pl1.globalVss().col(1)).norm()),(x1-_pl1.globalVss().col(2)).norm());
+  T rad2=std::max(std::max((x2-_pl2.globalVss().col(0)).norm(),(x2-_pl2.globalVss().col(1)).norm()),(x2-_pl2.globalVss().col(2)).norm());
   Vec3T deltax=x1-x2;
   T d1=rad1+rad2;
   T d2=(1.0+_ep)*d1;
@@ -286,12 +308,12 @@ bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<M
   H.setZero();
   DDP.setZero();
   DDPhi.setZero();
-  Vec3T vl1=(c1->vss()[0]+c1->vss()[1]+c1->vss()[2])/3.0;
-  Vec3T vl2=(c2->vss()[0]+c2->vss()[1]+c2->vss()[2])/3.0;
+  Vec3T vl1=(_pl1.mesh()->vss()[0]+_pl1.mesh()->vss()[1]+_pl1.mesh()->vss()[2])/3.0;
+  Vec3T vl2=(_pl2.mesh()->vss()[0]+_pl2.mesh()->vss()[1]+_pl2.mesh()->vss()[2])/3.0;
   //if(_p1.jid()==-1) std::cout<<x1;
-  if(grad){
-    if(_p1.jid()>=0) Rxi=cross<T>(ROTI(grad->_info._TM,_p1.jid())*vl1);
-    if(_p2.jid()>=0) Rxj=cross<T>(ROTI(grad->_info._TM,_p2.jid())*vl2);
+  if(Pos){
+    if(_pl1.jid()>=0) rxi=cross<T>(ROTI(Pos->_info._TM,_pl1.jid())*vl1);
+    if(_pl2.jid()>=0) rxj=cross<T>(ROTI(Pos->_info._TM,_pl2.jid())*vl2);
   }
   if(dist>1) return *flag;
   else if(dist>0) {
@@ -305,28 +327,20 @@ bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<M
   clearGAll(subg);
   subDTG1.setZero();
   subDTG2.setZero();
-  if(!cf.evalLRI(&val,&body,grad,NULL,NULL,&subDTG1,&subDTG2,subm,subg)) return *flag=false;
-  *P+=(1-phi)*val;
-  if(grad){
-    parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
-    parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
-    parallelAdd<T,3,4>(*DTG1,0,0,val*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
-    parallelAdd<T,3,4>(*DTG2,0,0,val*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-    addGAll(g,subg,1-phi);
-    contractGAll(g,Rxi,Rxj,val*-dphi*deltax/((d2-d1)*deltax.norm()));
-    DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
-    h=DDPhi*val;
-    H.setZero();
-    H.template block<3,3>(0,0)=h;
-    H.template block<3,3>(0,3)=-h;
-    H.template block<3,3>(3,0)=-h;
-    H.template block<3,3>(3,3)=h;
-    contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
+  if(!backward){
+    if(!cf.evalLRI(&val,&body,grad,NULL,NULL,&subDTG1,&subDTG2,subm,subg)) return *flag=false;
+    *P+=(1-phi)*val;
+    if(grad){
+      parallelAdd<T,3,4>(*DTG1,0,0,(1-phi)*subDTG1);
+      parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
+      addMAll(m,subm,1-phi);
+    }
+  }
+  else{
+    cf.evalBackwardLRI(&body,grad,Pos,DNDX,NULL,NULL,subg,1-phi);
     clearGAll(tmpg);
-    contractGAll(tmpg,Rxi,Rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
-    mergeGAll(tmpg,subg,m);
+    contractGAll(tmpg,rxi,rxj,-dphi*deltax/((d2-d1)*deltax.norm()));
     mergeGAll(subg,tmpg,m);
-    addMAll(m,subm,1-phi);
   }
   return *flag;
 }

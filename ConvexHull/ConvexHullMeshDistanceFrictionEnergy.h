@@ -57,10 +57,14 @@ class CCBarrierMeshFrictionEnergy : public CCBarrierMeshEnergy<T,PFunc,TH> {
   static void debugGradient(const ArticulatedBody& body,int JID,int JID2,T x0,T d0=0.01,bool output=false);
   bool eval(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,Vec* GTheta,MatT* HTheta);
   bool evalLRI(T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,Vec* GTheta,MatT* HTheta);
-  bool evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,bool backward=false) const;
+  bool evalbackwardLRI(const ArticulatedBody* body,CollisionGradInfo<T>* grad,CollisionGradInfo<T>* Pos,
+                    std::vector<Mat3X4T>* DNDX);
+  bool evalBsh(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2,T* E,const ArticulatedBody* body,CollisionGradInfo<T>* grad,
+              bool backward=false,CollisionGradInfo<T>* Pos=NULL,std::vector<Mat3X4T>* DNDX=NULL) const;
   bool ComputePotential(std::shared_ptr<MeshExact> c1,std::shared_ptr<MeshExact> c2, T* P,
                         Mat3X4T* DTG1, Mat3X4T* DTG2, MAll& m,GAll& g,CollisionGradInfo<T>* grad,
-                        const ArticulatedBody& body,bool* flag) const;
+                        const ArticulatedBody& body,bool* flag,
+                        bool backward=false,CollisionGradInfo<T>* Pos=NULL,std::vector<Mat3X4T>* DNDX=NULL) const;
   bool evalbackward(T *E,const ArticulatedBody* body,CollisionGradInfo<T>* grad);
   const std::vector<FrictionTerm>& terms() const;
   void setX(Vec4T x);

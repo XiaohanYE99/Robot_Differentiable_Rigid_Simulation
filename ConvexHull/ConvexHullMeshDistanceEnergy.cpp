@@ -66,7 +66,7 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::eval(T* E,const ArticulatedBody* body,Coll
 }
 template <typename T,typename PFunc,typename TH>
 bool CCBarrierMeshEnergy<T,PFunc,TH>::evalbackward(T *E,const ArticulatedBody* body,CollisionGradInfo<T>* grad) {
-  std::shared_ptr<MeshExact> c1=_p1.mesh();
+  /*std::shared_ptr<MeshExact> c1=_p1.mesh();
   std::shared_ptr<MeshExact> c2=_p2.mesh();
   //intersection check
   typename GJKPolytope<T>::Point p1,p2;
@@ -80,7 +80,7 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::evalbackward(T *E,const ArticulatedBody* b
   } else {
     if(!evalBF(c1,c2,E,body,grad,true))
       return false;
-  }
+  }*/
   return true;
 }
 template <typename T,typename PFunc,typename TH>
@@ -423,11 +423,11 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact
       contractMAll(m,Rxi,Rxj,Rxi,Rxj,H);
     }
     
-    std::vector<Vec3T> vssA,vssB;
+    std::vector<Eigen::Matrix<double,3,1>> vssA,vssB;
     std::vector<Eigen::Matrix<int,3,1>> iss;
     iss.push_back(Eigen::Matrix<int,3,1>(0,1,2));
-    for(auto &pair : c1->getBVH()[id1]._bb._points) vssA.push_back(pair.second);
-    for(auto &pair : c2->getBVH()[id2]._bb._points) vssB.push_back(pair.second); 
+    for(auto &pair : c1->getBVH()[id1]._bb._points) vssA.push_back(pair.second.template cast<double>());
+    for(auto &pair : c2->getBVH()[id2]._bb._points) vssB.push_back(pair.second.template cast<double>()); 
     std::shared_ptr<MeshExact> m1(new MeshExact(vssA,iss,false,false));
     std::shared_ptr<MeshExact> m2(new MeshExact(vssB,iss,false,false));
     GJKPolytope<T>mA,mB;

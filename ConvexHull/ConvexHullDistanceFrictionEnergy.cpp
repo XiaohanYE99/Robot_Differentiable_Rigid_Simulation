@@ -6,7 +6,7 @@ namespace PHYSICSMOTION {
 //CCBarrierEnergy
 template <typename T,typename PFunc,typename TH>
 CCBarrierFrictionEnergy<T,PFunc,TH>::CCBarrierFrictionEnergy(const GJKPolytope<T>& p1,const GJKPolytope<T>& p2,const GJKPolytope<T>& pl1,const GJKPolytope<T>& pl2,const Vec4T& x,const PFunc& p,T d0,const CollisionGradInfo<T>* grad,T coef,T dt,bool implicit)
-  :CCBarrierEnergy<T,PFunc,TH>(p1,p2,p,d0,grad,coef,implicit),_pl1(pl1),_pl2(pl2),_dt(dt),_eps(1e-6),_fri(0.8) {
+  :CCBarrierEnergy<T,PFunc,TH>(p1,p2,p,d0,grad,coef,implicit),_pl1(pl1),_pl2(pl2),_dt(dt),_eps(1e-4),_fri(1.0) {
   _x=Vec4TH((TH)x[0],(TH)x[1],(TH)x[2],(TH)x[3]);
 }
 template <typename T,typename PFunc,typename TH>
@@ -50,6 +50,7 @@ void CCBarrierFrictionEnergy<T,PFunc,TH>::debugGradient(bool implicit,const GJKP
       //evaluate backward
       {
         std::vector<MatX3T> HThetaD1,HThetaD2;
+        GAll g;
         e.evalBackward(&body,&info,&infoL,&DNDX,&HThetaD1,&HThetaD2);
         HThetaL=info._HThetaL;
         //evaluate again
@@ -415,6 +416,37 @@ bool CCBarrierFrictionEnergy<T,PFunc,TH>::evalBackward(const ArticulatedBody* bo
   return true;
 }
 template <typename T,typename PFunc,typename TH>
+bool CCBarrierFrictionEnergy<T,PFunc,TH>::evalBackwardLRI(const ArticulatedBody* body,CollisionGradInfo<T>* grad,CollisionGradInfo<T>* Pos,
+    std::vector<Mat3X4T>* DNDX,std::vector<MatX3T>* HThetaD1,std::vector<MatX3T>* HThetaD2,GAll& gl,const T alpha) {
+  TH E2;
+  Vec3TH G2;
+  Mat3TH H2;
+  if(_implicit) {
+    _u.setZero();
+    //optimize
+    if(!optimize(_u,E2,G2,H2)) {
+      std::cout<<"Cannot optimize"<<std::endl;
+      return false;
+    }
+    if(E2==0) return true;
+  } else {
+    //compute energy
+    _u.setZero();
+    if(!energy(_u,E2,NULL,NULL))
+      return false;
+    if(E2==0) return true;
+  }
+  {
+    Vec3T G=G2.template cast<T>();
+    Mat3T H=H2.template cast<T>();
+    Mat3XT DTG;
+
+    if(HThetaD1) computeHBackward(*body,*grad,_u.template cast<T>(),_x.template cast<T>(),G,H,HThetaD1,HThetaD2);
+    computeHLBackward(*body,*grad,*Pos,_u.template cast<T>(),_x.template cast<T>(),&G,&H,DNDX,&gl,&alpha);
+  }
+  return true;
+}
+template <typename T,typename PFunc,typename TH>
 bool CCBarrierFrictionEnergy<T,PFunc,TH>::optimize(Vec3TH& u,TH& E,Vec3TH& G,Mat3TH& H) const {
   Vec3TH D,G2,u2;
   Eigen::FullPivLU<Mat3TH> invH;
@@ -615,7 +647,7 @@ void CCBarrierFrictionEnergy<T,PFunc,TH>::computeDTGH(const ArticulatedBody& bod
 }
 template <typename T,typename PFunc,typename TH>
 void CCBarrierFrictionEnergy<T,PFunc,TH>::computeHLBackward(const ArticulatedBody& body,CollisionGradInfo<T>& info,CollisionGradInfo<T>& infoL,
-    const Vec3T& u,const Vec4T& x,const Vec3T* G,const Mat3T* H,const std::vector<Mat3X4T>* DNDX) const {
+    const Vec3T& u,const Vec4T& x,const Vec3T* G,const Mat3T* H,const std::vector<Mat3X4T>* DNDX,GAll* gl,const T* alpha) const {
   Mat3T wDDEDXDTheta1,tDDEDXDTheta1,wDDEDXDThetaL1,tDDEDXDThetaL1;
   Mat3T wDDEDXDTheta2,tDDEDXDTheta2,wDDEDXDThetaL2,tDDEDXDThetaL2;
   Mat3X4T wDDEDXDThetaN1,tDDEDXDThetaN1,wDDEDXDThetaN2,tDDEDXDThetaN2,DDEDXDThetaN;
@@ -653,26 +685,30 @@ void CCBarrierFrictionEnergy<T,PFunc,TH>::computeHLBackward(const ArticulatedBod
       RL=ROTI(infoL._info._TM,_pl1.jid());
     }
     //stage 1
-    std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(body.joint(_p1.jid())._mesh);
+    std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(_p1.mesh());
     for(int c=0; c<_p1.globalVss().cols(); c++) {
       Vec3T Rvll=RL*local->vss()[c].template cast<T>();
       energyPDTGH(_p1.globalVss().col(c),_pl1.globalVss().col(c),local->vss()[c].template cast<T>(),u,x,NULL,
                   R*local->vss()[c].template cast<T>(),&Rvll,&tDDEDXDTheta1,&wDDEDXDTheta1,&tDDEDXDThetaL1,&wDDEDXDThetaL1,&tDDEDXDThetaN1,&wDDEDXDThetaN1,
-                  &Mww,&Mtw,&Mwt,&Mtt,&Hxx);
+                  &Mww,&Mtw,&Mwt,&Mtt,&Hxx,gl);
     }
     //stage 2
     if(G && H) {
       CCBarrierEnergy<T,PFunc,TH>::contractHBackward(_p1.jid(),body,infoL,HThetaNL1,DNDX->at(0),DNDX->at(1));
       CCBarrierEnergy<T,PFunc,TH>::contractHBackward(_p1.jid(),body,info,HThetaN1,wDDEDXDThetaN1,tDDEDXDThetaN1);
-      CCBarrierEnergy<T,PFunc,TH>::contractHThetaL(_p1.jid(),_p1.jid(),body,info,infoL,Mww,Mtw,Mwt,Mtt);
+      if(alpha) CCBarrierEnergy<T,PFunc,TH>::contractHThetaL(_p1.jid(),_p1.jid(),body,info,infoL,
+                (*alpha)*Mww,(*alpha)*Mtw,(*alpha)*Mwt,(*alpha)*Mtt);
+      else CCBarrierEnergy<T,PFunc,TH>::contractHThetaL(_p1.jid(),_p1.jid(),body,info,infoL,Mww,Mtw,Mwt,Mtt);
       tmp=HThetaN1*HThetaNL1.transpose();
-      parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmp);
+      if(alpha) parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmp*(*alpha));
+      else parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmp);
       //std::cout<<DNDX->at(0).norm()<<" "<<DNDX->at(1).norm()<<" "<<_pl1.jid()<<std::endl;
       if(_implicit) {
         CCBarrierEnergy<T,PFunc,TH>::contractHBackward(_p1.jid(),body,info,HThetaU1,wDDEDXDTheta1,tDDEDXDTheta1);
         CCBarrierEnergy<T,PFunc,TH>::contractHBackward(_p1.jid(),body,infoL,HThetaUL1,wDDEDXDThetaL1.transpose()*Hxx,tDDEDXDThetaL1.transpose()*Hxx);
         tmpi=HThetaU1*(HThetaUL1.transpose()+Hxx*DDEDXDThetaN*HThetaNL1.transpose()/_coef);
-        parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmpi);
+        if(alpha) parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmpi*(*alpha));
+        else parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmpi);
       }
     }
   }
@@ -690,26 +726,30 @@ void CCBarrierFrictionEnergy<T,PFunc,TH>::computeHLBackward(const ArticulatedBod
       RL=ROTI(infoL._info._TM,_pl2.jid());
     }
     //stage 1
-    std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(body.joint(_p2.jid())._mesh);
+    std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(_p2.mesh());
     for(int c=0; c<_p2.globalVss().cols(); c++) {
       Vec3T Rvll=RL*local->vss()[c].template cast<T>();
       energyNDTGH(_p2.globalVss().col(c),_pl2.globalVss().col(c),local->vss()[c].template cast<T>(),u,x,NULL,
                   R*local->vss()[c].template cast<T>(),&Rvll,&tDDEDXDTheta2,&wDDEDXDTheta2,&tDDEDXDThetaL2,&wDDEDXDThetaL2,&tDDEDXDThetaN2,&wDDEDXDThetaN2,
-                  &Mww,&Mtw,&Mwt,&Mtt,&Hxx);
+                  &Mww,&Mtw,&Mwt,&Mtt,&Hxx,gl);
     }
     //stage 2
     if(G && H) {
       CCBarrierEnergy<T,PFunc,TH>::contractHBackward(_p2.jid(),body,infoL,HThetaNL2,DNDX->at(2),DNDX->at(3));
       CCBarrierEnergy<T,PFunc,TH>::contractHBackward(_p2.jid(),body,info,HThetaN2,wDDEDXDThetaN2,tDDEDXDThetaN2);
-      CCBarrierEnergy<T,PFunc,TH>::contractHThetaL(_p2.jid(),_p2.jid(),body,info,infoL,Mww,Mtw,Mwt,Mtt);
+      if(alpha) CCBarrierEnergy<T,PFunc,TH>::contractHThetaL(_p2.jid(),_p2.jid(),body,info,infoL,
+                (*alpha)*Mww,(*alpha)*Mtw,(*alpha)*Mwt,(*alpha)*Mtt);
+      else CCBarrierEnergy<T,PFunc,TH>::contractHThetaL(_p2.jid(),_p2.jid(),body,info,infoL,Mww,Mtw,Mwt,Mtt);
       tmp=HThetaN2*HThetaNL2.transpose();
-      parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmp);
+      if(alpha) parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmp*(*alpha));
+      else parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmp);
       //std::cout<<_pl2.wDNDX().norm()<<" "<<_pl2.tDNDX().norm()<<" "<<_pl2.jid()<<std::endl;
       if(_implicit) {
         CCBarrierEnergy<T,PFunc,TH>::contractHBackward(_p2.jid(),body,info,HThetaU2,wDDEDXDTheta2,tDDEDXDTheta2);
         CCBarrierEnergy<T,PFunc,TH>::contractHBackward(_p2.jid(),body,infoL,HThetaUL2,wDDEDXDThetaL2.transpose()*Hxx,tDDEDXDThetaL2.transpose()*Hxx);
         tmpi=HThetaU2*(HThetaUL2.transpose()+Hxx*DDEDXDThetaN*HThetaNL2.transpose()/_coef);
-        parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmpi);
+        if(alpha) parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmpi*(*alpha));
+        else parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmpi);
       }
     }
   }
@@ -719,10 +759,12 @@ void CCBarrierFrictionEnergy<T,PFunc,TH>::computeHLBackward(const ArticulatedBod
     if(G && H) {
       if(_implicit) {
         tmpi=HThetaU1*(HThetaUL2.transpose()+Hxx*DDEDXDThetaN*HThetaNL2.transpose()/_coef)+HThetaU2*(HThetaUL1.transpose()+Hxx*DDEDXDThetaN*HThetaNL1.transpose()/_coef);
-        parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmpi);
+        if(alpha) parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmpi*(*alpha));
+        else parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmpi);
       }
       tmp=HThetaN1*HThetaNL2.transpose()+HThetaN2*HThetaNL1.transpose();
-      parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmp);
+      if(alpha) parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmp*(*alpha));
+      else parallelAdd<T,-1,-1>(info._HThetaL,0,0,tmp);
     }
   }
 }
@@ -842,6 +884,10 @@ void CCBarrierFrictionEnergy<T,PFunc,TH>::energyPDTGH(const Vec3T& v,const Vec3T
   Mat3T DXDU=-2*B/_dt;
   if(DTG)
     parallelAdd<T,3,4>(*DTG,0,0,computeDTG<T>(_coef*_fri*_dt*f_n.norm()*D*DX,vl));
+  if(g){
+    g->_g1._w+=C*(_coef*_fri*_dt*f_n.norm()*D*DX);
+    g->_g1._t+=(_coef*_fri*_dt*f_n.norm()*D*DX);
+  }
   if(LRH && wLRH) {
     DDEDXDTheta=_fri*_dt*f_n.norm()*(DD*DX*DU.transpose()+D*DXDU);
     parallelAdd<T,3,3>(*LRH,0,0,DDEDXDTheta);
@@ -916,6 +962,10 @@ void CCBarrierFrictionEnergy<T,PFunc,TH>::energyNDTGH(const Vec3T& v,const Vec3T
   Mat3T DXDU=-2*B/_dt;
   if(DTG)
     parallelAdd<T,3,4>(*DTG,0,0,computeDTG<T>(_coef*_fri*_dt*f_n.norm()*D*DX,vl));
+  if(g){
+    g->_g2._w+=C*(_coef*_fri*_dt*f_n.norm()*D*DX);
+    g->_g2._t+=(_coef*_fri*_dt*f_n.norm()*D*DX);
+  }
   if(LRH && wLRH) {
     DDEDXDTheta=_fri*_dt*f_n.norm()*(DD*DX*DU.transpose()+D*DXDU);
     parallelAdd<T,3,3>(*LRH,0,0,DDEDXDTheta);

@@ -3,6 +3,7 @@
 #include <Simulator/SimulatorVisualizer.h>
 #include <Simulator/ConvHullPBDSimulator.h>
 #include <Simulator/MeshBasedPBDSimulator.h>
+#include <chrono>
 
 using namespace PHYSICSMOTION;
 
@@ -77,13 +78,17 @@ int main(int argc,char** argv) {
   }*/
   visualizeSimulator(argc,argv,sim);
   //run app
-  /*std::vector<Vec> traj;
-  traj.resize(10);
-  for(int i=0;i<1;i++) {
+  /*auto start = std::chrono::high_resolution_clock::now();
+  std::vector<Vec> traj;
+  traj.resize(100);
+  for(int i=0;i<100;i++) {
     std::cout<<i<<std::endl;
     sim.step();
     traj.push_back(sim.pos());
   }
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed_time = end - start;
+  std::cout << "Elapsed time: " << elapsed_time.count() << " seconds" << std::endl;
   int frame=0;
   render.visualize(&traj,&frame);*/
   return 0;
