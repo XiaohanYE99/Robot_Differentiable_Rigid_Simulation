@@ -3886,7 +3886,14 @@ CMakeFiles/PhysicsMotion.dir/Articulated/ArticulatedUtils.cpp.o: ../Articulated/
   ../Utils/DebugGradient.h \
   ../Utils/Utils.h \
   /usr/include/c++/11/stack \
-  /usr/include/c++/11/bits/stl_stack.h
+  /usr/include/c++/11/bits/stl_stack.h \
+  /usr/include/c++/11/random \
+  /usr/include/c++/11/bits/random.h \
+  /usr/include/x86_64-linux-gnu/c++/11/bits/opt_random.h \
+  /usr/include/c++/11/bits/random.tcc \
+  /usr/include/c++/11/numeric \
+  /usr/include/c++/11/bits/stl_numeric.h \
+  /usr/include/c++/11/pstl/glue_numeric_defs.h
 
 CMakeFiles/PhysicsMotion.dir/Articulated/ArticulatedVisualizer.cpp.o: ../Articulated/ArticulatedVisualizer.cpp \
   /usr/include/stdc-predef.h \
@@ -52905,7 +52912,9 @@ CMakeFiles/PhysicsMotion.dir/Simulator/ConvHullPBDSimulator.cpp.o: ../Simulator/
   ../Utils/CrossSpatialUtils.h \
   ../Articulated/ArticulatedUtils.h \
   ../Environment/CompositeShapeExact.h \
-  ../Environment/MeshExact.h
+  ../Environment/MeshExact.h \
+  ../Environment/ConvexHullExact.h \
+  ../Environment/EdgeExact.h
 
 CMakeFiles/PhysicsMotion.dir/Simulator/JointLimit.cpp.o: ../Simulator/JointLimit.cpp \
   /usr/include/stdc-predef.h \

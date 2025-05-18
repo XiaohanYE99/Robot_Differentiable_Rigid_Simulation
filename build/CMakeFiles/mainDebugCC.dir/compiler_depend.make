@@ -1314,8 +1314,62 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
   ../Articulated/ArticulatedLoader.h \
   ../Environment/EnvironmentUtils.h \
   ../Environment/ConvexHullExact.h \
-  ../Environment/EdgeExact.h
+  ../Environment/EdgeExact.h \
+  ../Simulator/SimulatorVisualizer.h \
+  ../Simulator/Simulator.h \
+  /usr/local/include/TinyVisualizer/FirstPersonCameraManipulator.h \
+  /usr/local/include/TinyVisualizer/CameraManipulator.h \
+  /usr/local/include/TinyVisualizer/Drawer.h \
+  /usr/local/include/TinyVisualizer/Background.h \
+  /usr/local/include/TinyVisualizer/DrawerUtility.h \
+  /usr/local/include/glad/gl.h \
+  /usr/local/include/KHR/khrplatform.h \
+  /usr/local/include/GLFW/glfw3.h \
+  /usr/include/eigen3/Eigen/Eigen \
+  /usr/include/eigen3/Eigen/Dense \
+  /usr/include/eigen3/Eigen/Sparse \
+  /usr/local/include/TinyVisualizer/CameraExportPlugin.h \
+  /usr/local/include/TinyVisualizer/CaptureGIFPlugin.h \
+  /usr/local/include/TinyVisualizer/ImGuiPlugin.h \
+  /usr/local/include/TinyVisualizer/ShadowAndLight.h \
+  /usr/local/include/TinyVisualizer/Shader.h \
+  /usr/local/include/TinyVisualizer/FBO.h \
+  /usr/local/include/TinyVisualizer/Texture.h \
+  /usr/local/include/TinyVisualizer/Camera3D.h \
+  /usr/local/include/TinyVisualizer/Povray.h \
+  /usr/local/include/TinyVisualizer/ShadowAndLight.h \
+  /usr/local/include/imgui/imgui.h \
+  /usr/local/include/imgui/imconfig.h \
+  ../Simulator/ConvHullPBDSimulator.h \
+  ../Simulator/Simulator.h \
+  ../ConvexHull/Barrier.h \
+  ../ConvexHull/CollisionGradInfo.h \
+  ../ConvexHull/CustomPBDEnergy.h \
+  ../Simulator/MeshBasedPBDSimulator.h \
+  ../Simulator/ConvHullPBDSimulator.h
 
+
+../Simulator/ConvHullPBDSimulator.h:
+
+/usr/local/include/TinyVisualizer/Camera3D.h:
+
+/usr/local/include/TinyVisualizer/ShadowAndLight.h:
+
+/usr/local/include/TinyVisualizer/ImGuiPlugin.h:
+
+/usr/local/include/TinyVisualizer/CaptureGIFPlugin.h:
+
+/usr/local/include/TinyVisualizer/CameraExportPlugin.h:
+
+/usr/local/include/glad/gl.h:
+
+/usr/local/include/TinyVisualizer/DrawerUtility.h:
+
+/usr/local/include/TinyVisualizer/Background.h:
+
+/usr/local/include/TinyVisualizer/CameraManipulator.h:
+
+/usr/local/include/TinyVisualizer/FirstPersonCameraManipulator.h:
 
 ../Environment/EdgeExact.h:
 
@@ -1429,6 +1483,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 
 /usr/include/eigen3/Eigen/src/SparseCore/MappedSparseMatrix.h:
 
+/usr/local/include/GLFW/glfw3.h:
+
 /usr/include/eigen3/Eigen/src/SparseCore/SparseMatrix.h:
 
 /usr/include/eigen3/Eigen/src/SparseCore/SparseCompressedBase.h:
@@ -1450,6 +1506,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 /usr/include/eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h:
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/RealSchur.h:
+
+/usr/local/include/TinyVisualizer/Povray.h:
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h:
 
@@ -1484,6 +1542,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 /usr/include/eigen3/Eigen/src/SVD/SVDBase.h:
 
 /usr/include/eigen3/Eigen/src/SVD/UpperBidiagonalization.h:
+
+../ConvexHull/CustomPBDEnergy.h:
 
 /usr/include/eigen3/Eigen/SVD:
 
@@ -2085,6 +2145,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 
 /usr/include/boost/preprocessor/list/reverse.hpp:
 
+../Simulator/Simulator.h:
+
 /usr/include/boost/core/enable_if.hpp:
 
 /usr/include/boost/mpl/aux_/find_if_pred.hpp:
@@ -2212,6 +2274,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 /usr/include/c++/11/bits/predefined_ops.h:
 
 /usr/include/x86_64-linux-gnu/bits/typesizes.h:
+
+/usr/local/include/KHR/khrplatform.h:
 
 /usr/include/boost/numeric/conversion/detail/udt_builtin_mixture.hpp:
 
@@ -2559,6 +2623,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/gthr-default.h:
 
+/usr/local/include/TinyVisualizer/Shader.h:
+
 /usr/include/boost/utility/binary.hpp:
 
 /usr/include/boost/mpl/list/aux_/preprocessed/plain/list10.hpp:
@@ -2592,6 +2658,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 /usr/include/boost/static_assert.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/sched.h:
+
+/usr/include/eigen3/Eigen/Eigen:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h:
 
@@ -2797,6 +2865,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 
 /usr/include/boost/config/helper_macros.hpp:
 
+/usr/local/include/imgui/imgui.h:
+
 /usr/include/boost/mpl/aux_/has_apply.hpp:
 
 /usr/include/boost/mpl/aux_/clear_impl.hpp:
@@ -2824,6 +2894,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 /usr/include/c++/11/bits/stl_bvector.h:
 
 /usr/include/c++/11/tr1/hypergeometric.tcc:
+
+/usr/local/include/imgui/imconfig.h:
 
 /usr/include/boost/preprocessor/arithmetic/detail/div_base.hpp:
 
@@ -3209,6 +3281,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 
 /usr/include/boost/mpl/vector/aux_/pop_back.hpp:
 
+../Simulator/SimulatorVisualizer.h:
+
 /usr/include/boost/predef/architecture/x86/32.h:
 
 /usr/include/boost/predef/version_number.h:
@@ -3289,6 +3363,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 
 /usr/include/boost/mpl/pop_front_fwd.hpp:
 
+/usr/local/include/TinyVisualizer/Drawer.h:
+
 /usr/include/c++/11/bits/ostream_insert.h:
 
 /usr/include/boost/mpl/aux_/config/nttp.hpp:
@@ -3320,6 +3396,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 /usr/include/boost/core/noncopyable.hpp:
 
 /usr/include/boost/mpl/aux_/at_impl.hpp:
+
+../Simulator/MeshBasedPBDSimulator.h:
 
 /usr/include/boost/mpl/empty_fwd.hpp:
 
@@ -3446,6 +3524,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 /usr/include/boost/mpl/negate.hpp:
 
 /usr/include/c++/11/deque:
+
+/usr/local/include/TinyVisualizer/FBO.h:
 
 /usr/include/boost/mpl/aux_/advance_forward.hpp:
 
@@ -3742,6 +3822,8 @@ CMakeFiles/mainDebugCC.dir/Main/DebugSimulator/mainDebugCC.cpp.o: ../Main/DebugS
 /usr/include/eigen3/Eigen/src/Core/util/Constants.h:
 
 /usr/include/eigen3/Eigen/src/Core/util/Memory.h:
+
+/usr/local/include/TinyVisualizer/Texture.h:
 
 /usr/include/eigen3/Eigen/src/Householder/BlockHouseholder.h:
 

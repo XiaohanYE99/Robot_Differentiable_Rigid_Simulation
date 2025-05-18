@@ -11,11 +11,12 @@
 #include <Utils/DebugGradient.h>
 #include <Utils/Utils.h>
 #include <stack>
+#include <random>
 
 namespace PHYSICSMOTION {
 ArticulatedUtils::ArticulatedUtils(ArticulatedBody& body):_body(body) {}
 void ArticulatedUtils::assembleGlobalVars(const tinyxml2::XMLElement& pt) {
-  _globalRho=get<T>(pt,"globalRho",1);
+  _globalRho=get<T>(pt,"globalRho",3);
   _globalLimitCoef=get<T>(pt,"globalLimitCoef",1000);
   _globalControlCoef=get<T>(pt,"globalControlCoef",1);
   _globalDampingCoef=get<T>(pt,"globalDampingCoef",0);
@@ -626,6 +627,19 @@ ArticulatedUtils::Vec ArticulatedUtils::simplify(std::function<bool(int,const Jo
   }
   return DOFRet;
 }
+void ArticulatedUtils::resetMesh(const std::string& path,int k,T sz) {
+  MeshExact m(path);
+  std::shared_ptr<MeshExact> mesh=std::dynamic_pointer_cast<MeshExact>(m.copy());
+  std::vector<Eigen::Matrix<double,3,1>> vss;
+  std::vector<Eigen::Matrix<int,3,1>> iss;
+  mesh->getMesh(vss,iss);
+  Vec3T center=Vec3T(0,0,0);
+  //std::cout<<mesh->vss().size()<<" "<<vss.size();
+  //for(int i=0;i<mesh->vss().size();i++) center+=mesh->vss()[i]/(mesh->vss().size());
+  for(int i=0;i<mesh->vss().size();i++) vss[i]=vss[i]*sz;
+  _body.joint(k)._mesh.reset(new MeshExact(vss,iss));
+  _body.joint(k).assemble(1);//50
+}
 ArticulatedUtils::Vec ArticulatedUtils::simplify(const Vec& DOF,int nrDebug) {
   return simplify([](int,const Joint& J) {
     return J._typeJoint==Joint::FIX_JOINT;
@@ -744,7 +758,7 @@ void ArticulatedUtils::convexDecompose(T rho) {
   std::cout << "Decomposed into " << decompose.getConvexHulls().size() << " sub-joints!" << std::endl;
 }
 void ArticulatedUtils::convexDecompose(std::vector<int> jid, int maxConvexHulls, T rho) {
-  std::vector<MeshExact> Mesh;
+  /*std::vector<MeshExact> Mesh;
   PBDArticulatedGradientInfo<ArticulatedBody::T> info(_body,Vec::Zero(_body.nrDOF()));
   for(uint i=0;i<jid.size();i++){
     int meshJointId=jid[i];//transMesh
@@ -752,9 +766,9 @@ void ArticulatedUtils::convexDecompose(std::vector<int> jid, int maxConvexHulls,
     std::vector<Eigen::Matrix<double,3,1>> vss;
     std::vector<Eigen::Matrix<int,3,1>> iss;
     _body.joint(meshJointId)._mesh->getMesh(vss,iss);
-    //MeshExact mesh;
-    //mesh.init(vss,iss);
-    //Mesh.push_back(mesh);
+    MeshExact mesh;
+    mesh.init(vss,iss);
+    Mesh.push_back(mesh);
   }
   for(uint k=0;k<Mesh.size();k++){
     int meshJointId=jid[k];//transMesh
@@ -763,10 +777,11 @@ void ArticulatedUtils::convexDecompose(std::vector<int> jid, int maxConvexHulls,
     _body.joint(meshJointId)._mesh=decompose.getConvexHulls()[0];
     _body.joint(meshJointId)._name="Convex"+std::to_string(0);
     _body.joint(meshJointId).assemble(rho);
+    
     for(int i=1; i<(int)decompose.getConvexHulls().size(); i++) {
       Joint joint;
       //joint
-      joint._parent=_body.joint(meshJointId)._parent;
+      joint._parent=meshJointId;
       joint._depth=_body.joint(joint._parent)._depth+1;
       joint._typeJoint=Joint::FIX_JOINT;
       joint._offDOF=_body.joint(meshJointId)._offDOF;
@@ -774,7 +789,7 @@ void ArticulatedUtils::convexDecompose(std::vector<int> jid, int maxConvexHulls,
       joint._limits=_body.joint(meshJointId)._limits;
       joint._control=_body.joint(meshJointId)._control;
       joint._damping=_body.joint(meshJointId)._damping;
-      joint._trans=_body.joint(meshJointId)._trans;
+      joint._trans.setIdentity();//_body.joint(meshJointId)._trans;
       //mimic
       joint._mult=_body.joint(meshJointId)._mult;
       joint._offset=_body.joint(meshJointId)._offset;
@@ -789,7 +804,7 @@ void ArticulatedUtils::convexDecompose(std::vector<int> jid, int maxConvexHulls,
       //_body._joints[_body._joints.size()-1]._class=meshJointId;
     }
     std::cout << "Decomposed into " << decompose.getConvexHulls().size() << " sub-joints!" << std::endl;
-  }
+  }*/
 }
 void ArticulatedUtils::addBody(ArticulatedBody& body) {
   int offset=(int) _body._joints.size();
@@ -810,15 +825,215 @@ void ArticulatedUtils::addBody(ArticulatedBody& body) {
     _body._joints.insert(_body._joints.end(),joints.begin(),joints.end());
   }
 }
+void ArticulatedUtils::untessellate(bool rebuildBVH, int refine) {
+  for (int j = 0; j < _body.nrJ(); j++) {
+    Joint& joint = _body.joint(j);
+    if (joint._mesh) {
+      // 获取当前网格的顶点和索引
+      std::vector<Eigen::Matrix<double, 3, 1>> vss; // 顶点列表
+      std::vector<Eigen::Matrix<int, 3, 1>> iss;   // 面索引列表
+      joint._mesh->getMesh(vss, iss);
+
+      if (refine > 0 && j >= 2) {
+        int n = refine; // 需要移除的顶点数量
+        if (n >= vss.size() - 3) { // 确保至少有 3 个顶点剩余
+          std::cerr << "Error: Cannot remove more vertices than allowed." << std::endl;
+          return;
+        }
+
+        // **逐步减面**
+        for (int removed = 0; removed < n; ++removed) {
+          // **选择一个适合移除的顶点**
+          int vertexToRemove = -1;
+          double minImpact = std::numeric_limits<double>::max();
+
+          // 遍历所有顶点，选择对形状和分布影响最小的顶点
+          for (size_t i = 0; i < vss.size(); ++i) {
+            // 检查顶点是否可以移除（必须与至少 3 个三角形相连）
+            std::set<int> connectedVertices;
+            for (const auto& face : iss) {
+              if (face(0) == i || face(1) == i || face(2) == i) {
+                connectedVertices.insert(face(0));
+                connectedVertices.insert(face(1));
+                connectedVertices.insert(face(2));
+              }
+            }
+            if (connectedVertices.size() < 3) continue; // 跳过不可移除的顶点
+
+            // 计算移除顶点的几何代价（法向量变化）
+            double impact = 0.0;
+            for (const auto& face : iss) {
+              if (face(0) == i || face(1) == i || face(2) == i) {
+                const Eigen::Matrix<double, 3, 1>& v0 = vss[face(0)];
+                const Eigen::Matrix<double, 3, 1>& v1 = vss[face(1)];
+                const Eigen::Matrix<double, 3, 1>& v2 = vss[face(2)];
+
+                Eigen::Matrix<double, 3, 1> normal = (v1 - v0).cross(v2 - v0).normalized();
+                Eigen::Matrix<double, 3, 1> centroid = (v0 + v1 + v2) / 3.0;
+                Eigen::Matrix<double, 3, 1> newNormal = (v1 - centroid).cross(v2 - centroid).normalized();
+                impact += (normal - newNormal).norm();
+              }
+            }
+
+            // 如果代价更小，则更新最优选择
+            if (impact < minImpact) {
+              minImpact = impact;
+              vertexToRemove = i;
+            }
+          }
+
+          if (vertexToRemove == -1) {
+            std::cerr << "No removable vertex found." << std::endl;
+            break;
+          }
+
+          // **移除选定的顶点并重新三角化**
+          std::vector<int> connectedVertices;
+          for (auto it = iss.begin(); it != iss.end();) {
+            if ((*it)(0) == vertexToRemove || (*it)(1) == vertexToRemove || (*it)(2) == vertexToRemove) {
+              for (int k = 0; k < 3; ++k) {
+                if ((*it)(k) != vertexToRemove) {
+                  connectedVertices.push_back((*it)(k));
+                }
+              }
+              it = iss.erase(it); // 删除包含该顶点的三角形
+            } else {
+              ++it;
+            }
+          }
+
+          // 去重并排序相邻顶点（按逆时针顺序）
+          Eigen::Matrix<double, 3, 1> center = vss[vertexToRemove];
+          std::sort(connectedVertices.begin(), connectedVertices.end());
+          connectedVertices.erase(std::unique(connectedVertices.begin(), connectedVertices.end()), connectedVertices.end());
+          std::sort(connectedVertices.begin(), connectedVertices.end(),
+                    [&vss, &center](int a, int b) {
+                      Eigen::Matrix<double, 3, 1> va = vss[a] - center;
+                      Eigen::Matrix<double, 3, 1> vb = vss[b] - center;
+                      return std::atan2(va.y(), va.x()) < std::atan2(vb.y(), vb.x());
+                    });
+
+          // 重新生成三角形
+          for (size_t i = 0; i < connectedVertices.size(); ++i) {
+            int v0 = connectedVertices[i];
+            int v1 = connectedVertices[(i + 1) % connectedVertices.size()];
+            iss.push_back((Eigen::Matrix<int, 3, 1>() << v0, v1, vertexToRemove).finished());
+          }
+
+          // 从顶点列表中移除该顶点
+          vss.erase(vss.begin() + vertexToRemove);
+
+          // 更新索引列表（调整后续顶点索引）
+          for (auto& face : iss) {
+            for (int k = 0; k < 3; ++k) {
+              if (face(k) > vertexToRemove) {
+                --face(k);
+              }
+            }
+          }
+        }
+        std::cout<<iss.size();
+        // 更新 mesh
+        joint._mesh.reset(new MeshExact(vss, iss));
+      } else {
+        // 如果 refine <= 0 或 j < 2，则保留原始网格
+        joint._mesh.reset(new MeshExact(vss, iss));
+      }
+    }
+  }
+}
 //mesh operation
-void ArticulatedUtils::tessellate(bool rebuildBVH) {
+void ArticulatedUtils::tessellate(bool rebuildBVH,int refine) {
   for(int j=0; j<_body.nrJ(); j++) {
     Joint& joint=_body.joint(j);
     if(joint._mesh) {
       std::vector<Eigen::Matrix<double,3,1>> vss;
       std::vector<Eigen::Matrix<int,3,1>> iss;
+      std::vector<Eigen::Matrix<double,3,1>> new_vss;
+      std::vector<Eigen::Matrix<int,3,1>> new_iss;
       joint._mesh->getMesh(vss,iss);
-      joint._mesh.reset(new MeshExact(vss,iss,rebuildBVH));
+      if(refine>0 && j>=2){
+        new_vss = vss;
+    new_iss = iss;
+
+    // **计算整个网格的几何中心**
+    Eigen::Matrix<double, 3, 1> mesh_center = Eigen::Matrix<double, 3, 1>::Zero();
+    for (const auto& vertex : vss) {
+        mesh_center += vertex;
+    }
+    mesh_center /= vss.size();  // 网格几何中心
+
+    // 随机数生成器，用于在距离权重中加入少量随机性
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    int addedPoints = 0;
+
+    // 新增点直到达到 n 个
+    while (addedPoints < refine) {
+        // **计算每个三角形质心到网格中心的距离**
+        std::vector<std::pair<int, double>> faceDistances;  // 保存三角形索引及其权重
+        for (size_t i = 0; i < new_iss.size(); ++i) {
+            const auto& face = new_iss[i];
+            // 获取当前三角形的顶点坐标
+            const Eigen::Matrix<double, 3, 1>& v0 = new_vss[face(0)];
+            const Eigen::Matrix<double, 3, 1>& v1 = new_vss[face(1)];
+            const Eigen::Matrix<double, 3, 1>& v2 = new_vss[face(2)];
+
+            // 计算三角形的质心
+            Eigen::Matrix<double, 3, 1> centroid = (v0 + v1 + v2) / 3.0;
+
+            // 计算质心到网格中心的距离
+            double distance = (centroid - mesh_center).norm();
+            faceDistances.emplace_back(i, distance);
+        }
+
+        // **选择距离网格中心较近的一个三角形**
+        // 按距离排序（从近到远）
+        std::sort(faceDistances.begin(), faceDistances.end(),
+                  [](const std::pair<int, double>& a, const std::pair<int, double>& b) {
+                      return a.second < b.second;
+                  });
+
+        // 引入随机性，在前 10% 中随机选择一个三角形
+        int maxCandidates = std::max(1, static_cast<int>(faceDistances.size() * 0.3));
+        std::uniform_int_distribution<> dist(0, maxCandidates - 1);
+        int selectedFaceIndex = faceDistances[dist(gen)].first;
+
+        // 获取选中的三角形
+        const auto& face = new_iss[selectedFaceIndex];
+        int v0_index = face(0);
+        int v1_index = face(1);
+        int v2_index = face(2);
+
+        // 获取当前三角形的顶点坐标
+        const Eigen::Matrix<double, 3, 1>& v0 = new_vss[v0_index];
+        const Eigen::Matrix<double, 3, 1>& v1 = new_vss[v1_index];
+        const Eigen::Matrix<double, 3, 1>& v2 = new_vss[v2_index];
+
+        // **计算三角形的中点（质心）**
+        Eigen::Matrix<double, 3, 1> centroid = (v0 + v1 + v2) / 3.0;
+
+        // 添加新点到顶点列表，并记录新顶点索引
+        int centroid_index = new_vss.size();  // 新点索引为当前顶点列表的末尾
+        new_vss.push_back(centroid);
+
+        // **细分该三角形为三个新的三角形**
+        new_iss.push_back((Eigen::Matrix<int, 3, 1>() << v0_index, v1_index, centroid_index).finished());
+        new_iss.push_back((Eigen::Matrix<int, 3, 1>() << v1_index, v2_index, centroid_index).finished());
+        new_iss.push_back((Eigen::Matrix<int, 3, 1>() << v2_index, v0_index, centroid_index).finished());
+
+        // 删除原三角形
+        new_iss[selectedFaceIndex] = new_iss.back();
+        new_iss.pop_back();  // 移除最后一个面（原三角形）
+
+        // 更新新增点计数
+        ++addedPoints;
+    }
+        joint._mesh.reset(new MeshExact(new_vss,new_iss,rebuildBVH));
+        //joint.assemble(1);
+      }
+      else joint._mesh.reset(new MeshExact(vss,iss,rebuildBVH));
     }
   }
 }

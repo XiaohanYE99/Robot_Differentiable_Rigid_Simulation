@@ -42,7 +42,7 @@ void visualizeSimulator(int argc,char** argv,Simulator& sim,int nSub,float maxSt
   std::shared_ptr<CompositeShape> contact(new CompositeShape);
   std::shared_ptr<CompositeShape> bodyShapeC(new CompositeShape);
   std::shared_ptr<CompositeShape> envShapeC(new CompositeShape);
-  bool drawConvex=dynamic_cast<ConvHullPBDSimulator*>(&sim)!=NULL;
+  bool drawConvex=false;//dynamic_cast<ConvHullPBDSimulator*>(&sim)!=NULL;
   auto bodyShape=visualizeArticulated(sim.getBody(),cBody,cBB,cBBC,false,drawConvex);
   auto envShape=visualizeEnvironment(sim.getShapes(),false);
   auto bodyWireShape=visualizeArticulated(sim.getBody(),cBody,cBB,cBBC,true,drawConvex);

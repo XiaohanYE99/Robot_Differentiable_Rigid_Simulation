@@ -26,6 +26,8 @@ bool CCBarrierConvexEnergy<T,PFunc,TH>::initialize(Vec4T* res,const ArticulatedB
   } else {
     if(r2[1]>=r1[0]-_d0) {
       /*OMP_CRITICAL_{
+        for(int i=0;i<_p1.mesh()->vss().size();i++) std::cout<<"1 "<<_p1.globalVss().col(i)<<std::endl;
+        for(int i=0;i<_p2.mesh()->vss().size();i++) std::cout<<"2 "<<_p2.globalVss().col(i)<<std::endl;
         std::cout<<"Strange error, GJK predicts separation by "<<dist
                  <<" but the projected intervals are not separate, "
                  <<"range=["<<r1[0]<<","<<r1[1]<<"] and ["<<r2[0]<<","<<r2[1]<<"]"<<std::endl;
@@ -218,11 +220,11 @@ bool CCBarrierConvexEnergy<T,PFunc,TH>::energy(const Vec4TH& x,TH& E,Vec4TH* G,M
     return false;
   if(e==0)
     return true;
-  E+=e;
+  E+=12*e;
   if(G)
-    G->template segment<3>(0)+=-D*n;
+    G->template segment<3>(0)+=-12*D*n;
   if(H)
-    H->template block<3,3>(0,0)+=DD*n*n.transpose()+D*(n*n.transpose()-Mat3TH::Identity())/len;
+    H->template block<3,3>(0,0)+=12*(DD*n*n.transpose()+D*(n*n.transpose()-Mat3TH::Identity())/len);
   return true;
 }
 template <typename T,typename PFunc,typename TH>
@@ -247,7 +249,6 @@ bool CCBarrierConvexEnergy<T,PFunc,TH>::optimize(Vec4TH& x,TH& E,Vec4TH& G,Mat4T
     invH.compute(H+id*alpha);
     D=invH.solve(G);
     //termination
-    //std::cout<<G.cwiseAbs().maxCoeff()<<std::endl;
     if(G.cwiseAbs().maxCoeff()<=Epsilon<TH>::defaultEps())
       break;
     //test

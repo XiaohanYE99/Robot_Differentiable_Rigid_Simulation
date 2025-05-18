@@ -1,4 +1,4 @@
-# Install script for directory: /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation
+# Install script for directory: /home/yxh/Robot_Differentiable_Rigid_Simulation
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -51,7 +51,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
   if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
-  file(INSTALL DESTINATION "/Release" TYPE STATIC_LIBRARY FILES "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build/libPhysicsMotion.a")
+  file(INSTALL DESTINATION "/Release" TYPE STATIC_LIBRARY FILES "/home/yxh/Robot_Differentiable_Rigid_Simulation/build/libPhysicsMotion.a")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
@@ -64,18 +64,18 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
   file(INSTALL DESTINATION "/PhysicsMotion" TYPE FILE FILES
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedBody.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedLoader.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedUtils.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedVisualizer.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/Joint.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/JointFunc.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/LeviCivita.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/NEArticulatedGradientInfo.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/PBCentroidBodyDynamicsGradientInfo.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/PBDArticulatedGradientInfo.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/RigidBodyMass.h"
-    "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/TensorContractPragma.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedBody.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedLoader.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedUtils.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedVisualizer.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/Joint.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/JointFunc.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/LeviCivita.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/NEArticulatedGradientInfo.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/PBCentroidBodyDynamicsGradientInfo.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/PBDArticulatedGradientInfo.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/RigidBodyMass.h"
+    "/home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/TensorContractPragma.h"
     )
 endif()
 
@@ -87,5 +87,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/yxh/Robot_Differentiable_Rigid_Simulation/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

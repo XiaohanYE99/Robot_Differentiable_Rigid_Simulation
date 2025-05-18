@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation
+CMAKE_SOURCE_DIR = /home/yxh/Robot_Differentiable_Rigid_Simulation
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build
+CMAKE_BINARY_DIR = /home/yxh/Robot_Differentiable_Rigid_Simulation/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/mainDebugBaryDerivative.dir/depend.make
@@ -72,16 +72,16 @@ include CMakeFiles/mainDebugBaryDerivative.dir/flags.make
 CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o: CMakeFiles/mainDebugBaryDerivative.dir/flags.make
 CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o: ../Main/DebugSimulator/mainDebugBaryDerivative.cpp
 CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o: CMakeFiles/mainDebugBaryDerivative.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o -MF CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o.d -o CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o -c /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugBaryDerivative.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o -MF CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o.d -o CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.o -c /home/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugBaryDerivative.cpp
 
 CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugBaryDerivative.cpp > CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugBaryDerivative.cpp > CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.i
 
 CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugBaryDerivative.cpp -o CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugBaryDerivative.cpp -o CMakeFiles/mainDebugBaryDerivative.dir/Main/DebugSimulator/mainDebugBaryDerivative.cpp.s
 
 # Object files for target mainDebugBaryDerivative
 mainDebugBaryDerivative_OBJECTS = \
@@ -114,7 +114,7 @@ mainDebugBaryDerivative: /usr/lib/x86_64-linux-gnu/libICE.so
 mainDebugBaryDerivative: /usr/lib/x86_64-linux-gnu/libX11.so
 mainDebugBaryDerivative: /usr/lib/x86_64-linux-gnu/libXext.so
 mainDebugBaryDerivative: CMakeFiles/mainDebugBaryDerivative.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable mainDebugBaryDerivative"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable mainDebugBaryDerivative"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/mainDebugBaryDerivative.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -126,6 +126,6 @@ CMakeFiles/mainDebugBaryDerivative.dir/clean:
 .PHONY : CMakeFiles/mainDebugBaryDerivative.dir/clean
 
 CMakeFiles/mainDebugBaryDerivative.dir/depend:
-	cd /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles/mainDebugBaryDerivative.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/yxh/Robot_Differentiable_Rigid_Simulation/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/yxh/Robot_Differentiable_Rigid_Simulation /home/yxh/Robot_Differentiable_Rigid_Simulation /home/yxh/Robot_Differentiable_Rigid_Simulation/build /home/yxh/Robot_Differentiable_Rigid_Simulation/build /home/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles/mainDebugBaryDerivative.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/mainDebugBaryDerivative.dir/depend
 

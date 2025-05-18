@@ -68,6 +68,7 @@ class CCBarrierMeshFrictionEnergy : public CCBarrierMeshEnergy<T,PFunc,TH> {
   bool evalbackward(T *E,const ArticulatedBody* body,CollisionGradInfo<T>* grad);
   const std::vector<FrictionTerm>& terms() const;
   void setX(Vec4T x);
+  void setfri(T f);
  private:
   void computeDTGH(const FrictionTerm& term,const ArticulatedBody& body,CollisionGradInfo<T>& grad,const Vec3T& G,const Mat3T& H,MAll& m) const;
   void computeHBackward(const FrictionTerm& term,const ArticulatedBody& body,CollisionGradInfo<T>& grad,const Vec3T& G,const Mat3T& H,MAll& m) const;
@@ -75,7 +76,8 @@ class CCBarrierMeshFrictionEnergy : public CCBarrierMeshEnergy<T,PFunc,TH> {
   std::vector<FrictionTerm> _terms;
   const GJKPolytope<T>& _pl1;
   const GJKPolytope<T>& _pl2;
-  const T _dt,_eps,_fri;
+  const T _dt,_eps;
+  T _fri;
 };
 }
 #endif

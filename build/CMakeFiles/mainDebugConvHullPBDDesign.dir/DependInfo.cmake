@@ -8,12 +8,12 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugConvHullPBDDesign.cpp" "CMakeFiles/mainDebugConvHullPBDDesign.dir/Main/DebugSimulator/mainDebugConvHullPBDDesign.cpp.o" "gcc" "CMakeFiles/mainDebugConvHullPBDDesign.dir/Main/DebugSimulator/mainDebugConvHullPBDDesign.cpp.o.d"
+  "/home/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugConvHullPBDDesign.cpp" "CMakeFiles/mainDebugConvHullPBDDesign.dir/Main/DebugSimulator/mainDebugConvHullPBDDesign.cpp.o" "gcc" "CMakeFiles/mainDebugConvHullPBDDesign.dir/Main/DebugSimulator/mainDebugConvHullPBDDesign.cpp.o.d"
   )
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
-  "/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles/PhysicsMotion.dir/DependInfo.cmake"
+  "/home/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles/PhysicsMotion.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

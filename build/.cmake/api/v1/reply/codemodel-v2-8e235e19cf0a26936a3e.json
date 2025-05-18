@@ -1,0 +1,115 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Release-b9b5621c0eb1e41380d3.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.21"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					]
+				}
+			],
+			"name" : "Release",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "PhysicsMotion",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "PhysicsMotion::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-PhysicsMotion-Release-a247484958a219c7d8cf.json",
+					"name" : "PhysicsMotion",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainConvHullPBDTwoChain::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainConvHullPBDTwoChain-Release-5501e14350a830f31e89.json",
+					"name" : "mainConvHullPBDTwoChain",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainDebugBaryDerivative::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainDebugBaryDerivative-Release-958ec135555b7807db01.json",
+					"name" : "mainDebugBaryDerivative",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainDebugCC::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainDebugCC-Release-b4597f0a3e125f6870a8.json",
+					"name" : "mainDebugCC",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainDebugConvHullPBD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainDebugConvHullPBD-Release-997d494b0749760d770d.json",
+					"name" : "mainDebugConvHullPBD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainDebugConvHullPBDDesign::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainDebugConvHullPBDDesign-Release-2ed77554856ee23eb615.json",
+					"name" : "mainDebugConvHullPBDDesign",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "mainDebugJacobianDeriv::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-mainDebugJacobianDeriv-Release-77eb382d491b39d42d78.json",
+					"name" : "mainDebugJacobianDeriv",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/yxh/Robot_Differentiable_Rigid_Simulation/build",
+		"source" : "/home/yxh/Robot_Differentiable_Rigid_Simulation"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

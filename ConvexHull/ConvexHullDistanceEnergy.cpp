@@ -136,10 +136,10 @@ bool CCBarrierEnergy<T,PFunc,TH>::evalLRI(T* E,const ArticulatedBody* body,Colli
   Mat4TH H2;
   _x=x;
   if(_implicit) {
-    //if(!initialize(NULL,body)) {
+    if(!initialize(NULL,body)) {
       //std::cout<<"Cannot initialize"<<std::endl;
-    //  return false;
-    //}
+      return false;
+    }
     //optimize
     if(!optimize(_x,E2,G2,H2)) {
       std::cout<<"Cannot optimize"<<std::endl;

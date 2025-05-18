@@ -1,12 +1,12 @@
 CMakeFiles/PhysicsMotion.dir/Environment/EnvironmentVisualizer.cpp.o: \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EnvironmentVisualizer.cpp \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EnvironmentVisualizer.cpp \
  /usr/include/stdc-predef.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EnvironmentVisualizer.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/Environment.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BBoxExact.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ShapeExact.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BVHNode.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EnvironmentUtils.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EnvironmentVisualizer.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/Environment.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BBoxExact.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ShapeExact.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/BVHNode.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/EnvironmentUtils.h \
  /usr/include/eigen3/Eigen/Dense /usr/include/eigen3/Eigen/Core \
  /usr/include/eigen3/Eigen/src/Core/util/DisableStupidWarnings.h \
  /usr/include/eigen3/Eigen/src/Core/util/Macros.h \
@@ -425,8 +425,8 @@ CMakeFiles/PhysicsMotion.dir/Environment/EnvironmentVisualizer.cpp.o: \
  /usr/include/c++/11/bits/shared_ptr_atomic.h \
  /usr/include/c++/11/backward/auto_ptr.h \
  /usr/include/c++/11/pstl/glue_memory_defs.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Serializable.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Epsilon.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Serializable.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Epsilon.h \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/float.h \
  /usr/include/boost/multiprecision/gmp.hpp \
  /usr/include/boost/multiprecision/number.hpp \
@@ -1077,20 +1077,20 @@ CMakeFiles/PhysicsMotion.dir/Environment/EnvironmentVisualizer.cpp.o: \
  /usr/include/boost/smart_ptr/detail/operator_bool.hpp \
  /usr/include/boost/functional/hash.hpp \
  /usr/lib/gcc/x86_64-linux-gnu/11/include/quadmath.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
  /usr/include/c++/11/unordered_set \
  /usr/include/c++/11/bits/unordered_set.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/MeshExact.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/TriangleExact.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ContactGenerator.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedBody.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/Joint.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ShapeExact.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/SparseUtils.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/DebugGradient.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/ParallelVector.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Zero.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/MeshExact.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/TriangleExact.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ContactGenerator.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/ArticulatedBody.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Articulated/Joint.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/ShapeExact.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/SparseUtils.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Pragma.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/DebugGradient.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/ParallelVector.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Zero.h \
  /usr/include/eigen3/Eigen/Sparse /usr/include/eigen3/Eigen/SparseCore \
  /usr/include/eigen3/Eigen/src/SparseCore/SparseUtil.h \
  /usr/include/eigen3/Eigen/src/SparseCore/SparseMatrixBase.h \
@@ -1163,13 +1163,13 @@ CMakeFiles/PhysicsMotion.dir/Environment/EnvironmentVisualizer.cpp.o: \
  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h \
  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h \
  /usr/include/eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/IO.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Serializable.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/IO.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Serializable.h \
  /usr/include/c++/11/fstream \
  /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
  /usr/include/c++/11/bits/fstream.tcc \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/MeshExact.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/MeshExact.h \
  /usr/include/tinyxml2.h /usr/local/include/TinyVisualizer/Drawer.h \
  /usr/local/include/TinyVisualizer/Background.h \
  /usr/local/include/TinyVisualizer/DrawerUtility.h \
@@ -1187,9 +1187,9 @@ CMakeFiles/PhysicsMotion.dir/Environment/EnvironmentVisualizer.cpp.o: \
  /usr/local/include/TinyVisualizer/MeshShape.h \
  /usr/local/include/TinyVisualizer/Bullet3DShape.h \
  /usr/local/include/TinyVisualizer/CompositeShape.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/PointCloudExact.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/SphericalBBoxExact.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Environment/CompositeShapeExact.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/PointCloudExact.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/SphericalBBoxExact.h \
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Environment/CompositeShapeExact.h \
  /usr/local/include/TinyVisualizer/MakeMesh.h \
  /usr/local/include/TinyVisualizer/MakeTexture.h \
- /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Epsilon.h
+ /home/yxh/Robot_Differentiable_Rigid_Simulation/Utils/Epsilon.h

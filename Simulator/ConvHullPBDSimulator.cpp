@@ -186,7 +186,7 @@ void ConvHullPBDSimulator::step() {
   detectLastContact();
   //ASSERT_MSG(detectLastContact(),"Penetrating initial guess!")
   //normal solve
-  T nu=2,alphaMax=1e20,alphaMin=1e-6f;
+  T nu=2,alphaMax=1e20,alphaMin=1e-12f;
   T e=energy(newPos,&DE),e2=0,rho=0;
   mask(NULL,&DE,&(newPos._HTheta));
   for(int iter=0; iter<_maxIt;) {
@@ -472,11 +472,39 @@ void ConvHullPBDSimulator::debugEnergy(T scale,const T* customDelta) {
     _pos.reset(*_body,setKinematic(Vec::Random(_body->nrDOF())*scale,_t));
     _lastPos.reset(*_body,setKinematic(Vec::Random(_body->nrDOF())*scale,_t));
     newPos.reset(*_body,setKinematic(Vec::Random(_body->nrDOF())*scale,_t));
+    Vec dx=Vec::Random(_body->nrDOF());
+    Vec p=Vec::Random(_body->nrDOF()),lp=Vec::Random(_body->nrDOF());
+    MatT H;
+    H.setZero(_body->nrDOF(),_body->nrDOF());
+    {
+      std::ifstream is("Hessian.dat",std::ios::binary);
+      readBinaryData(H,is);
+    }
+    {
+      std::ifstream is("pos.dat",std::ios::binary);
+      readBinaryData(p,is);
+    }
+    {
+        std::ifstream is1("dx.dat",std::ios::binary);
+        readBinaryData(dx,is1);
+    }
+    {
+      std::ifstream is("lastpos.dat",std::ios::binary);
+      readBinaryData(lp,is);
+    }
+
+    newPos.reset(*_body,p);
+    _pos.reset(*_body,p);
+    _lastPos.reset(*_body,lp);
+
     pos=_pos;
     lastPos=_lastPos;
     
-    if(!detectLastContact())
+    if(!detectLastContact()){
+      std::cout<<"#";
       continue;
+    }
+      
     pos.reset(*_body,_pos._info._xM);
     int nrJ=_body->nrJ();
 
@@ -498,19 +526,24 @@ void ConvHullPBDSimulator::debugEnergy(T scale,const T* customDelta) {
       p._kp=rand()/(T)RAND_MAX;
       p._kd=rand()/(T)RAND_MAX;
     }
-    Vec DE,DE2,dx=Vec::Random(_body->nrDOF()),dc,X,design=_design;
-    setPD(P,D);
-
+    Vec DE,DE2,dc,X,design=_design;
+    //setPD(P,D);
+    
     //debug DE/DDE
     T e=energy(newPos,&DE);
+    dx=DE;
+    std::cout<<newPos._HTheta.norm()<<std::endl;
     mask(NULL,&DE,NULL);
-    backward(newPos,true);
+    //backward(newPos,true);
     newPos2.reset(*_body,setKinematic(newPos._info._xM+dx*DELTA,_t));
     T e2=energy(newPos2,&DE2);
     mask(NULL,&DE2,&(newPos._HTheta));
+    std::cout<<DE.cwiseAbs().maxCoeff()<<std::endl;
+    std::cout<<DE.transpose()<<std::endl;
+    std::cout<<dx.transpose()<<std::endl;
     DEBUG_GRADIENT("DE",DE.dot(dx),DE.dot(dx)-(e2-e)/DELTA)
     DEBUG_GRADIENT("DDE",(newPos._HTheta*dx).norm(),(newPos._HTheta*dx-(DE2-DE)/DELTA).norm())
-
+    //DEBUG_GRADIENT("Hessian",(newPos._HTheta*dx).norm(),(newPos._HTheta*dx-H*dx).norm())
     //debug DDE-L
     _pos.reset(*_body,setKinematic(pos._info._xM+dx*DELTA,_t));
     _lastPos=lastPos;
@@ -786,6 +819,27 @@ void ConvHullPBDSimulator::update(const GradInfo& newPos,GradInfo& newPos2,Vec& 
   //update
   D=-_sol->solve(MatT(DE));
   newPos2.reset(*_body,newPos._info._xM+D);
+  Vec Pos=newPos._info._xM;
+  Vec lastPos=_lastPos._info._xM;
+  if(_alpha>1e6){
+    {
+      std::ofstream os("Hessian.dat",std::ios::binary);
+      writeBinaryData(DDE,os);
+    }
+    {
+    std::ofstream os("dx.dat",std::ios::binary);
+    writeBinaryData(D,os);
+  }
+  {
+    std::ofstream os1("pos.dat",std::ios::binary);
+    writeBinaryData(Pos,os1);
+  }
+  {
+    std::ofstream os1("lastpos.dat",std::ios::binary);
+    writeBinaryData(lastPos,os1);
+  }
+  exit(0);
+  }
 }
 ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(GradInfo& grad,Vec* DE) {
   T E=0;
@@ -808,7 +862,7 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(GradInfo& grad,Vec* DE) {
   grad._centre.resize(nrJ);
   //contact
   E+=normalEnergy(grad,DE);
-  E+=tangentEnergy(grad,DE);
+  //E+=tangentEnergy(grad,DE);
   for(int k=0; k<nrJ; k++) {
     const Joint& J=_body->joint(k);
     nrD=J.nrDOF();
@@ -832,7 +886,7 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(GradInfo& grad,Vec* DE) {
                       k,0,J._M,P,PPT,
                       DE?&(grad._DTG):NULL,_MRR,_MRt,_MtR,_Mtt);
     //PD controller
-    E+=energyPDController(mapV2CV(grad._info._xM),mapV2CV(_pos._info._xM),k,J,nrD,DE,&(grad._HTheta));
+    //E+=energyPDController(mapV2CV(grad._info._xM),mapV2CV(_pos._info._xM),k,J,nrD,DE,&(grad._HTheta));
     //joint limit
     /*if(_hardLimit) {
       if(!JointLimit::energy(mapV2CV(grad._info._xM),J,nrD,E,DE,&(grad._HTheta),_barrier))
@@ -842,8 +896,8 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(GradInfo& grad,Vec* DE) {
   if(!isfinite(E))
     return E;
   //joints
-  for(const auto& joint:_joints)
-    E+=joint.energy(*_body,grad._info,DE,grad._HTheta,grad._DTG,_MRR,_MRt,_MtR,_Mtt,true);
+  //for(const auto& joint:_joints)
+  //  E+=joint.energy(*_body,grad._info,DE,grad._HTheta,grad._DTG,_MRR,_MRt,_MtR,_Mtt,true);
   if(DE) {
     //gradient
     grad._info.DTG(*_body,mapM(GB=grad._DTG),mapV(*DE));
@@ -853,8 +907,8 @@ ConvHullPBDSimulator::T ConvHullPBDSimulator::energy(GradInfo& grad,Vec* DE) {
     });
   }
   //custom PBD energy
-  if(_custom)
-    E+=_custom->energy(grad,_pos,_lastPos,_dt,DE);
+  //if(_custom)
+  //  E+=_custom->energy(grad,_pos,_lastPos,_dt,DE);
   return E;
 }
 ConvHullPBDSimulator::T ConvHullPBDSimulator::normalEnergy(GradInfo& grad,Vec* DE,bool backward) {

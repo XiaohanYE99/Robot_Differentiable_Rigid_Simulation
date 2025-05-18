@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation
+CMAKE_SOURCE_DIR = /home/yxh/Robot_Differentiable_Rigid_Simulation
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build
+CMAKE_BINARY_DIR = /home/yxh/Robot_Differentiable_Rigid_Simulation/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/mainDebugJacobianDeriv.dir/depend.make
@@ -72,16 +72,16 @@ include CMakeFiles/mainDebugJacobianDeriv.dir/flags.make
 CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o: CMakeFiles/mainDebugJacobianDeriv.dir/flags.make
 CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o: ../Main/DebugSimulator/mainDebugJacobianDeriv.cpp
 CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o: CMakeFiles/mainDebugJacobianDeriv.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o -MF CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o.d -o CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o -c /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugJacobianDeriv.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o -MF CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o.d -o CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.o -c /home/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugJacobianDeriv.cpp
 
 CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugJacobianDeriv.cpp > CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugJacobianDeriv.cpp > CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.i
 
 CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugJacobianDeriv.cpp -o CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/yxh/Robot_Differentiable_Rigid_Simulation/Main/DebugSimulator/mainDebugJacobianDeriv.cpp -o CMakeFiles/mainDebugJacobianDeriv.dir/Main/DebugSimulator/mainDebugJacobianDeriv.cpp.s
 
 # Object files for target mainDebugJacobianDeriv
 mainDebugJacobianDeriv_OBJECTS = \
@@ -114,7 +114,7 @@ mainDebugJacobianDeriv: /usr/lib/x86_64-linux-gnu/libICE.so
 mainDebugJacobianDeriv: /usr/lib/x86_64-linux-gnu/libX11.so
 mainDebugJacobianDeriv: /usr/lib/x86_64-linux-gnu/libXext.so
 mainDebugJacobianDeriv: CMakeFiles/mainDebugJacobianDeriv.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable mainDebugJacobianDeriv"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable mainDebugJacobianDeriv"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/mainDebugJacobianDeriv.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -126,6 +126,6 @@ CMakeFiles/mainDebugJacobianDeriv.dir/clean:
 .PHONY : CMakeFiles/mainDebugJacobianDeriv.dir/clean
 
 CMakeFiles/mainDebugJacobianDeriv.dir/depend:
-	cd /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build /home/yxh/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles/mainDebugJacobianDeriv.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/yxh/Robot_Differentiable_Rigid_Simulation/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/yxh/Robot_Differentiable_Rigid_Simulation /home/yxh/Robot_Differentiable_Rigid_Simulation /home/yxh/Robot_Differentiable_Rigid_Simulation/build /home/yxh/Robot_Differentiable_Rigid_Simulation/build /home/yxh/Robot_Differentiable_Rigid_Simulation/build/CMakeFiles/mainDebugJacobianDeriv.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/mainDebugJacobianDeriv.dir/depend
 

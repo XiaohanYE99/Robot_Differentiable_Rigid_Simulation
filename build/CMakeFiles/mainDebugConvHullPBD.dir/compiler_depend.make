@@ -1337,8 +1337,15 @@ CMakeFiles/mainDebugConvHullPBD.dir/Main/DebugSimulator/mainDebugConvHullPBD.cpp
   ../Utils/Utils.h \
   ../Environment/BBoxExact.h \
   ../ConvexHull/ConvexHullDistanceFrictionEnergy.h \
-  ../ConvexHull/ConvexHullDistanceConvexEnergy.h
+  ../ConvexHull/ConvexHullDistanceConvexEnergy.h \
+  ../Simulator/MeshBasedPBDSimulator.h \
+  ../Simulator/ConvHullPBDSimulator.h \
+  ../ConvexHull/ConvexHullMeshDistanceFrictionEnergy.h \
+  ../ConvexHull/ConvexHullMeshDistanceEnergy.h \
+  ../ConvexHull/ConvexHullDistanceFrictionEnergy.h
 
+
+../ConvexHull/ConvexHullMeshDistanceFrictionEnergy.h:
 
 ../ConvexHull/ConvexHullDistanceFrictionEnergy.h:
 
@@ -1757,6 +1764,8 @@ CMakeFiles/mainDebugConvHullPBD.dir/Main/DebugSimulator/mainDebugConvHullPBD.cpp
 /usr/local/include/TinyVisualizer/Povray.h:
 
 /usr/include/eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h:
+
+../ConvexHull/ConvexHullMeshDistanceEnergy.h:
 
 /usr/include/eigen3/Eigen/src/LU/arch/InverseSize4.h:
 
@@ -3709,6 +3718,8 @@ CMakeFiles/mainDebugConvHullPBD.dir/Main/DebugSimulator/mainDebugConvHullPBD.cpp
 /usr/include/boost/core/noncopyable.hpp:
 
 /usr/include/boost/mpl/aux_/at_impl.hpp:
+
+../Simulator/MeshBasedPBDSimulator.h:
 
 /usr/include/boost/mpl/empty_fwd.hpp:
 

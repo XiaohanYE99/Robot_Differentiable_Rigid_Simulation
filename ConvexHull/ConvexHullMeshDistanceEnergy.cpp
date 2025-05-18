@@ -131,7 +131,7 @@ void CCBarrierMeshEnergy<T,PFunc,TH>::debugGradient(const GJKPolytope<T>& p,cons
       break;
     }
 }
-template <typename T,typename PFunc,typename TH>
+/*template <typename T,typename PFunc,typename TH>
 void CCBarrierMeshEnergy<T,PFunc,TH>::debugGradient(const ArticulatedBody& body,int JID,int JID2,T x0,T d0,bool output) {
   T E,E2,E3,coef;
   MatT HTheta;
@@ -181,6 +181,109 @@ void CCBarrierMeshEnergy<T,PFunc,TH>::debugGradient(const ArticulatedBody& body,
       continue;
     DEBUG_GRADIENT("dE",GTheta.dot(dx),GTheta.dot(dx)-(E2-E)/DELTA)
     DEBUG_GRADIENT("dG",(HTheta*dx).norm(),(HTheta*dx-(GTheta2-GTheta)/DELTA).norm())
+    break;
+  }
+}*/
+template <typename T,typename PFunc,typename TH>
+void CCBarrierMeshEnergy<T,PFunc,TH>::debugGradient(const ArticulatedBody& body,int JID,int JID2,T x0,T d0,bool output) {
+  T E,E2,E3,coef;
+  MatT HTheta;
+  PFunc barrier;
+  Vec GTheta,GTheta2;
+  GJKPolytope<T> p,p2;
+  CollisionGradInfo<T> info,info2;
+  barrier._x0=100;
+  //DEFINE_NUMERIC_DELTA_T(T)
+  std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(body.joint(JID)._mesh);
+  std::shared_ptr<MeshExact> local2=std::dynamic_pointer_cast<MeshExact>(body.joint(JID2)._mesh);
+  while(true) {
+    coef=1e-10;//rand()/(T)RAND_MAX;
+    Vec x,dx;
+    x.setZero(12);
+    /*x[0]=1.49672087e+00;
+    x[1]=5.03350648e-01;
+    x[2]=-1.47205678e-01;
+    x[3]=1.58870264+0;
+    x[4]=9.14689821e-03;
+    x[5]=1.90744384e-02;
+    x[6]=1.74295909e+0;
+    x[7]=1.67147605e-01;
+    x[8]=1.69666133e-01;
+    x[9]=1.57076642e+00;
+    x[10]=4.02036761e-05;
+    x[11]=3.94697528e-01;*/
+    x[0]=1.44468235;
+    x[1]=0.45520312;
+    x[2]=-0.14815516;
+    x[3]=1.51494954;
+    x[4]=0.03536977;
+    x[5]=-0.33706095;
+    x[6]=1.74049476;
+    x[7]=0.16173514;
+    x[8]=-0.07856184;
+    x[9]=1.57002575;
+    x[10]=0.00222843;
+    x[11]=0.45259831;
+    /*x[0]=1.38986822;
+    x[1]=0.42652917;
+    x[2]=-0.14815935;
+    x[3]=1.51728559;
+    x[4]=0.03234518;
+    x[5]=-0.35279355;
+    x[6]=1.70305556;
+    x[7]=0.12299526;
+    x[8]=-0.07876093;
+    x[9]=1.56989732;
+    x[10]=0.00246981;
+    x[11]=0.48944889;*/
+    //Vec dx=Vec::Random(body.nrDOF());
+    {
+      std::ifstream is("pos.dat",std::ios::binary);
+      readBinaryData(x,is);
+    }
+    {
+        std::ifstream is1("dx.dat",std::ios::binary);
+        readBinaryData(dx,is1);
+    }
+    //evaluate energy/gradient
+    Vec4T u,u2;
+    u.setZero();
+    u2.setZero();
+    info.reset(body,x);
+    p=GJKPolytope<T>(JID,body,info);
+    p2=GJKPolytope<T>(JID2,body,info);
+    //p.writeVTK("poly1.vtk",&body);
+    //p2.writeVTK("poly2.vtk",&body);
+    CCBarrierMeshEnergy<T,PFunc,TH> e(p,p2,barrier,d0,&info,coef);
+    e.setOutput(output);
+    e._useBVH=true;
+    if(!e.eval(&E,&body,&info,NULL,&GTheta,&HTheta)){
+      std::cout<<"#";
+      continue;
+    }
+      
+    if(E==0)
+      continue;
+    //E2
+    /*e._useBVH=false;
+    e.eval(&E2,&body,&info,NULL,NULL,NULL);
+    DEBUG_GRADIENT("ERef",E,E-E2)
+    //E2
+    e._useBVH=true;
+    e.eval(&E3,&body,&info,NULL,NULL,NULL);
+    DEBUG_GRADIENT("ERef2",E,E-E3)*/
+    //evaluate again
+    info2.reset(body,x+dx);
+    T DELTA=1.0;
+    p=GJKPolytope<T>(JID,body,info2);
+    p2=GJKPolytope<T>(JID2,body,info2);
+    CCBarrierMeshEnergy<T,PFunc,TH> e2(p,p2,barrier,d0,&info2,coef);
+    e2.setOutput(output);
+    if(!e2.eval(&E2,&body,&info2,NULL,&GTheta2,NULL,NULL))
+      continue;
+    DEBUG_GRADIENT("dE",GTheta.dot(dx),GTheta.dot(dx)-(E2-E)/DELTA)
+    DEBUG_GRADIENT("dG",(HTheta*dx).norm(),(HTheta*dx-(GTheta2-GTheta)/DELTA).norm())
+    std::cout<<HTheta.norm()<<std::endl;
     break;
   }
 }
@@ -315,6 +418,7 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::evalBsh(std::shared_ptr<MeshExact> c1,std:
   //T P1=0,P2=0,P=0;
   int id1=bvh1.size()-1;
   int id2=bvh2.size()-1;
+
   ComputePotential(c1,c2,id1,id2,E,&DTG1,&DTG2,m,g,grad,*body,ml,&flag);
   if(!flag) return false;
   if(body && grad) {
@@ -359,6 +463,7 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact
   T d2=(1.0+_ep)*d1;
   //T d=deltax.norm()+_d0;
   T dist=(deltax.norm()-d1)/(d2-d1);
+  //dist=0;
   T alpha=12*_coef;//*bvh1[id1]._num*bvh2[id2]._num;
   T Q=sqrt(deltax.norm());//-_d0;
   T phi=0,dphi=0,ddphi=0;
@@ -530,7 +635,7 @@ bool CCBarrierMeshEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<MeshExact
       parallelAdd<T,3,4>(*DTG2,0,0,(1-phi)*subDTG2);
       parallelAdd<T,3,4>(*DTG1,0,0,subP*computeDTG<T>(-dphi*deltax/((d2-d1)*deltax.norm()),vl1));
       parallelAdd<T,3,4>(*DTG2,0,0,subP*computeDTG<T>(dphi*deltax/((d2-d1)*deltax.norm()),vl2));
-      addGAll(g,subg,1-phi);
+      addGAll(g,subg,1-phi);      
       contractGAll(g,Rxi,Rxj,subP*-dphi*deltax/((d2-d1)*deltax.norm()));
       DDPhi=-(ddphi*(deltax/deltax.norm())*(deltax/deltax.norm()).transpose()/(pow(d2-d1,2))+dphi*(Mat3T::Identity()/deltax.norm()-deltax*deltax.transpose()/pow(deltax.norm(),3))/(d2-d1));
       h=DDPhi*subP;

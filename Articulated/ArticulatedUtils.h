@@ -33,12 +33,14 @@ class ArticulatedUtils {
   Vec simplify(std::function<bool(int,const Joint&)> canSimplify,const Vec& DOF,int nrDebug);
   Vec simplify(const Vec& DOF,int nrDebug);
   Vec replaceJoint(const Vec& DOF,int jid,Mat3XT axes);
+  void resetMesh(const std::string& path,int k,T sz);
   void initMesh(int k,int sz);
   void convexDecompose(T rho=1);
   void convexDecompose(std::vector<int> jid, int maxConvexHulls, T rho=1);
   void addBody(ArticulatedBody& body);
   //mesh operation
-  void tessellate(bool rebuildBVH=false);
+  void tessellate(bool rebuildBVH=false,int refine=0);
+  void untessellate(bool rebuildBVH=false,int refine=0);
   void BBApproxiate(bool rebuildBVH=false);
   void makeConvex();
   //rigid transformation

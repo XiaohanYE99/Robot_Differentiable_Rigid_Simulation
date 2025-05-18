@@ -2,53 +2,81 @@
 #include <Articulated/ArticulatedLoader.h>
 #include <Simulator/SimulatorVisualizer.h>
 #include <Simulator/ConvHullPBDSimulator.h>
-
+#include <Simulator/MeshBasedPBDSimulator.h>
+#include <chrono>
 using namespace PHYSICSMOTION;
 
 int main(int argc,char** argv) {
-  typedef FLOAT T;
   DECL_MAT_VEC_MAP_TYPES_T
-  //create body
-  tinyxml2::XMLDocument pt;
-  pt.InsertEndChild(pt.NewElement("root"));
-  ArticulatedBody::T footLen=0.2f*sqrt(2.0f)+0.16f;
-  ArticulatedLoader::createSpider(*(pt.RootElement()),Joint::TRANS_3D|Joint::HINGE_JOINT,0.2f,footLen,0.08f,D2R(10),D2R(60),D2R(60),true);
+  std::vector<Eigen::Matrix<double, 3, 1>> shape;
+  shape.push_back(Eigen::Matrix<double, 3, 1>(.3,.3,.3));
+  shape.push_back(Eigen::Matrix<double, 3, 1>(.1,.1,.8));
+  std::shared_ptr<ArticulatedBody> body(new ArticulatedBody(ArticulatedLoader::createPushTask(shape,true)));
   //ArticulatedLoader::createChain(*(pt.RootElement()),Joint::TRANS_2D|Joint::ROT_3D_EXP,3,0.8f,.1f,D2R(90),D2R(0),D2R(0),0,3,0,0,0);
-  //std::shared_ptr<ShapeExact> floor(new BBoxExact(BBoxExact::Vec3T(-5,-5,-5),BBoxExact::Vec3T(5,5,-1.0)));
-  std::shared_ptr<ShapeExact> floor(new BBoxExact(BBoxExact::Vec3T(-15,0.62,-5),BBoxExact::Vec3T(5,5,5)));
-
-  std::shared_ptr<ArticulatedBody> body(new ArticulatedBody);
-
-  ArticulatedUtils utils(*body);
-
-  utils.assemble(*(pt.RootElement()));
-  std::vector<int> JointId={3,5};
-  utils.convexDecompose(JointId,8);
+  std::shared_ptr<ShapeExact> floor(new BBoxExact(BBoxExact::Vec3T(-30,-30,-200),BBoxExact::Vec3T(20,20,-.08)));
+  //std::shared_ptr<ShapeExact> floor(new BBoxExact(BBoxExact::Vec3T(-15,0.62,-5),BBoxExact::Vec3T(5,5,5)));
   //simulator
-  ConvHullPBDSimulator sim(0.01f);//0.01
+  //ConvHullPBDSimulator sim(0.01f);//0.01
+  MeshBasedPBDSimulator sim(0.02f);
   //PBDSimulator sim(0.01f);
+  sim.setfri(.4);
   sim.setOutput(true);
   sim.setArticulatedBody(body);
   sim.addShape(floor);
-  sim.setGravity(ConvHullPBDSimulator::Vec3T(0,9.81f,0));
+  sim.setGravity(ConvHullPBDSimulator::Vec3T(0,0,-9.81));
+
+    Vec x;
+    x.setZero(12);
+    /*x[0]=1.49672087e+00;
+    x[1]=5.03350648e-01;
+    x[2]=-1.47205678e-01;
+    x[3]=1.58870264+0;
+    x[4]=9.14689821e-03;
+    x[5]=1.90744384e-02;
+    x[6]=1.74295909e+0;
+    x[7]=1.67147605e-01;
+    x[8]=1.69666133e-01;
+    x[9]=1.57076642e+00;
+    x[10]=4.02036761e-05;
+    x[11]=3.94697528e-01;*/
+    x[0]=1.5;
+    x[1]=0.5;
+    x[2]=0.08;
+    x[3]=1.58870264+0;
+    x[4]=9.14689821e-03;
+    x[5]=1.90744384e-02;
+    x[6]=2.2;
+    x[7]=.6;
+    x[8]=.25;
+    x[9]=1.57079633;
+  sim.resetWithPos(x);
+  Vec v;
+  v.setZero(12);
+  v[6]=-6;
+  sim.setVel(v);
   //PD controller
-  for(int k=1; k<body->nrJ(); k++) {
+  /*for(int k=0; k<body->nrJ(); k++) {
     //control
     Joint& J=body->joint(k);
     J._control.setOnes(J.nrDOF());
-    std::cout<<k<<" "<<J.nrDOF()<<" "<<J._class<<std::endl;
-    //param
-    auto& param=sim.getJointPhysicsParameter(k);
-    param._kp=1e1;
-    param._kd=1e0;
-    param._tarP=[&](T time,int)->Vec {
-      return Vec::Ones(J.nrDOF())*((sin(time*10))*.2f);
-    };
-    param._tarD=[&](T time,int)->Vec {
-      return Vec::Ones(J.nrDOF())*((cos(time*10))*2.f);
-    };
-  }
+    std::shared_ptr<MeshExact> local=std::dynamic_pointer_cast<MeshExact>(J._mesh);
+    if(local) std::cout<<k<<" "<<J.nrDOF()<<" "<<local->iss().size()<<std::endl;
+  }*/
   //run app
   visualizeSimulator(argc,argv,sim);
+  /*auto start = std::chrono::high_resolution_clock::now();
+  std::vector<Vec> traj;
+  traj.resize(1);
+  for(int i=0;i<1;i++) {
+    std::cout<<i<<std::endl;
+    traj.at(i)=sim.pos();
+    //sim.step();
+    
+  }
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed_time = end - start;
+  std::cout << "Elapsed time: " << elapsed_time.count() << " seconds" << std::endl;
+  int frame=0;
+  render.visualize(sim,&traj,&frame,1);*/
   return 0;
 }

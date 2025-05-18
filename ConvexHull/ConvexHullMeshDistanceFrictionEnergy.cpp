@@ -300,6 +300,7 @@ bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<M
   T d2=(1.0+_ep)*d1;
   //T d=deltax.norm()+_d0;
   T dist=(deltax.norm()-d1)/(d2-d1);
+  //dist=0;
   T phi=0,dphi=0,ddphi=0;
   Vec3T DQ;
   Mat3T h,DDP,DDPhi;
@@ -322,6 +323,7 @@ bool CCBarrierMeshFrictionEnergy<T,PFunc,TH>::ComputePotential(std::shared_ptr<M
     ddphi=120*pow(dist,3)-180*pow(dist,2)+60*dist;
   }
   CCBarrierFrictionEnergy<T,PFunc> cf(_p1,_p2,_pl1,_pl2,_x.template cast<T>(),_p,_d0,_grad,_coef,_dt);
+  cf.fri()=_fri;
   T val=0;
   clearMAll(subm);
   clearGAll(subg);
@@ -499,6 +501,10 @@ void CCBarrierMeshFrictionEnergy<T,PFunc,TH>::computeHBackward(const FrictionTer
 template <typename T,typename PFunc,typename TH>
 void CCBarrierMeshFrictionEnergy<T,PFunc,TH>::setX(Vec4T x) {
   _x=Vec4TH((TH)x[0],(TH)x[1],(TH)x[2],(TH)x[3]);
+}
+template <typename T,typename PFunc,typename TH>
+void CCBarrierMeshFrictionEnergy<T,PFunc,TH>::setfri(T f) {
+  _fri=f;
 }
 //instance
 template class CCBarrierMeshFrictionEnergy<FLOAT,Px>;

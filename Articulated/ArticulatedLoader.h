@@ -47,18 +47,23 @@ class ArticulatedLoader {
   static tinyxml2::XMLElement* createGrasper(tinyxml2::XMLElement& pt,T armRad);
   static tinyxml2::XMLElement* createSpider(tinyxml2::XMLElement& pt,int rootType,T bodySz,T footLen,T footRad,T angLegLift,T rangeLeg1,T rangeLeg2,bool ball);
   static tinyxml2::XMLElement* createArm(tinyxml2::XMLElement& pt,T armLen,T armRad);
-  static tinyxml2::XMLElement* createBall(tinyxml2::XMLElement& pt,int rootType,T Rad);
+  static tinyxml2::XMLElement* createBall(tinyxml2::XMLElement& pt,int rootType,T Rad,Vec3T trans=Vec3T(0,0,0));
   static tinyxml2::XMLElement* createBox(tinyxml2::XMLElement& pt,T x,T y,T z,T rad);
+  static tinyxml2::XMLElement* createBox(tinyxml2::XMLElement& pt,int rootType,T x,T y,T z);
   static tinyxml2::XMLElement* createDummy(tinyxml2::XMLElement& pt);
+  static tinyxml2::XMLElement* createBall1(tinyxml2::XMLElement& pt,int rootType,int nr,T l,T rad,T rot,T rot0,T t,T t0,int geomDim,T yOff,T ratioX,T ratioZ);
   //build-in bodies as ArticulatedBody
   static ArticulatedBody createInitJoints(int convexhulls,int sz);
   static ArticulatedBody createBird(int root,T bodySz=0.25f,T bodyLen=0.5f,T neckSz=0.1f,T neckLen=0.6f,T footLen1=0.3f,T footLen2=0.4f,T footLen3=0.45f,T footRad1=0.12f,T footRad2=0.1f,T footRad3=0.2f,bool fixFoot=false,bool head=false);
   static ArticulatedBody createBipedal(int root,T bodySz=0.25f,T bodyLen=0.5f,T footLen1=0.4f,T footLen2=0.4f,T footLen3=0.3f,T footRad1=0.12f,T footRad2=0.1f,T footRad3=0.15f,bool fixFoot=true,bool withHand=false,T handLen1=0.4f,T handLen2=0.4f,T handRad1=0.1f,T handRad2=0.1f);
   static ArticulatedBody createChain(int root,int nr,T l=0.5f,T rad=0.1f,T rot=D2R(360),T rot0=0,T t=0,T t0=0,int geomDim=3,T yOff=0,T ratioX=1,T ratioZ=1);
   static ArticulatedBody createGrasper(T armRad);
-  static ArticulatedBody createSpider(int root,T bodySz=0.2f,T footLen=0.2f*sqrt(2.0f)+0.16f,T footRad=0.08f,T angLegLift=D2R(10),T rangeLeg1=D2R(45),T rangeLeg2=D2R(60),bool ball=true);
+  static ArticulatedBody createSpiderTask(std::vector<Vec3T> shape);
   static ArticulatedBody createArm(T armLen,T armRad);
   static ArticulatedBody createBall(int rootType,T Rad);
+  static ArticulatedBody createTableballTask(T rad,std::string path);
+  static ArticulatedBody createPushTask(std::vector<Eigen::Matrix<double,3,1>> Pos,bool load);
+  static ArticulatedBody createOrientationTask();
   static ArticulatedBody createBox(T x,T y,T z,T rad);
   static ArticulatedBody createDummy();
 };

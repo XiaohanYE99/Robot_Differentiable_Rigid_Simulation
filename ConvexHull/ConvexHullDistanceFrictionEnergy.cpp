@@ -6,7 +6,7 @@ namespace PHYSICSMOTION {
 //CCBarrierEnergy
 template <typename T,typename PFunc,typename TH>
 CCBarrierFrictionEnergy<T,PFunc,TH>::CCBarrierFrictionEnergy(const GJKPolytope<T>& p1,const GJKPolytope<T>& p2,const GJKPolytope<T>& pl1,const GJKPolytope<T>& pl2,const Vec4T& x,const PFunc& p,T d0,const CollisionGradInfo<T>* grad,T coef,T dt,bool implicit)
-  :CCBarrierEnergy<T,PFunc,TH>(p1,p2,p,d0,grad,coef,implicit),_pl1(pl1),_pl2(pl2),_dt(dt),_eps(1e-4),_fri(1.0) {
+  :CCBarrierEnergy<T,PFunc,TH>(p1,p2,p,d0,grad,coef,implicit),_pl1(pl1),_pl2(pl2),_dt(dt),_eps(1e-4),_fri(.01) {
   _x=Vec4TH((TH)x[0],(TH)x[1],(TH)x[2],(TH)x[3]);
 }
 template <typename T,typename PFunc,typename TH>

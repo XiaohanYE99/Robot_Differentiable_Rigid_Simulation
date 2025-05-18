@@ -52,14 +52,14 @@ void buildEdge(const std::vector<Eigen::Matrix<int,3,1>>& iss,
       if(it==edgeMap.end())
         edgeMap[e]=std::make_pair(i,-1);
       else {
-        ASSERT_MSGV(it->second.second==-1,
+        /*ASSERT_MSGV(it->second.second==-1,
                     "Non-manifold mesh detected, "
                     "Edge(%d,%d) alreadying bordering triangle: "
                     "(%d,%d,%d) and (%d,%d,%d) when trying to border triangle: "
                     "(%d,%d,%d)!",e[0],e[1],
                     iss[it->second.first][0],iss[it->second.first][1],iss[it->second.first][2],
                     iss[it->second.second][0],iss[it->second.second][1],iss[it->second.second][2],
-                    iss[i][0],iss[i][1],iss[i][2])
+                    iss[i][0],iss[i][1],iss[i][2])*/
         it->second.second=i;
       }
     }

@@ -74,6 +74,6 @@
                 "variant": "cpp"
         },
         "cmake.configureArgs": [
-                "-DFLOAT_PRECISION=double"
+                "-DFLOAT_PRECISION=float128"
         ]
 }
